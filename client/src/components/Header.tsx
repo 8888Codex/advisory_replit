@@ -8,7 +8,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/">
           <div className="hover-elevate active-elevate-2 px-3 py-2 rounded-lg -ml-3 cursor-pointer" data-testid="link-home">
-            <img src={logoImage} alt="θconselho" className="h-10 w-auto invert dark:invert-0" />
+            <img src={logoImage} alt="θconselho" className="h-14 w-auto invert dark:invert-0" />
           </div>
         </Link>
 
