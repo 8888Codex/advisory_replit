@@ -269,7 +269,8 @@ class EugeneSchwartzClone(ExpertCloneBase):
                 "sem research", "vamos testar", "guessing",
                 "mesma copy para todos", "one size fits all",
                 "ignorar awareness", "ignorar sophistication",
-                "claim direto em market saturado"
+                "claim direto em market saturado", "unawareness campaigns",
+                "pre-awareness advertising"
             ]
         }
     

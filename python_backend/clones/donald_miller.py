@@ -47,8 +47,8 @@ class DonaldMillerClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["clarity", "customer-centric", "hero's journey", "clear CTA", "transformation", "guide positioning", "empathy", "authority", "plan", "success vision", "problem identification"],
-            "negative_triggers": ["brand as hero", "confusing messaging", "no CTA", "feature dumping", "complexity", "jargon", "clever over clear", "no transformation", "talking about yourself"]
+            "positive_triggers": ["clarity", "customer-centric", "hero's journey", "clear CTA", "transformation", "guide positioning", "empathy", "authority", "plan", "success vision", "problem identification", "clear messaging", "customer transformation", "guide not hero", "messaging roadmap"],
+            "negative_triggers": ["brand as hero", "confusing messaging", "no CTA", "feature dumping", "complexity", "jargon", "clever over clear", "no transformation", "talking about yourself", "confusing message", "company-centric", "hero complex", "messaging clutter", "vague positioning", "jargon overload"]
         }
     
     def get_system_prompt(self):

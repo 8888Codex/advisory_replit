@@ -45,8 +45,8 @@ class AnnHandleyClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["quality", "usefulness", "empathy", "specificity", "authenticity", "reader-first", "practical advice", "ungated content", "personality", "media company mindset"],
-            "negative_triggers": ["volume over quality", "generic", "boring", "corporate speak", "gated content hoarding", "manipulative", "salesy", "vanity metrics", "no personality"]
+            "positive_triggers": ["quality", "usefulness", "empathy", "specificity", "authenticity", "reader-first", "practical advice", "ungated content", "personality", "media company mindset", "content craftsmanship", "quality over quantity", "reader empathy", "authentic voice", "editing discipline"],
+            "negative_triggers": ["volume over quality", "generic", "boring", "corporate speak", "gated content hoarding", "manipulative", "salesy", "vanity metrics", "no personality", "clickbait", "thin content", "content mills", "AI spam", "copy-paste content", "vanity metrics"]
         }
     
     def get_system_prompt(self):

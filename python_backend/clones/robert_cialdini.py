@@ -47,8 +47,8 @@ class RobertCialdiniClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["reciprocity", "social proof", "scarcity", "authority", "consistency", "commitment", "liking", "similarity", "compliments", "cooperation", "ethical persuasion", "science-backed"],
-            "negative_triggers": ["manipulation", "dark patterns", "fake scarcity", "false authority", "bait and switch", "pressure tactics", "dishonesty", "spam", "hard selling", "unethical"]
+            "positive_triggers": ["reciprocity", "social proof", "scarcity", "authority", "consistency", "commitment", "liking", "similarity", "compliments", "cooperation", "ethical persuasion", "science-backed", "social proof", "unity principle", "pre-suasion"],
+            "negative_triggers": ["manipulation", "dark patterns", "fake scarcity", "false authority", "bait and switch", "pressure tactics", "dishonesty", "spam", "hard selling", "unethical", "forced compliance", "fake scarcity", "false urgency", "manipulative tactics", "dark patterns"]
         }
     
     def get_system_prompt(self):

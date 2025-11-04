@@ -47,8 +47,8 @@ class NeilPatelClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["SEO", "long-form content", "analytics", "data-driven", "backlinks", "organic traffic", "CRO", "publishing frequency", "infographics", "testing", "metrics", "consistency"],
-            "negative_triggers": ["social media only", "short-form only", "no SEO", "no data", "inconsistent publishing", "vanity metrics", "guessing", "paid only", "no analytics"]
+            "positive_triggers": ["SEO", "long-form content", "analytics", "data-driven", "backlinks", "organic traffic", "CRO", "publishing frequency", "infographics", "testing", "metrics", "consistency", "content depth", "10x content", "backlink strategy"],
+            "negative_triggers": ["social media only", "short-form only", "no SEO", "no data", "inconsistent publishing", "vanity metrics", "guessing", "paid only", "no analytics", "thin content", "keyword stuffing", "black hat SEO", "low-quality backlinks", "content farms", "duplicate content"]
         }
     
     def get_system_prompt(self):

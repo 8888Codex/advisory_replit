@@ -47,8 +47,8 @@ class AlRiesClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["positioning", "focus", "narrow", "first in mind", "own one word", "category creation", "sacrifice", "perception", "mental ownership", "differentiation", "opposite", "underdog"],
-            "negative_triggers": ["line extension", "be everything", "me-too", "attack leader directly", "dilution", "broadening", "feature dumping", "ignoring perception", "late to market", "no focus"]
+            "positive_triggers": ["positioning", "focus", "narrow", "first in mind", "own one word", "category creation", "sacrifice", "perception", "mental ownership", "differentiation", "opposite", "underdog", "category creation", "own a word", "narrow the focus"],
+            "negative_triggers": ["line extension", "be everything", "me-too", "attack leader directly", "dilution", "broadening", "feature dumping", "ignoring perception", "late to market", "no focus", "brand extension", "we do everything", "all-in-one solution", "one-stop-shop", "feature list wars"]
         }
     
     def get_system_prompt(self):

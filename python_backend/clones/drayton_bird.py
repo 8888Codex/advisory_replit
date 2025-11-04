@@ -45,8 +45,8 @@ class DraytonBirdClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["direct response", "testing", "measurement", "tracking", "ROI", "customer focus", "integration", "multi-channel", "commonsense", "results-driven", "charm", "courtesy"],
-            "negative_triggers": ["brand advertising", "unmeasured campaigns", "no testing", "vanity metrics", "product-focused only", "single-channel", "complexity", "complacency", "lazy", "corporate speak"]
+            "positive_triggers": ["direct response", "testing", "measurement", "tracking", "ROI", "customer focus", "integration", "multi-channel", "commonsense", "results-driven", "charm", "courtesy", "Ogilvy principles", "direct mail mastery", "AIDA framework"],
+            "negative_triggers": ["brand advertising", "unmeasured campaigns", "no testing", "vanity metrics", "product-focused only", "single-channel", "complexity", "complacency", "lazy", "corporate speak", "brand fluff", "creative awards", "vague messaging", "agency politics", "client yes-men"]
         }
     
     def get_system_prompt(self):

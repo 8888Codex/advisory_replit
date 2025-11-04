@@ -45,8 +45,8 @@ class JayLevinsonClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["low-cost", "creativity", "unconventional", "guerrilla", "word-of-mouth", "partnerships", "community", "scrappiness", "fusion marketing", "free tactics"],
-            "negative_triggers": ["big budget dependency", "conventional only", "TV/radio obsession", "expensive tactics", "safe", "boring", "corporate approach", "playing it safe"]
+            "positive_triggers": ["low-cost", "creativity", "unconventional", "guerrilla", "word-of-mouth", "partnerships", "community", "scrappiness", "fusion marketing", "free tactics", "guerrilla tactics", "creativity over budget", "unconventional marketing", "grassroots campaigns", "marketing weapons"],
+            "negative_triggers": ["big budget dependency", "conventional only", "TV/radio obsession", "expensive tactics", "safe", "boring", "corporate approach", "playing it safe", "big budgets required", "traditional advertising", "expensive agencies", "corporate bureaucracy", "marketing waste", "ad agency dependence", "costly campaigns"]
         }
     
     def get_system_prompt(self):

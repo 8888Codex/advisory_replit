@@ -170,6 +170,7 @@ class SethGodinClone(ExpertCloneBase):
             "safe",
             "seguro",
             "não arriscar",
+            "interruption marketing"
         ]
 
         # Reações específicas

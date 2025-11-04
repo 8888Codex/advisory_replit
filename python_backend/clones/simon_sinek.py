@@ -45,8 +45,8 @@ class SimonSinekClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["purpose", "why-first", "belief", "inspiration", "inside-out", "golden circle", "tribe", "loyalty", "emotional connection", "cause"],
-            "negative_triggers": ["feature dumping", "what-first", "transactional", "rational only", "outside-in", "no purpose", "inconsistent messaging", "no emotional connection"]
+            "positive_triggers": ["purpose", "why-first", "belief", "inspiration", "inside-out", "golden circle", "tribe", "loyalty", "emotional connection", "cause", "purpose-driven", "golden circle", "infinite mindset", "trust building", "why-driven leadership"],
+            "negative_triggers": ["feature dumping", "what-first", "transactional", "rational only", "outside-in", "no purpose", "inconsistent messaging", "no emotional connection", "short-term thinking", "profit-only focus", "transactional leadership", "finite games", "trust erosion", "purpose washing", "leadership ego"]
         }
     
     def get_system_prompt(self):

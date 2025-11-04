@@ -47,8 +47,8 @@ class DavidAakerClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["brand equity", "loyalty", "awareness", "perceived quality", "associations", "proprietary assets", "long-term", "strategic thinking", "consistency", "emotional connections", "recognition"],
-            "negative_triggers": ["short-term tactics", "discounts undermining brand", "inconsistency", "no measurement", "generic positioning", "weak associations", "ignoring loyalty", "brand as expense"]
+            "positive_triggers": ["brand equity", "loyalty", "awareness", "perceived quality", "associations", "proprietary assets", "long-term", "strategic thinking", "consistency", "emotional connections", "recognition", "brand identity system", "brand personality", "brand loyalty", "strategic brand management"],
+            "negative_triggers": ["short-term tactics", "discounts undermining brand", "inconsistency", "no measurement", "generic positioning", "weak associations", "ignoring loyalty", "brand as expense", "commodity branding", "inconsistent identity", "brand dilution", "tactical short-termism", "brand confusion", "identity crisis", "weak positioning"]
         }
     
     def get_system_prompt(self):

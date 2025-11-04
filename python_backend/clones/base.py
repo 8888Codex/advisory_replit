@@ -181,14 +181,17 @@ class ExpertCloneBase(ABC):
         if not self.expertise:
             errors.append("Missing required field: expertise (must have at least 1)")
         
-        if len(self.story_banks) < 3:
-            errors.append(f"Insufficient story banks: {len(self.story_banks)} (minimum 3 required)")
+        if len(self.story_banks) < 5:
+            errors.append(f"Insufficient story banks: {len(self.story_banks)} (minimum 5 required)")
         
-        if len(self.iconic_callbacks) < 3:
-            errors.append(f"Insufficient iconic callbacks: {len(self.iconic_callbacks)} (minimum 3 required)")
+        if len(self.iconic_callbacks) < 7:
+            errors.append(f"Insufficient iconic callbacks: {len(self.iconic_callbacks)} (minimum 7 required)")
         
-        if len(self.positive_triggers) < 5:
-            errors.append(f"Insufficient positive triggers: {len(self.positive_triggers)} (minimum 5 required)")
+        if len(self.positive_triggers) < 15:
+            errors.append(f"Insufficient positive triggers: {len(self.positive_triggers)} (minimum 15 required)")
+        
+        if len(self.negative_triggers) < 15:
+            errors.append(f"Insufficient negative triggers: {len(self.negative_triggers)} (minimum 15 required)")
         
         return (len(errors) == 0, errors)
 

@@ -45,8 +45,8 @@ class DanielKahnemanClone(ExpertCloneBase):
     
     def get_trigger_keywords(self):
         return {
-            "positive_triggers": ["behavioral economics", "psychology", "biases", "heuristics", "loss aversion", "framing", "anchoring", "prospect theory", "System 1/2", "testing", "experiments"],
-            "negative_triggers": ["assuming rationality", "ignoring biases", "no framing", "cognitive load", "complexity", "ignoring psychology", "rational models only", "overconfidence unchecked"]
+            "positive_triggers": ["behavioral economics", "psychology", "biases", "heuristics", "loss aversion", "framing", "anchoring", "prospect theory", "System 1/2", "testing", "experiments", "cognitive awareness", "decision architecture", "prospect theory", "loss aversion"],
+            "negative_triggers": ["assuming rationality", "ignoring biases", "no framing", "cognitive load", "complexity", "ignoring psychology", "rational models only", "overconfidence unchecked", "irrational decisions", "cognitive bias blind spot", "overconfidence bias", "sunk cost fallacy", "confirmation bias", "hindsight bias", "planning fallacy"]
         }
     
     def get_system_prompt(self):
