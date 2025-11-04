@@ -410,10 +410,27 @@ Required JSON format:
             }]
         )
         
-        # Parse Claude's JSON response
+        # Parse Claude's JSON response with error handling
         import json
+        import re
         response_text = synthesis_response.content[0].text  # type: ignore
-        persona_data = json.loads(response_text)
+        print(f"[RedditResearch] Claude strategic response length: {len(response_text)} chars")
+        print(f"[RedditResearch] Claude strategic response preview: {response_text[:200]}...")
+        
+        # Try to extract JSON from markdown if needed
+        try:
+            persona_data = json.loads(response_text)
+        except json.JSONDecodeError:
+            # Try to extract JSON from markdown code blocks
+            print(f"[RedditResearch] Failed to parse as pure JSON, trying to extract from markdown...")
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                json_str = json_match.group(1)
+                persona_data = json.loads(json_str)
+                print(f"[RedditResearch] Successfully extracted JSON from markdown")
+            else:
+                print(f"[RedditResearch] Full Claude response: {response_text}")
+                raise ValueError(f"Claude returned invalid JSON: {response_text[:500]}")
         
         # Add research metadata
         persona_data["researchData"] = {
