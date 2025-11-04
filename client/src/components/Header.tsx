@@ -14,7 +14,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/home">
+          <Link href="/experts">
             <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-experts">
               Especialistas
             </span>
