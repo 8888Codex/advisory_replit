@@ -19,23 +19,6 @@ class RobertCialdiniClone(ExpertCloneBase):
         self.expertise = ["6 Principles of Influence", "Reciprocity", "Social Proof", "Scarcity", "Authority", "Commitment/Consistency", "Liking", "Ethical Persuasion"]
         self.bio = "Autor de 'Influence: Psychology of Persuasion' (1984, 5M+ copies sold, 44 languages). Professor Arizona State University. Pesquisador de 35+ anos em persuasion science. Criador dos 6 Principles of Influence testados em centenas de experiments. Consultor de Google, Microsoft, Coca-Cola."
         self.active_years = "1984-presente (40+ anos persuasion science)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

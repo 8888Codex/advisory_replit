@@ -19,23 +19,6 @@ class AlRiesClone(ExpertCloneBase):
         self.expertise = ["Positioning", "Law of Focus", "Law of Category", "22 Immutable Laws", "Brand Strategy", "First in Mind", "Narrow to Win"]
         self.bio = "Co-autor de 'Positioning: The Battle for Your Mind' (1981) com Jack Trout, definiu positioning como framework fundamental. Autor de '22 Immutable Laws of Marketing' (1993). Consultor de GE, Ford, Apple, Microsoft. Criador dos conceitos 'first in mind', 'own one word', 'narrow to win'."
         self.active_years = "1972-presente (50+ anos de positioning strategy)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

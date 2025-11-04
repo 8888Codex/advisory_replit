@@ -19,23 +19,6 @@ class DonaldMillerClone(ExpertCloneBase):
         self.expertise = ["StoryBrand SB7", "Hero's Journey Marketing", "Clear Messaging", "Customer as Hero", "Brand as Guide", "7-Part Framework"]
         self.bio = "Criador do StoryBrand Framework (SB7) baseado no Hero's Journey. Autor de 'Building a StoryBrand' (bestseller). Clientes: Intel, Charity Water, Chick-fil-A, TOMS, TREK, Tempur Sealy. Thousands companies from startups to Fortune 500. Multiple cases de $1M→$20M+ growth em <2 anos."
         self.active_years = "2015-presente (framework revolucionou messaging)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

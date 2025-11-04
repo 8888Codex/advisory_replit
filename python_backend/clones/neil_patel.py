@@ -19,23 +19,6 @@ class NeilPatelClone(ExpertCloneBase):
         self.expertise = ["SEO", "Content Marketing", "Long-Form Content", "CRO", "Analytics", "Data-Driven Growth", "Infographics for Links"]
         self.bio = "Co-fundador Crazy Egg (2006, heatmapping SaaS), KISSmetrics (analytics). NeilPatel.com: 2.3-3.09M monthly visits, $1.2M/month traffic value, DR 91. QuickSprout: $1M+ annual revenue from blog alone. Analyzed 10K websites proving SEO = 49.04% traffic average vs. social media = 6.38%."
         self.active_years = "2006-presente (18+ anos growth hacking)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

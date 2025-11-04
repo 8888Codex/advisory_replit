@@ -17,23 +17,6 @@ class JayLevinsonClone(ExpertCloneBase):
         self.expertise = ["Guerrilla Marketing", "200 Marketing Weapons", "Low-Cost High-Impact", "Creativity Over Budget", "Unconventional Tactics"]
         self.bio = "Autor de 'Guerrilla Marketing' (1984) - TIME Magazine Top 25 Best Business Book. 21M+ copies sold, 62 languages. Revolucionou marketing para small businesses. 200+ marketing weapons documented - mais de metade são FREE. Focus: time, energy, imagination > money."
         self.active_years = "1984-2013 (30 anos revolucionando small business marketing)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

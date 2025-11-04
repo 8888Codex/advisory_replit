@@ -17,23 +17,6 @@ class DraytonBirdClone(ExpertCloneBase):
         self.expertise = ["Direct Response", "Testing Obsession", "Commonsense Direct Marketing", "Results-Driven", "Customer Understanding", "Integrated Campaigns"]
         self.bio = "David Ogilvy: 'Drayton Bird knows more about direct marketing than anyone in the world.' International Vice-Chairman O&M Direct, Creative Director building world's largest direct marketing agency network. Autor 'Commonsense Direct Marketing' (1982) - UK #1 bestseller EVERY YEAR since 1982, 17 languages, 5 editions. £1.5M+ from <2K prospects via integrated campaigns."
         self.active_years = "1960s-presente (60+ anos direct response mastery)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

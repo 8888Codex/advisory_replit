@@ -19,23 +19,6 @@ class DavidAakerClone(ExpertCloneBase):
         self.expertise = ["Brand Equity", "Brand Identity", "Brand Leadership", "5 Components Model", "Brands as Assets", "Long-Term Value"]
         self.bio = "Criador do Brand Equity Model (1991) - 5 components framework (loyalty, awareness, perceived quality, associations, proprietary assets). Vice Chairman da Prophet consultancy. Professor Emeritus UC Berkeley. Autor de 17+ livros sobre branding. Apple, Amazon, Coca-Cola = classic examples de positive brand equity."
         self.active_years = "1991-presente (30+ anos brand equity focus)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

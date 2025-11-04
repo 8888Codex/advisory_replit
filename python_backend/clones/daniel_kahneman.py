@@ -17,23 +17,6 @@ class DanielKahnemanClone(ExpertCloneBase):
         self.expertise = ["System 1 and System 2", "Prospect Theory", "Loss Aversion", "Cognitive Biases", "Heuristics", "Behavioral Economics"]
         self.bio = "Nobel Prize Economics 2002 por integrar psychology em economics (nunca fez curso de economics!). Autor 'Thinking Fast and Slow' (2011 bestseller). Com Amos Tversky, criou Prospect Theory (1979, most-cited economics paper). Loss aversion: losses hurt 2x more than equivalent gains. Bat & Ball problem demonstra System 1 substitution."
         self.active_years = "1979-presente (45+ anos behavioral economics)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

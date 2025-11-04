@@ -17,23 +17,6 @@ class SimonSinekClone(ExpertCloneBase):
         self.expertise = ["Start With Why", "Golden Circle", "WHY-HOW-WHAT", "Inside-Out Communication", "Purpose-Driven Leadership"]
         self.bio = "Autor 'Start With Why' (2009). TED Talk 'How Great Leaders Inspire Action': 40M+ views (one of most-watched ever). Golden Circle framework: WHY (purpose) → HOW (process) → WHAT (product). Apple 'Think Different': WHY-first exemplar. Think Different campaign: $90M budget, Apple near bankruptcy → +20% revenue year 1, 2.8%→5% market share."
         self.active_years = "2009-presente (15+ anos inspiring leaders)"
-        # Populate story banks from method
-        stories = self.get_story_banks()
-        self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
-        
-        # Populate iconic callbacks
-        self.iconic_callbacks = self.get_iconic_callbacks()
-        
-        # Populate triggers from method
-        if hasattr(self, 'get_trigger_keywords'):
-            triggers = self.get_trigger_keywords()
-            self.positive_triggers = triggers.get('positive_triggers', [])
-            self.negative_triggers = triggers.get('negative_triggers', [])
-        
-        # Populate trigger reactions
-        if hasattr(self, 'get_trigger_reactions'):
-            reactions = self.get_trigger_reactions()
-            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     
     def get_story_banks(self):

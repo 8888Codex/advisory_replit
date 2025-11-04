@@ -47,6 +47,26 @@ class ExpertCloneBase(ABC):
         # Metadata
         self.created_at: datetime = datetime.now()
         self.version: str = "1.0"
+        
+        # Auto-populate story banks from method (if implemented)
+        if hasattr(self, 'get_story_banks') and callable(getattr(self, 'get_story_banks')):
+            stories = self.get_story_banks()
+            self.story_banks = {f"story_{i+1}": story for i, story in enumerate(stories)}
+        
+        # Auto-populate iconic callbacks from method (if implemented)
+        if hasattr(self, 'get_iconic_callbacks') and callable(getattr(self, 'get_iconic_callbacks')):
+            self.iconic_callbacks = self.get_iconic_callbacks()
+        
+        # Auto-populate triggers from method (if implemented)
+        if hasattr(self, 'get_trigger_keywords') and callable(getattr(self, 'get_trigger_keywords')):
+            triggers = self.get_trigger_keywords()
+            self.positive_triggers = triggers.get('positive_triggers', [])
+            self.negative_triggers = triggers.get('negative_triggers', [])
+        
+        # Auto-populate trigger reactions from method (if implemented)
+        if hasattr(self, 'get_trigger_reactions') and callable(getattr(self, 'get_trigger_reactions')):
+            reactions = self.get_trigger_reactions()
+            self.trigger_reactions = {r['trigger']: r['reaction'] for r in reactions}
 
     @abstractmethod
     def get_system_prompt(self) -> str:
