@@ -86,6 +86,9 @@ class CouncilOrchestrator:
         """
         analysis_id = str(uuid.uuid4())
         
+        # Step 0: Load user context via UserMemoryTool (psychographics, past insights, sessions)
+        user_context = await self.user_memory_tool.get_user_context(user_id, limit=5)
+        
         # Step 1: Conduct market research using Perplexity (if profile available)
         research_findings = None
         citations = []
@@ -105,7 +108,8 @@ class CouncilOrchestrator:
                 problem=problem,
                 research_findings=research_findings,
                 profile=profile,
-                user_id=user_id
+                user_id=user_id,
+                user_context=user_context
             )
             for expert in experts
         ]
@@ -153,7 +157,8 @@ class CouncilOrchestrator:
         problem: str,
         research_findings: Optional[str],
         profile: Optional[BusinessProfile],
-        user_id: str = "demo_user"
+        user_id: str = "demo_user",
+        user_context: Optional[Dict[str, Any]] = None
     ) -> AgentContribution:
         """
         Get analysis from a single expert using their cognitive clone with tool support.
@@ -168,6 +173,27 @@ class CouncilOrchestrator:
             
             # Build context-rich prompt
             context_parts = []
+            
+            # Add user context (psychographics, past insights) if available
+            if user_context and user_context.get("profile"):
+                user_profile = user_context["profile"]
+                context_parts.append(
+                    f"**User Profile & Context:**\n"
+                    f"- Business Stage: {user_profile.get('business_stage', 'Unknown')}\n"
+                    f"- Niche: {user_profile.get('niche', 'Unknown')}\n"
+                    f"- Marketing Maturity: {user_profile.get('marketing_maturity', 'Unknown')}\n"
+                    f"- Communication Style: {user_profile.get('preferred_communication_style', 'Unknown')}\n"
+                )
+                
+                # Add past insights if available
+                if user_context.get("past_insights"):
+                    insights_summary = [
+                        f"  • {insight['expert_name']}: {insight['insight'][:100]}..."
+                        for insight in user_context["past_insights"][:3]
+                    ]
+                    context_parts.append(
+                        f"**Past Insights (Continuity):**\n" + "\n".join(insights_summary) + "\n"
+                    )
             
             # Add business context if available
             if profile:
