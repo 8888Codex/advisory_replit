@@ -36,6 +36,13 @@ Preferred communication style: Simple, everyday language.
   - **Synthesis**: Moderator tone ("Ok, pessoal trouxe pontos interessantes..."), 150-200 words, informal structure, token limit 500 (vs. 2500 before)
   - **Language**: 100% PT-BR guaranteed with explicit instruction at prompt start
   - **Format**: Free-flowing conversation vs. structured headers/bullets
+- **Roundtable Discussion (Nov 2025)**: Experts now dialogue with each other, not just provide parallel opinions:
+  - **Sequential Context Passing**: Each expert sees contributions from colleagues who already spoke (`colleague_contributions` parameter)
+  - **Dialogue Instructions**: Mandatory instructions to comment on colleagues: "Concordo com [nome]...", "Interessante o ponto do [nome], mas...", "Diferente do que [nome] sugeriu..."
+  - **Conversational Build-up**: Expert 2 references Expert 1, Expert 3 references 1+2, creating authentic roundtable dynamic
+  - **Synthesis Evolution**: Synthesis now narrates the CONVERSATION ("Teve uma discussão boa - [Expert 1] começou com X, aí [Expert 2] complementou...") highlighting agreement, divergence, and consensus evolution
+  - **Implementation**: `crew_council.py` `_get_expert_analysis()` accepts optional `colleague_contributions`, `main.py` accumulates via `current_round_contributions` list
+  - **Backward Compatible**: Works without `colleague_contributions` for initial analysis (no colleagues yet)
 
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
