@@ -9,7 +9,7 @@ async def seed_legends(storage: MemStorage):
     """Seed the 18 marketing & growth experts as high-fidelity cognitive clones"""
     
     legends_data = [
-        # MARKETING CATEGORY (Traditional marketing legends)
+        # MARKETING CATEGORY (Traditional marketing strategy)
         {
             "name": "Philip Kotler",
             "title": "O Pai do Marketing Moderno",
@@ -38,30 +38,21 @@ async def seed_legends(storage: MemStorage):
             "category": CategoryType.MARKETING,
         },
         {
-            "name": "John Wanamaker",
-            "title": "Revolucionário do Varejo Moderno",
-            "bio": "Pioneiro do varejo moderno, criou a garantia de devolução e revolucionou o marketing de massa. Famoso pela frase sobre metade do orçamento publicitário.",
-            "expertise": ["Retail Strategy", "Customer Trust", "Print Advertising", "Garantia de Devolução", "Mass Marketing"],
-            "system_prompt": LEGENDS_PROMPTS["john_wanamaker"],
-            "avatar": "/attached_assets/generated_images/John_Wanamaker_Victorian_portrait_9fe2f89b.png",
+            "name": "David Aaker",
+            "title": "O Arquiteto do Brand Equity",
+            "bio": "Criador do Brand Equity Model (1991) - 5 components framework (loyalty, awareness, perceived quality, associations, proprietary assets). Vice Chairman da Prophet consultancy. Professor Emeritus UC Berkeley. Autor de 17+ livros sobre branding. Apple, Amazon, Coca-Cola = classic examples de positive brand equity.",
+            "expertise": ["Brand Equity", "Brand Identity", "Brand Leadership", "5 Components Model", "Brands as Assets", "Long-Term Value"],
+            "system_prompt": LEGENDS_PROMPTS["david_aaker"],
+            "avatar": None,
             "category": CategoryType.MARKETING,
         },
         {
-            "name": "Mary Wells Lawrence",
-            "title": "Pioneira do Branding Emocional",
-            "bio": "Primeira mulher CEO de uma agência na NYSE, criou campanhas emocionais icônicas como 'I ♥ NY'. Revolucionou o lifestyle marketing e branding de moda.",
-            "expertise": ["Branding Emocional", "Lifestyle Marketing", "Fashion Advertising", "I ♥ NY", "Creative Leadership"],
-            "system_prompt": LEGENDS_PROMPTS["mary_wells_lawrence"],
-            "avatar": "/attached_assets/generated_images/Mary_Wells_Lawrence_portrait_ee4b7088.png",
-            "category": CategoryType.MARKETING,
-        },
-        {
-            "name": "Leo Burnett",
-            "title": "O Rei do Storytelling Publicitário",
-            "bio": "Fundador da Leo Burnett Worldwide, criou personagens arquetípicos icônicos como o Marlboro Man. Mestre em encontrar o 'inherent drama' de produtos.",
-            "expertise": ["Storytelling", "Archetypal Characters", "Inherent Drama", "Visual Branding", "Marlboro Man"],
-            "system_prompt": LEGENDS_PROMPTS["leo_burnett"],
-            "avatar": "/attached_assets/generated_images/Leo_Burnett_classic_portrait_e1f25f37.png",
+            "name": "Jay Levinson",
+            "title": "O Pai do Guerrilla Marketing",
+            "bio": "Autor de 'Guerrilla Marketing' (1984) - TIME Magazine Top 25 Best Business Book. 21M+ copies sold, 62 languages. Revolucionou marketing para small businesses. 200+ marketing weapons documented - mais de metade são FREE. Focus: time, energy, imagination > money.",
+            "expertise": ["Guerrilla Marketing", "200 Marketing Weapons", "Low-Cost High-Impact", "Creativity Over Budget", "Unconventional Tactics"],
+            "system_prompt": LEGENDS_PROMPTS["jay_levinson"],
+            "avatar": None,
             "category": CategoryType.MARKETING,
         },
         
@@ -72,19 +63,26 @@ async def seed_legends(storage: MemStorage):
             "bio": "Dupla lendária que criou as 22 Leis Imutáveis do Marketing e revolucionou o conceito de posicionamento. Foco laser em ocupar posição única na mente do consumidor.",
             "expertise": ["Posicionamento", "22 Leis Imutáveis", "First-Mover Advantage", "Foco Estratégico", "Mente do Consumidor"],
             "system_prompt": LEGENDS_PROMPTS["al_ries_jack_trout"],
-            "avatar": None,  # Will generate later
+            "avatar": None,
             "category": CategoryType.POSITIONING,
         },
-        
-        # CREATIVE CATEGORY
         {
-            "name": "Bill Bernbach",
-            "title": "O Revolucionário Criativo",
-            "bio": "Co-fundador da DDB, liderou a Creative Revolution dos anos 60. Criou campanhas icônicas como 'Think Small' da Volkswagen e transformou publicidade em arte.",
-            "expertise": ["Creative Revolution", "Art + Copy Partnership", "Think Small", "Avis Campaign", "Breakthrough Ideas"],
-            "system_prompt": LEGENDS_PROMPTS["bill_bernbach"],
+            "name": "Simon Sinek",
+            "title": "O Profeta do Start With Why",
+            "bio": "Autor 'Start With Why' (2009). TED Talk 'How Great Leaders Inspire Action': 40M+ views (one of most-watched ever). Golden Circle framework: WHY (purpose) → HOW (process) → WHAT (product). Apple 'Think Different': WHY-first exemplar. Think Different campaign: $90M budget, Apple near bankruptcy → +20% revenue year 1, 2.8%→5% market share.",
+            "expertise": ["Start With Why", "Golden Circle", "WHY-HOW-WHAT", "Inside-Out Communication", "Purpose-Driven Leadership"],
+            "system_prompt": LEGENDS_PROMPTS["simon_sinek"],
             "avatar": None,
-            "category": CategoryType.CREATIVE,
+            "category": CategoryType.POSITIONING,
+        },
+        {
+            "name": "Donald Miller",
+            "title": "O Mestre do StoryBrand Framework",
+            "bio": "Criador do StoryBrand Framework (SB7) baseado no Hero's Journey. Autor de 'Building a StoryBrand' (bestseller). Clientes: Intel, Charity Water, Chick-fil-A, TOMS, TREK, Tempur Sealy. Thousands companies from startups to Fortune 500. Multiple cases de $1M→$20M+ growth em <2 anos.",
+            "expertise": ["StoryBrand SB7", "Hero's Journey Marketing", "Clear Messaging", "Customer as Hero", "Brand as Guide", "7-Part Framework"],
+            "system_prompt": LEGENDS_PROMPTS["donald_miller"],
+            "avatar": None,
+            "category": CategoryType.POSITIONING,
         },
         
         # DIRECT RESPONSE CATEGORY
@@ -94,6 +92,42 @@ async def seed_legends(storage: MemStorage):
             "bio": "Copywriter lendário e consultor multi-milionário. Criador do Magnetic Marketing e das 10 Commandments of Copy. Mestre em funis de conversão e maximização de LTV.",
             "expertise": ["Direct Response", "Magnetic Marketing", "Sales Letters", "Maximização LTV", "Copywriting de Conversão"],
             "system_prompt": LEGENDS_PROMPTS["dan_kennedy"],
+            "avatar": None,
+            "category": CategoryType.DIRECT_RESPONSE,
+        },
+        {
+            "name": "Eugene Schwartz",
+            "title": "O Arquiteto do Desejo em Massa",
+            "bio": "Autor de 'Breakthrough Advertising' (1966), considerado a bíblia do copywriting persuasivo. Criador dos frameworks 5 Stages of Awareness e 5 Stages of Market Sophistication. Livro vendido por $125-900 quando fora de catálogo, republicado tornou-se essencial para todo copywriter. Desenvolveu Mass Desire Principle e 13 Intensification Techniques que definem copywriting moderno.",
+            "expertise": ["Breakthrough Advertising", "5 Stages of Awareness", "Market Sophistication", "Mass Desire", "Copywriting Psicológico", "Headline Frameworks", "Intensification Techniques"],
+            "system_prompt": LEGENDS_PROMPTS["eugene_schwartz"],
+            "avatar": None,
+            "category": CategoryType.DIRECT_RESPONSE,
+        },
+        {
+            "name": "Drayton Bird",
+            "title": "O Protégé de Ogilvy - Mestre do Direct Response",
+            "bio": "David Ogilvy: 'Drayton Bird knows more about direct marketing than anyone in the world.' International Vice-Chairman O&M Direct, Creative Director building world's largest direct marketing agency network. Autor 'Commonsense Direct Marketing' (1982) - UK #1 bestseller EVERY YEAR since 1982, 17 languages, 5 editions. £1.5M+ from <2K prospects via integrated campaigns.",
+            "expertise": ["Direct Response", "Testing Obsession", "Commonsense Direct Marketing", "Results-Driven", "Customer Understanding", "Integrated Campaigns"],
+            "system_prompt": LEGENDS_PROMPTS["drayton_bird"],
+            "avatar": None,
+            "category": CategoryType.DIRECT_RESPONSE,
+        },
+        {
+            "name": "Robert Cialdini",
+            "title": "O Cientista da Persuasão Ética",
+            "bio": "Autor de 'Influence: Psychology of Persuasion' (1984, 5M+ copies sold, 44 languages). Professor Arizona State University. Pesquisador de 35+ anos em persuasion science. Criador dos 6 Principles of Influence testados em centenas de experiments. Consultor de Google, Microsoft, Coca-Cola.",
+            "expertise": ["6 Principles of Influence", "Reciprocity", "Social Proof", "Scarcity", "Authority", "Commitment/Consistency", "Liking", "Ethical Persuasion"],
+            "system_prompt": LEGENDS_PROMPTS["robert_cialdini"],
+            "avatar": None,
+            "category": CategoryType.DIRECT_RESPONSE,
+        },
+        {
+            "name": "Daniel Kahneman",
+            "title": "O Padrinho da Behavioral Economics",
+            "bio": "Nobel Prize Economics 2002 por integrar psychology em economics (nunca fez curso de economics!). Autor 'Thinking Fast and Slow' (2011 bestseller). Com Amos Tversky, criou Prospect Theory (1979, most-cited economics paper). Loss aversion: losses hurt 2x more than equivalent gains. Bat & Ball problem demonstra System 1 substitution.",
+            "expertise": ["System 1 and System 2", "Prospect Theory", "Loss Aversion", "Cognitive Biases", "Heuristics", "Behavioral Economics"],
+            "system_prompt": LEGENDS_PROMPTS["daniel_kahneman"],
             "avatar": None,
             "category": CategoryType.DIRECT_RESPONSE,
         },
@@ -140,55 +174,15 @@ async def seed_legends(storage: MemStorage):
             "category": CategoryType.SOCIAL,
         },
         
-        # GROWTH CATEGORY (Growth hackers)
+        # GROWTH CATEGORY
         {
-            "name": "Sean Ellis",
-            "title": "O Criador do Growth Hacking",
-            "bio": "Criador do termo 'growth hacking', autor de 'Hacking Growth'. Desenvolveu o ICE Framework e a 40% Rule para Product-Market Fit. Ex-Head of Growth da Dropbox.",
-            "expertise": ["Growth Hacking", "ICE Framework", "40% Rule PMF", "Dropbox Referral", "Activation Optimization"],
-            "system_prompt": LEGENDS_PROMPTS["sean_ellis"],
+            "name": "Jay Abraham",
+            "title": "O $9.4 Billion Man",
+            "bio": "Conhecido como 'The $9.4 Billion Man' - documentou ter gerado $75B+ em revenue increases para 10.000+ empresas em 400+ indústrias. Criador do framework '3 Ways to Grow Business', Parthenon Strategy (múltiplos pilares de revenue), e Strategy of Preeminence (value-first, advisor mindset). Autor de 'Getting Everything You Can Out of All You've Got'. Consultor de Tony Robbins, Daymond John, e centenas de Fortune 500. Master de identificar hidden assets e aplicar best practices cross-industry.",
+            "expertise": ["3 Ways to Grow Business", "Strategy of Preeminence", "Parthenon Principles", "Geometric Growth", "Funnel Vision", "Lifetime Value Optimization", "Strategic Joint Ventures"],
+            "system_prompt": LEGENDS_PROMPTS["jay_abraham"],
             "avatar": None,
             "category": CategoryType.GROWTH,
-        },
-        {
-            "name": "Brian Balfour",
-            "title": "O Arquiteto de Growth Systems",
-            "bio": "Founder & CEO da Reforge, ex-VP Growth @ HubSpot. Criador do Four Fits Framework e defensor de Growth Loops vs Funnels. Revolucionou educação em growth.",
-            "expertise": ["Four Fits Framework", "Growth Loops", "Market-Product Fit", "Reforge", "Strategic Alignment"],
-            "system_prompt": LEGENDS_PROMPTS["brian_balfour"],
-            "avatar": None,
-            "category": CategoryType.GROWTH,
-        },
-        {
-            "name": "Andrew Chen",
-            "title": "O Especialista em Network Effects",
-            "bio": "General Partner @ Andreessen Horowitz, ex-Head of Rider Growth @ Uber. Autor de 'The Cold Start Problem'. Expert em network effects e marketplace dynamics.",
-            "expertise": ["Network Effects", "Cold Start Problem", "Marketplace Dynamics", "Atomic Networks", "Uber Growth"],
-            "system_prompt": LEGENDS_PROMPTS["andrew_chen"],
-            "avatar": None,
-            "category": CategoryType.GROWTH,
-        },
-        
-        # VIRAL CATEGORY
-        {
-            "name": "Jonah Berger",
-            "title": "O Cientista da Viralidade",
-            "bio": "Professor @ Wharton, autor de 'Contagious: Why Things Catch On'. Criador do STEPPS Framework. Expert em word-of-mouth e viral marketing baseado em ciência.",
-            "expertise": ["STEPPS Framework", "Viral Marketing", "Word-of-Mouth", "Contagious Content", "Social Currency"],
-            "system_prompt": LEGENDS_PROMPTS["jonah_berger"],
-            "avatar": None,
-            "category": CategoryType.VIRAL,
-        },
-        
-        # PRODUCT CATEGORY
-        {
-            "name": "Nir Eyal",
-            "title": "O Especialista em Habit Formation",
-            "bio": "Behavioral economist, autor de 'Hooked: How to Build Habit-Forming Products'. Criador do Hooked Model (Trigger-Action-Reward-Investment). Professor @ Stanford GSB.",
-            "expertise": ["Hooked Model", "Habit Formation", "Behavioral Design", "Hook Canvas", "Variable Rewards"],
-            "system_prompt": LEGENDS_PROMPTS["nir_eyal"],
-            "avatar": None,
-            "category": CategoryType.PRODUCT,
         },
     ]
     
