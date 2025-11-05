@@ -325,25 +325,50 @@ Sintetize um resumo executivo unificado que:
 
 Seja conciso, acionável e autoritativo. Este é um briefing executivo."""
         
-        # Call Claude for synthesis (using a neutral system prompt)
-        response = await self.anthropic_client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2500,
-            system="You are an expert strategic analyst specializing in synthesizing insights from multiple domain experts into clear, actionable recommendations.\n\n**INSTRUÇÃO OBRIGATÓRIA: Você DEVE escrever SEMPRE em português brasileiro (PT-BR), independentemente do idioma em que as contribuições dos experts foram escritas. Todo o seu consenso, recomendações integradas, roadmap de implementação e quaisquer citações ou referências devem ser escritos ou traduzidos para português brasileiro. Use nomes traduzidos de conceitos e livros quando existirem. Se citar frases em inglês, forneça também a tradução.**",
-            messages=[{
-                "role": "user",
-                "content": synthesis_prompt
-            }]
-        )
-        
-        # Extract consensus text (handle TextBlock type)
-        consensus_text = ""
-        for block in response.content:
-            if block.type == "text":
-                consensus_text = block.text  # type: ignore
-                break
-        
-        return consensus_text
+        # Call Claude for synthesis (using a neutral system prompt) with timeout
+        try:
+            response = await asyncio.wait_for(
+                self.anthropic_client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=2500,
+                    system="You are an expert strategic analyst specializing in synthesizing insights from multiple domain experts into clear, actionable recommendations.\n\n**INSTRUÇÃO OBRIGATÓRIA: Você DEVE escrever SEMPRE em português brasileiro (PT-BR), independentemente do idioma em que as contribuições dos experts foram escritas. Todo o seu consenso, recomendações integradas, roadmap de implementação e quaisquer citações ou referências devem ser escritos ou traduzidos para português brasileiro. Use nomes traduzidos de conceitos e livros quando existirem. Se citar frases em inglês, forneça também a tradução.**",
+                    messages=[{
+                        "role": "user",
+                        "content": synthesis_prompt
+                    }]
+                ),
+                timeout=60.0  # 60 second timeout for synthesis
+            )
+            
+            # Extract consensus text (handle TextBlock type)
+            consensus_text = ""
+            for block in response.content:
+                if block.type == "text":
+                    consensus_text = block.text  # type: ignore
+                    break
+            
+            return consensus_text
+            
+        except asyncio.TimeoutError:
+            # Fallback synthesis if API times out
+            return f"""**Síntese do Conselho (Gerada Automaticamente)**
+
+Aguardo as contribuições dos especialistas para realizar a síntese estratégica.
+
+**Contribuições Recebidas:**
+{len(contributions)} especialistas compartilharam suas análises sobre: {problem}
+
+Para continuar, por favor reformule sua pergunta ou aguarde um momento."""
+        except Exception as e:
+            # Fallback synthesis on any error
+            print(f"[Synthesis Error] {str(e)}")
+            return f"""**Síntese Parcial**
+
+Não foi possível completar a síntese completa no momento. Aqui está um resumo das contribuições:
+
+{len(contributions)} especialistas analisaram: {problem}
+
+Por favor, tente reformular sua pergunta."""
     
     def _build_enhanced_system_prompt(self, expert: Expert, user_id: str) -> str:
         """
