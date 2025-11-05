@@ -204,6 +204,10 @@ class CouncilOrchestrator:
                         f"**Past Insights (Continuity):**\n" + "\n".join(insights_summary) + "\n"
                     )
             
+            # Add analysis context for follow-up questions (Council Room)
+            if user_context and user_context.get("analysis_context"):
+                context_parts.append(user_context["analysis_context"])
+            
             # Add business context if available
             if profile:
                 context_parts.append(

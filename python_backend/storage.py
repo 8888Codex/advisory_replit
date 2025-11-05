@@ -168,6 +168,7 @@ class MemStorage:
     # Council Chat Messages operations (PostgreSQL)
     async def get_council_messages(self, session_id: str) -> List:
         """Get chat history for a council session"""
+        print(f"[STORAGE] get_council_messages called with session_id: {session_id}")
         conn = await self._get_db_connection()
         try:
             rows = await conn.fetch(
@@ -178,10 +179,12 @@ class MemStorage:
                 """,
                 session_id
             )
+            print(f"[STORAGE] Query returned {len(rows)} rows for session {session_id}")
             
             from models import CouncilChatMessage, StreamContribution
             messages = []
-            for row in rows:
+            for idx, row in enumerate(rows):
+                print(f"[STORAGE] Processing row {idx+1}: role={row['role']}, content_length={len(row['content'])}")
                 contributions = None
                 if row["contributions"]:
                     contrib_list = json.loads(row["contributions"])
@@ -196,6 +199,7 @@ class MemStorage:
                     createdAt=row["created_at"]
                 ))
             
+            print(f"[STORAGE] Returning {len(messages)} messages")
             return messages
         finally:
             await conn.close()
