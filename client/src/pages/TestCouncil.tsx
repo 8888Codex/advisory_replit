@@ -455,12 +455,19 @@ export default function TestCouncil() {
               <CardContent>
                 <ScrollArea className="h-[600px] pr-4">
                   <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-2">📋 Consenso Estratégico</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {analysis.consensus}
-                      </p>
-                    </div>
+                    <Card className="border-primary/30 bg-primary/10 rounded-xl">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Users className="w-5 h-5 text-primary" />
+                          🎯 Consenso da Mesa
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">
+                          {analysis.consensus}
+                        </p>
+                      </CardContent>
+                    </Card>
 
                     <div className="space-y-4">
                       <h3 className="font-semibold">💡 Contribuições dos Especialistas</h3>

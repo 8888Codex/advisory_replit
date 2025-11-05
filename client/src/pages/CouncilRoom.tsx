@@ -7,12 +7,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Sparkles, Brain, Search } from "lucide-react";
+import { Loader2, Send, Sparkles, Brain, Search, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Helper: Detect if expert mentions colleague names
+function detectColleagueMentions(content: string, allExpertNames: string[], currentExpert: string): string[] {
+  const mentioned: string[] = [];
+  const lowerContent = content.toLowerCase();
+  
+  for (const name of allExpertNames) {
+    if (name === currentExpert) continue; // Don't count self-mentions
+    
+    // Check for first name or full name mentions
+    const firstName = name.split(' ')[0];
+    const patterns = [
+      name.toLowerCase(),
+      firstName.toLowerCase()
+    ];
+    
+    if (patterns.some(p => lowerContent.includes(p))) {
+      mentioned.push(name);
+    }
+  }
+  
+  return mentioned;
+}
 
 interface CouncilAnalysis {
   id: string;
@@ -300,40 +323,52 @@ export default function CouncilRoom() {
               ) : (
                 <div className="space-y-4">
                   {/* Expert Contributions */}
-                  {msg.contributions?.map((contrib, cIdx) => (
-                    <motion.div
-                      key={cIdx}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        duration: 0.26, 
-                        delay: cIdx * 0.06,
-                        ease: [0.16, 1, 0.3, 1]
-                      }}
-                      data-testid={`contribution-${contrib.expertName.toLowerCase().replace(/\s+/g, "-")}`}
-                    >
-                      <Card>
-                        <CardHeader>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">{contrib.expertName}</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {contrib.content}
-                            </ReactMarkdown>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+                  {msg.contributions?.map((contrib, cIdx) => {
+                    const allExpertNames = msg.contributions?.map(c => c.expertName) || [];
+                    const mentionedColleagues = detectColleagueMentions(contrib.content, allExpertNames, contrib.expertName);
+                    
+                    return (
+                      <motion.div
+                        key={cIdx}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.26, 
+                          delay: cIdx * 0.06,
+                          ease: [0.16, 1, 0.3, 1]
+                        }}
+                        data-testid={`contribution-${contrib.expertName.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="secondary">{contrib.expertName}</Badge>
+                              {mentionedColleagues.length > 0 && (
+                                <Badge variant="outline" className="text-xs gap-1">
+                                  <Users className="w-3 h-3" />
+                                  Dialoga com {mentionedColleagues.length === 1 ? mentionedColleagues[0].split(' ')[0] : `${mentionedColleagues.length} colegas`}
+                                </Badge>
+                              )}
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {contrib.content}
+                              </ReactMarkdown>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
                   
-                  {/* Synthesis */}
-                  <Card className="border-primary/20 bg-primary/5" data-testid="card-synthesis">
+                  {/* Synthesis - Enhanced Visual */}
+                  <Card className="border-primary/30 bg-primary/10" data-testid="card-synthesis">
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
-                        💡 Decisão do Conselho
+                        <Users className="w-5 h-5 text-primary" />
+                        🎯 Consenso da Mesa
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -351,34 +386,45 @@ export default function CouncilRoom() {
           
           {/* Streaming Contributions */}
           <AnimatePresence>
-            {streamingContributions.map((contrib, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ 
-                  duration: 0.26,
-                  ease: [0.16, 1, 0.3, 1]
-                }}
-                data-testid={`streaming-contribution-${idx}`}
-              >
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{contrib.expertName}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {contrib.content}
-                      </ReactMarkdown>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {streamingContributions.map((contrib, idx) => {
+              const allStreamingNames = streamingContributions.map(c => c.expertName);
+              const mentionedColleagues = detectColleagueMentions(contrib.content, allStreamingNames, contrib.expertName);
+              
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.26,
+                    ease: [0.16, 1, 0.3, 1]
+                  }}
+                  data-testid={`streaming-contribution-${idx}`}
+                >
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary">{contrib.expertName}</Badge>
+                        {mentionedColleagues.length > 0 && (
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <Users className="w-3 h-3" />
+                            Dialoga com {mentionedColleagues.length === 1 ? mentionedColleagues[0].split(' ')[0] : `${mentionedColleagues.length} colegas`}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {contrib.content}
+                        </ReactMarkdown>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
             
             {streamingSynthesis && (
               <motion.div
@@ -386,10 +432,11 @@ export default function CouncilRoom() {
                 animate={{ opacity: 1, y: 0 }}
                 data-testid="streaming-synthesis"
               >
-                <Card className="border-primary/20 bg-primary/5">
+                <Card className="border-primary/30 bg-primary/10">
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
-                      💡 Decisão do Conselho
+                      <Users className="w-5 h-5 text-primary" />
+                      🎯 Consenso da Mesa
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
