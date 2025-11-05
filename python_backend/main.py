@@ -1933,17 +1933,35 @@ async def council_chat_stream(session_id: str, message: str):
             print(f"[SSE] Starting synthesis with {len(contributions_data)} contributions...")
             yield sse_event("synthesizing", {})
             
-            synthesis = await council_orchestrator._synthesize_consensus(
-                problem=message,
-                contributions=[
-                    AgentContribution(
+            # Parse insights and recommendations from each contribution
+            parsed_contributions = []
+            for c in contributions_data:
+                try:
+                    insights = council_orchestrator._extract_bullet_points(c.content, "Key Insights")
+                    recommendations = council_orchestrator._extract_bullet_points(c.content, "Actionable Recommendations")
+                    
+                    parsed_contributions.append(AgentContribution(
+                        expertId="",
+                        expertName=c.expertName,
+                        analysis=c.content,
+                        keyInsights=insights,
+                        recommendations=recommendations
+                    ))
+                    print(f"[SSE] Parsed {c.expertName}: {len(insights)} insights, {len(recommendations)} recommendations")
+                except Exception as e:
+                    print(f"[SSE] Warning: Failed to parse bullet points for {c.expertName}: {str(e)}")
+                    # Fallback: use contribution with full analysis text but empty structured sections
+                    parsed_contributions.append(AgentContribution(
                         expertId="",
                         expertName=c.expertName,
                         analysis=c.content,
                         keyInsights=[],
                         recommendations=[]
-                    ) for c in contributions_data
-                ],
+                    ))
+            
+            synthesis = await council_orchestrator._synthesize_consensus(
+                problem=message,
+                contributions=parsed_contributions,
                 research_findings=None
             )
             print(f"[SSE] Synthesis complete - {len(synthesis)} chars")

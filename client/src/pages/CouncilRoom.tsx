@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Sparkles, Brain } from "lucide-react";
+import { Loader2, Send, Sparkles, Brain, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import ReactMarkdown from "react-markdown";
@@ -389,14 +389,32 @@ export default function CouncilRoom() {
             
             {currentExpert && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
                 data-testid="expert-thinking-indicator"
               >
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>{currentExpert}</span>
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-3">
+                      {currentExpert.includes("Sintetizando") ? (
+                        <Brain className="h-5 w-5 text-primary animate-pulse" />
+                      ) : (
+                        <Search className="h-5 w-5 text-primary animate-pulse" />
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-sm font-medium text-foreground">
+                          {currentExpert.includes("Sintetizando") 
+                            ? currentExpert 
+                            : `${currentExpert} pesquisando e analisando...`
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             )}
           </AnimatePresence>
