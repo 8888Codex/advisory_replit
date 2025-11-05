@@ -11,6 +11,9 @@ from perplexity_research import perplexity_research
 from tools.perplexity_tool import PerplexityResearchTool
 from tools.user_memory_tool import UserMemoryTool
 from tools.story_bank_tool import StoryBankTool
+from tools.youtube_research import YouTubeResearchTool
+from tools.trend_analysis import TrendAnalysisTool
+from tools.news_monitor import NewsMonitorTool
 
 class CouncilOrchestrator:
     """
@@ -30,12 +33,18 @@ class CouncilOrchestrator:
         self.perplexity_tool = PerplexityResearchTool()
         self.user_memory_tool = UserMemoryTool()
         self.story_bank_tool = StoryBankTool()
+        self.youtube_tool = YouTubeResearchTool()
+        self.trend_tool = TrendAnalysisTool()
+        self.news_tool = NewsMonitorTool()
         
         # Build tools dict for easy access
         self.tools: Dict[str, Any] = {
             "perplexity_research": self.perplexity_tool,
             "user_memory": self.user_memory_tool,
-            "story_bank": self.story_bank_tool
+            "story_bank": self.story_bank_tool,
+            "youtube_research": self.youtube_tool,
+            "trend_analysis": self.trend_tool,
+            "news_monitor": self.news_tool
         }
     
     def _ensure_initialized(self):
