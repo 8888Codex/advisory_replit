@@ -113,13 +113,23 @@ All marketing legends successfully migrated from text prompts to rich Python cla
 - ✅ Cada clone __init__ agora tem ~15-17 linhas (antes: ~30-35 linhas)
 - ✅ Validation atualizada para exigir 15+/15+ triggers (rigor total)
 
+**Avatar Generation Status (November 5, 2025):**
+- ✅ **14/18 Experts com Avatares Profissionais**
+  - 9 novos avatares gerados: Eugene Schwartz, Jay Abraham, Jay Levinson, Robert Cialdini, David Aaker, Daniel Kahneman, Donald Miller, Drayton Bird, Simon Sinek
+  - 5 avatares pré-existentes: Philip Kotler, David Ogilvy, Claude Hopkins, Seth Godin, Gary Vaynerchuk
+  - 4 experts sem avatares: Al Ries & Jack Trout (dupla), Dan Kennedy, Ann Handley, Neil Patel
+- ✅ Todos os avatares armazenados em `/attached_assets/generated_images/`
+- ✅ Backend validado: API `/api/experts` retorna 14/18 avatars corretamente
+
 **Next Steps:**
 - ✅ Legacy prompts preserved em `python_backend/prompts/legends.py` (backup)
 - ✅ Rigor Total atingido: 15+/15+ triggers em TODOS os 18 clones
 - ✅ Testes comportamentais automatizados implementados e validados
-- 🔄 Consider deprecating legacy fallback após E2E validation completa
+- ✅ E2E Validation 100% PASS: 18 experts visíveis na UI, triggers funcionando
+- ✅ Avatares gerados e integrados com sucesso (14/18 experts)
+- 🔄 Consider deprecating legacy fallback após validação completa de produção
 - 🔄 Deduplicate trigger keywords para maximizar cobertura semântica
 - 🔄 Spot-audit trigger reactions com vocabulário expandido
 - 🔄 Documentar thresholds em contributor guidelines para futuros clones
 - 🔄 Auto-generation template for future clones
-- 🔄 Migration of `/api/experts` endpoint to rich clone data
+- 🔄 Gerar avatares para os 4 experts restantes (opcional)
