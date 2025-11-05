@@ -43,6 +43,8 @@ Preferred communication style: Simple, everyday language.
   - **Synthesis Evolution**: Synthesis now narrates the CONVERSATION ("Teve uma discussão boa - [Expert 1] começou com X, aí [Expert 2] complementou...") highlighting agreement, divergence, and consensus evolution
   - **Implementation**: `crew_council.py` `_get_expert_analysis()` accepts optional `colleague_contributions`, `main.py` accumulates via `current_round_contributions` list
   - **Backward Compatible**: Works without `colleague_contributions` for initial analysis (no colleagues yet)
+  - **Sprint 1 (Nov 2025)**: Enhanced dialogue specificity with checkmark-based prompt examples forcing concrete point references, PT-BR quotation translation rules
+  - **Sprint 2 (Nov 2025)**: Visual polish - colleague mention badges ("Dialoga com X"), synthesis differentiation (Users icon, "🎯 Consenso da Mesa", `border-primary/30`, `bg-primary/10`)
 
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
