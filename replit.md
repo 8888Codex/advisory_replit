@@ -61,6 +61,33 @@ Preferred communication style: Simple, everyday language.
 - **Multi-Category Navigation System**: 15 distinct categories with consistent iconography and filtering.
 - **Personalization System**: Expert recommendations, contextual AI prompt enrichment, Perplexity-powered suggested questions, business insights, and smart filters.
 
+### Semantic Search on Experts Page (Nov 2025)
+- **Feature**: AI-powered expert recommendation system that analyzes user's specific challenge and recommends the most relevant specialists.
+- **Location**: `/experts` page, prominent search bar above expert grid.
+- **Architecture**:
+  - **Frontend**: Debounced textarea (800ms), min 10 chars for analysis, integrates with `/api/recommend-experts` endpoint.
+  - **Backend**: Reuses existing TestCouncil recommendation engine (Anthropic Claude analysis of problem vs. expert capabilities).
+  - **Category Integration**: Respects selected category filter, passes `categoryFilter` parameter to API for focused recommendations.
+- **UI/UX Flow**:
+  1. User describes challenge in textarea (contextual placeholder changes per category)
+  2. Loading state: "🔍 Analisando seu desafio..."
+  3. Top 5 experts displayed with Avatar, stars (1-5), and AI-generated justification
+  4. Two-button layout per card: "Conversar" (direct chat) + "Conselho" (add to council)
+  5. FAB (Floating Action Button) appears when experts selected for council
+  6. "Iniciar Conselho" navigates to TestCouncil with pre-selected experts and challenge
+- **Quick Actions**:
+  - **"Conversar" button**: Direct navigation to `/chat/{expertId}` for 1:1 conversation
+  - **"Conselho" button**: Toggle expert in/out of council selection (visual feedback: outline ↔ default variant, "Conselho" ↔ "Adicionado")
+  - **FAB (Fixed bottom-right)**: Shows count "N especialistas selecionados", navigates to `/test-council` with localStorage pre-selection
+- **Contextual Hints**: 15 category-specific placeholder examples (e.g., "positioning": "Como diferenciar minha marca num mercado saturado?")
+- **State Management**: 
+  - `councilExperts` state tracks selected expert IDs
+  - localStorage keys: `preselectedExperts` (array), `preselectedProblem` (string)
+  - TestCouncil auto-loads from localStorage on mount, cleans up immediately
+- **Safety Guards**: FAB only appears when `councilExperts.length > 0`, button disabled if empty, `startCouncil()` guards against zero-selection navigation
+- **Fallback**: Complete expert grid always visible below recommendations (hybrid approach - AI suggestions + manual fallback)
+- **Implementation**: Sprint 1 (semantic search + recommendations), Sprint 2 (Quick Actions + FAB + contextual hints), Nov 2025
+
 ## External Dependencies
 
 - **Anthropic Claude API**: AI model interactions and cognitive cloning.
