@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 - **Event Types**: `user_message`, `expert_thinking`, `contribution`, `synthesizing`, `synthesis`, `complete`, `error`.
 - **Frontend (CouncilRoom.tsx)**: Uses `EventSource` API, ReactMarkdown for rich formatting, displays expert avatars and loading states.
 - **Backend (FastAPI)**: `StreamingResponse` for SSE, integrates `CouncilOrchestrator`, loads full conversation history for context.
+- **Memory System**: Nov 2025 bug fix - experts now receive full `analysis_context` including initial problem, consensus, and all prior contributions. Fixed issue where `user_context["analysis_context"]` was passed but never used in `_get_expert_analysis()`.
 
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
