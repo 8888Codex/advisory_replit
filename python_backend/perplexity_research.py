@@ -11,9 +11,9 @@ class PerplexityResearch:
     """Wrapper for Perplexity API with business context and lazy initialization"""
     
     def __init__(self):
-        self._api_key = None
-        self._base_url = None
-        self._model = None
+        self._api_key: Optional[str] = None
+        self._base_url: Optional[str] = None
+        self._model: Optional[str] = None
     
     def _ensure_initialized(self):
         """Lazy initialization - validates API key only when needed"""
@@ -29,18 +29,24 @@ class PerplexityResearch:
             self._model = "sonar-pro"  # Advanced search with grounding for complex queries
     
     @property
-    def api_key(self):
+    def api_key(self) -> str:
         self._ensure_initialized()
+        if self._api_key is None:
+            raise RuntimeError("API key failed to initialize")
         return self._api_key
     
     @property
-    def base_url(self):
+    def base_url(self) -> str:
         self._ensure_initialized()
+        if self._base_url is None:
+            raise RuntimeError("Base URL failed to initialize")
         return self._base_url
     
     @property
-    def model(self):
+    def model(self) -> str:
         self._ensure_initialized()
+        if self._model is None:
+            raise RuntimeError("Model failed to initialize")
         return self._model
     
     async def research(
