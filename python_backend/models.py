@@ -145,19 +145,32 @@ class CouncilChatRequest(BaseModel):
     """Request payload for council chat follow-up"""
     message: str
 
-class ExpertRecommendation(BaseModel):
-    """Single expert recommendation with relevance score and justification"""
+class ClaudeRecommendation(BaseModel):
+    """Expert recommendation from Claude (before enrichment)"""
     expertId: str
     expertName: str
     relevanceScore: int  # 1-5 stars
+    justification: str
+
+class ExpertRecommendation(BaseModel):
+    """Enriched expert recommendation with avatar and stars (sent to frontend)"""
+    expertId: str
+    expertName: str
+    avatar: Optional[str] = None  # Expert avatar URL
+    relevanceScore: int  # 1-5 stars (from Claude analysis)
+    stars: int  # Same as relevanceScore (for frontend compatibility)
     justification: str
 
 class RecommendExpertsRequest(BaseModel):
     """Request to get expert recommendations based on problem"""
     problem: str
 
+class ClaudeRecommendationsResponse(BaseModel):
+    """Response from Claude with recommendations (before enrichment)"""
+    recommendations: List[ClaudeRecommendation]
+
 class RecommendExpertsResponse(BaseModel):
-    """Response with recommended experts ranked by relevance"""
+    """Enriched response with recommended experts (sent to frontend)"""
     recommendations: List[ExpertRecommendation]
 
 class AutoCloneRequest(BaseModel):

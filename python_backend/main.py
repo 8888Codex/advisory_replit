@@ -763,6 +763,12 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
         # This handles Claude responses with prose, brace fragments, or irrelevant JSON before payload
         def extract_recommendations_json(text: str) -> str:
             """Find first valid JSON object containing 'recommendations' key"""
+            # Pre-process: Remove markdown code blocks (```json ... ``` or ``` ... ```)
+            import re
+            # Remove code block markers
+            text = re.sub(r'```json\s*', '', text)
+            text = re.sub(r'```\s*', '', text)
+            
             # Find all potential starting positions
             potential_starts = [i for i, char in enumerate(text) if char == '{']
             
@@ -801,9 +807,10 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
                                 parsed = json.loads(candidate)
                                 # Verify this object matches the expected schema
                                 if isinstance(parsed, dict) and 'recommendations' in parsed:
-                                    # Try Pydantic validation to ensure schema compliance
+                                    # Try Pydantic validation with Claude's schema (before enrichment)
                                     try:
-                                        RecommendExpertsResponse(**parsed)
+                                        from models import ClaudeRecommendationsResponse
+                                        ClaudeRecommendationsResponse(**parsed)
                                         # Valid schema! This is the object we need
                                         return candidate
                                     except Exception:
@@ -823,7 +830,25 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
         # Parse JSON response (already validated in extract function)
         recommendations_data = json.loads(json_str)
         
-        return RecommendExpertsResponse(**recommendations_data)
+        # Enrich recommendations with expert data (avatar, stars)
+        enriched_recommendations = []
+        for rec in recommendations_data.get("recommendations", []):
+            # Get full expert data from storage
+            expert = await storage.get_expert(rec["expertId"])
+            
+            # Build enriched recommendation
+            enriched_rec = {
+                "expertId": rec["expertId"],
+                "expertName": rec["expertName"],
+                "avatar": expert.avatar if expert else None,
+                "relevanceScore": rec["relevanceScore"],
+                "stars": rec["relevanceScore"],  # Copy relevanceScore to stars
+                "justification": rec["justification"]
+            }
+            enriched_recommendations.append(enriched_rec)
+        
+        # Return enriched response
+        return RecommendExpertsResponse(recommendations=enriched_recommendations)
     
     except json.JSONDecodeError as e:
         response_text_preview = locals().get("response_text", "N/A")
