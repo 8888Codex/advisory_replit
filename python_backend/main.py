@@ -1885,18 +1885,20 @@ async def council_chat_stream(session_id: str, message: str):
             context = await _build_council_context(analysis, history, message)
             print(f"[SSE] Context built - {len(context)} chars")
             
-            # Stream contributions from each expert
+            # Stream contributions from each expert (ROUNDTABLE: experts see previous contributions)
             contributions_data = []
-            print(f"[SSE] Starting expert iteration...")
+            current_round_contributions = []  # Accumulate for roundtable discussion
+            print(f"[SSE] Starting expert iteration (roundtable mode)...")
             
             for idx, expert in enumerate(experts):
                 print(f"[SSE] Processing expert {idx+1}/{len(experts)}: {expert.name}")
+                print(f"[SSE] Expert will see {len(current_round_contributions)} colleague contribution(s)")
                 yield sse_event("expert_thinking", {
                     "expertName": expert.name,
                     "order": idx
                 })
                 
-                # Get expert analysis with full context
+                # Get expert analysis with full context + colleague contributions (roundtable)
                 try:
                     print(f"[SSE] Calling CrewAI for {expert.name}...")
                     contribution = await council_orchestrator._get_expert_analysis(
@@ -1905,7 +1907,8 @@ async def council_chat_stream(session_id: str, message: str):
                         research_findings=None,  # No new research for follow-up
                         profile=None,
                         user_id=user_id,
-                        user_context={"analysis_context": context}
+                        user_context={"analysis_context": context},
+                        colleague_contributions=current_round_contributions  # Pass previous experts' contributions
                     )
                     print(f"[SSE] Got contribution from {expert.name} - {len(contribution.analysis)} chars")
                     
@@ -1921,7 +1924,13 @@ async def council_chat_stream(session_id: str, message: str):
                         content=contribution.analysis,
                         order=idx
                     ))
-                    print(f"[SSE] Contribution {idx+1} added to list")
+                    
+                    # Add to current round for next experts to see (roundtable)
+                    current_round_contributions.append({
+                        "expert_name": contribution.expertName,
+                        "contribution": contribution.analysis
+                    })
+                    print(f"[SSE] Contribution {idx+1} added to list. Next expert will see {len(current_round_contributions)} colleague(s)")
                     
                 except Exception as e:
                     print(f"[SSE] ERROR: Expert {expert.name} failed: {str(e)}")

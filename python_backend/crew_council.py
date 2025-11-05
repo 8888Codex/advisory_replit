@@ -167,11 +167,16 @@ class CouncilOrchestrator:
         research_findings: Optional[str],
         profile: Optional[BusinessProfile],
         user_id: str = "demo_user",
-        user_context: Optional[Dict[str, Any]] = None
+        user_context: Optional[Dict[str, Any]] = None,
+        colleague_contributions: Optional[List[Dict[str, str]]] = None
     ) -> AgentContribution:
         """
         Get analysis from a single expert using their cognitive clone with tool support.
         Uses semaphore to limit concurrent API calls and prevent rate limiting.
+        
+        Args:
+            colleague_contributions: List of {"expert_name": str, "contribution": str} 
+                                    from colleagues who already spoke in this round (for roundtable)
         
         Returns:
             AgentContribution with expert's unique perspective
@@ -182,6 +187,15 @@ class CouncilOrchestrator:
             
             # Build context-rich prompt
             context_parts = []
+            
+            # Add colleague contributions for roundtable discussion (Council Room only)
+            if colleague_contributions and len(colleague_contributions) > 0:
+                colleagues_text = "**SEUS COLEGAS JÁ FALARAM (ouça e dialogue com eles):**\n\n"
+                for idx, colleague in enumerate(colleague_contributions, 1):
+                    colleagues_text += f"--- {colleague['expert_name']} ---\n"
+                    colleagues_text += f"{colleague['contribution']}\n\n"
+                
+                context_parts.append(colleagues_text)
             
             # Add user context (psychographics, past insights) if available
             if user_context and user_context.get("profile"):
@@ -232,13 +246,41 @@ class CouncilOrchestrator:
             # Build final user message
             context = "\n\n".join(context_parts) if context_parts else ""
             
+            # Build dialogue instructions if colleagues have spoken
+            dialogue_instructions = ""
+            if colleague_contributions and len(colleague_contributions) > 0:
+                colleague_names = [c['expert_name'] for c in colleague_contributions]
+                colleagues_str = ", ".join(colleague_names[:-1]) + f" e {colleague_names[-1]}" if len(colleague_names) > 1 else colleague_names[0]
+                
+                dialogue_instructions = f"""
+**ROUNDTABLE DISCUSSION - DIALOGUE COM SEUS COLEGAS:**
+{colleagues_str} já {'falaram' if len(colleague_names) > 1 else 'falou'}. Você está em uma mesa redonda de consultoria.
+
+**OBRIGATÓRIO:**
+1. **COMENTE** o que seus colegas disseram:
+   - "Concordo com o [nome] sobre..."
+   - "Interessante o ponto do/da [nome], mas eu adicionaria..."
+   - "O [nome] levantou [X], e isso me faz pensar em..."
+   - "Diferente do que o/a [nome] sugeriu, eu vejo..."
+
+2. **CONSTRUA** em cima das contribuições deles:
+   - Complemente pontos que eles levantaram
+   - Ofereça perspectiva diferente quando discordar
+   - Conecte sua experiência com o que foi dito
+
+3. **NÃO IGNORE** seus colegas - esta é uma CONVERSA entre vocês, não opiniões paralelas
+
+**Exemplo de como começar:**
+"Olha, concordo com o [nome] sobre [ponto X]. E baseado na minha experiência com [Y], eu adicionaria que..."
+"""
+
             user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR) natural e coloquial.**
 
 {context}
 
 **Pergunta do usuário:**
 {problem}
-
+{dialogue_instructions}
 **Sua Tarefa - CONVERSA de Acompanhamento:**
 Você está no Council Room, em uma conversa de follow-up. O usuário já recebeu sua análise completa inicial e agora está fazendo perguntas adicionais.
 
@@ -333,36 +375,42 @@ Seja você mesmo, mas numa conversa natural."""
                 # Conversational response - use full analysis (truncate to 800 chars for synthesis)
                 contributions_text += contrib.analysis[:800] + ("..." if len(contrib.analysis) > 800 else "") + "\n"
         
-        synthesis_prompt = f"""Você é um moderador experiente sintetizando uma conversa entre especialistas.
+        synthesis_prompt = f"""Você é um moderador experiente sintetizando uma CONVERSA ROUNDTABLE entre especialistas.
 
 **Pergunta discutida:**
 {problem}
 
-**Contribuições dos especialistas:**
+**CONVERSA que rolou (experts dialogando entre si):**
 {contributions_text}
 
-**Sua tarefa - CONCLUSÃO DE REUNIÃO:**
-Você é o moderador encerrando a discussão. Faça uma síntese CONVERSACIONAL como se estivesse resumindo verbalmente ao final de uma reunião.
+**Sua tarefa - CONCLUSÃO DE REUNIÃO ROUNDTABLE:**
+Você acabou de moderar uma mesa redonda onde os especialistas CONVERSARAM ENTRE SI, comentando e construindo em cima das falas dos colegas.
+
+Agora sintetize essa CONVERSA, destacando:
+1. **Pontos de CONCORDÂNCIA** - onde experts concordaram e reforçaram ideias uns dos outros
+2. **Pontos de DIVERGÊNCIA** - onde houve perspectivas diferentes e complementares
+3. **EVOLUÇÃO do pensamento** - como a conversa foi construindo consenso ao longo do diálogo
 
 FORMATO:
-- **Tom**: Natural e coloquial, como "Ok, pessoal trouxe pontos interessantes aqui..."
+- **Tom**: Natural e coloquial, como "Ok, rolou uma conversa interessante aqui..."
 - **Tamanho**: 2-3 parágrafos curtos (máximo 150-200 palavras)
 - **Estrutura**: Informal, fluxo de conversa, não use números ou bullets
-- **Conteúdo**: Destaque 1-2 pontos de consenso principais e próximos passos
+- **Foco**: Sintetize a CONVERSA, não apenas liste opiniões paralelas
 
-EXEMPLOS de como iniciar:
-- "Olha, ficou claro que..."
-- "Ok, todo mundo concordou que..."
-- "O consenso aqui é..."
-- "Resumindo o que o pessoal disse..."
+EXEMPLOS de como começar:
+- "Olha, foi interessante ver que todo mundo convergiu em..."
+- "Teve uma discussão boa aqui - o [Nome] começou falando de X, aí o/a [Nome] complementou com Y..."
+- "O consenso foi se formando: primeiro [Nome] sugeriu X, depois [Nome] reforçou..."
+- "Rolou divergência em um ponto - [Nome] defendeu X enquanto [Nome] prefere Y, mas..."
 
 **Evite:**
 - Estruturas numeradas (1., 2., 3.)
 - Bullets extensos
+- Tratar como opiniões isoladas ("Expert 1 disse isso, Expert 2 disse aquilo")
 - Tom formal ou de apresentação
 - Mais de 200 palavras
 
-Seja direto e conversacional, como se estivesse falando ao vivo."""
+Sintetize o DIÁLOGO que rolou, mostrando como os experts conversaram entre si."""
         
         # Call Claude for synthesis (using a neutral system prompt) with timeout
         try:
