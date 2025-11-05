@@ -3,11 +3,14 @@ CrewAI Council Orchestration - Multi-Expert Collaborative Analysis
 """
 import uuid
 import asyncio
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from anthropic import AsyncAnthropic
 import os
 from models import Expert, BusinessProfile, CouncilAnalysis, AgentContribution
 from perplexity_research import perplexity_research
+from tools.perplexity_tool import PerplexityResearchTool
+from tools.user_memory_tool import UserMemoryTool
+from tools.story_bank_tool import StoryBankTool
 
 class CouncilOrchestrator:
     """
@@ -22,6 +25,18 @@ class CouncilOrchestrator:
     def __init__(self):
         self._anthropic_client: Optional[AsyncAnthropic] = None
         self._semaphore: Optional[asyncio.Semaphore] = None
+        
+        # Initialize custom tools for expert enrichment
+        self.perplexity_tool = PerplexityResearchTool()
+        self.user_memory_tool = UserMemoryTool()
+        self.story_bank_tool = StoryBankTool()
+        
+        # Build tools dict for easy access
+        self.tools: Dict[str, Any] = {
+            "perplexity_research": self.perplexity_tool,
+            "user_memory": self.user_memory_tool,
+            "story_bank": self.story_bank_tool
+        }
     
     def _ensure_initialized(self):
         """Lazy initialization - validates API key only when needed"""
@@ -89,7 +104,8 @@ class CouncilOrchestrator:
                 expert=expert,
                 problem=problem,
                 research_findings=research_findings,
-                profile=profile
+                profile=profile,
+                user_id=user_id
             )
             for expert in experts
         ]
@@ -136,16 +152,20 @@ class CouncilOrchestrator:
         expert: Expert,
         problem: str,
         research_findings: Optional[str],
-        profile: Optional[BusinessProfile]
+        profile: Optional[BusinessProfile],
+        user_id: str = "demo_user"
     ) -> AgentContribution:
         """
-        Get analysis from a single expert using their cognitive clone.
+        Get analysis from a single expert using their cognitive clone with tool support.
         Uses semaphore to limit concurrent API calls and prevent rate limiting.
         
         Returns:
             AgentContribution with expert's unique perspective
         """
         async with self.semaphore:
+            # Build enhanced system prompt with tool instructions
+            enhanced_system = self._build_enhanced_system_prompt(expert, user_id)
+            
             # Build context-rich prompt
             context_parts = []
             
@@ -187,13 +207,13 @@ As {expert.name}, provide your expert analysis addressing this problem. Structur
 
 Draw on your signature frameworks, methodologies, and philosophies. Be authentic to your cognitive patterns and communication style."""
             
-            # Call Claude with expert's system prompt (with timeout)
+            # Call Claude with expert's enhanced system prompt (with timeout)
             try:
                 response = await asyncio.wait_for(
                     self.anthropic_client.messages.create(
                         model="claude-sonnet-4-20250514",
                         max_tokens=3000,
-                        system=expert.systemPrompt,
+                        system=enhanced_system,
                         messages=[{
                             "role": "user",
                             "content": user_message
@@ -289,6 +309,33 @@ Seja conciso, acionável e autoritativo. Este é um briefing executivo."""
                 break
         
         return consensus_text
+    
+    def _build_enhanced_system_prompt(self, expert: Expert, user_id: str) -> str:
+        """
+        Build expert system prompt enriched with tool instructions
+        
+        Args:
+            expert: Expert model with systemPrompt
+            user_id: User identifier for personalization
+        
+        Returns:
+            Enhanced system prompt with tool capabilities
+        """
+        enhanced = expert.systemPrompt
+        
+        # Add tool instructions if tools are available
+        if self.tools:
+            enhanced += "\n\n## AVAILABLE CAPABILITIES\n"
+            enhanced += "You have access to the following research and personalization capabilities:\n\n"
+            
+            for tool_name, tool in self.tools.items():
+                if hasattr(tool, 'get_prompt_instruction'):
+                    enhanced += f"### {tool_name}\n"
+                    enhanced += tool.get_prompt_instruction() + "\n\n"
+            
+            enhanced += "\nUse these capabilities to enrich your analysis with contextual data, user preferences, and relevant case studies.\n"
+        
+        return enhanced
     
     def _extract_bullet_points(self, text: str, section_name: str) -> List[str]:
         """
