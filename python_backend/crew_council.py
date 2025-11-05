@@ -232,26 +232,45 @@ class CouncilOrchestrator:
             # Build final user message
             context = "\n\n".join(context_parts) if context_parts else ""
             
-            user_message = f"""{context}
+            user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR) natural e coloquial.**
 
-**Problem/Question:**
+{context}
+
+**Pergunta do usuário:**
 {problem}
 
-**Your Task:**
-As {expert.name}, provide your expert analysis addressing this problem. Structure your response as:
+**Sua Tarefa - CONVERSA de Acompanhamento:**
+Você está no Council Room, em uma conversa de follow-up. O usuário já recebeu sua análise completa inicial e agora está fazendo perguntas adicionais.
 
-1. **Core Analysis**: Your unique perspective on the problem (2-3 paragraphs)
-2. **Key Insights**: 3-5 critical insights (bullet points)
-3. **Actionable Recommendations**: 3-5 specific, tactical recommendations (bullet points)
+RESPONDA de forma:
+- **CONVERSACIONAL e DIRETA** - Como se estivesse em uma call de consultoria, não em uma apresentação formal
+- **CONCISA** - 2-4 parágrafos curtos, máximo 500-600 palavras total
+- **FOCADA** - Responda a pergunta específica, não repita toda a análise inicial
+- **COM MEMÓRIA** - Referencie explicitamente a conversa anterior usando frases como:
+  • "Como eu mencionei sobre..."
+  • "Voltando ao que discutimos sobre..."
+  • "Baseado naquele ponto que levantei..."
+  • "Complementando a análise anterior..."
 
-Draw on your signature frameworks, methodologies, and philosophies. Be authentic to your cognitive patterns and communication style."""
+**Tom brasileiro autêntico:**
+- Use expressões naturais BR: "O lance é...", "Olha só...", "Vou direto ao ponto..."
+- Evite anglicismos e tom acadêmico
+- Fale como você falaria em uma conversa real de consultoria
+
+**Evite:**
+- Headers formais (## CORE ANALYSIS)
+- Listas extensas de bullet points
+- Repetir contexto já fornecido
+- Tom professoral ou apresentação de slides
+
+Seja você mesmo, mas numa conversa natural."""
             
             # Call Claude with expert's enhanced system prompt (with timeout)
             try:
                 response = await asyncio.wait_for(
                     self.anthropic_client.messages.create(
                         model="claude-sonnet-4-20250514",
-                        max_tokens=3000,
+                        max_tokens=800,  # Reduced from 3000 to force concise responses
                         system=enhanced_system,
                         messages=[{
                             "role": "user",
@@ -300,42 +319,58 @@ Draw on your signature frameworks, methodologies, and philosophies. Be authentic
         # Build synthesis prompt with all contributions
         contributions_text = ""
         for contrib in contributions:
-            contributions_text += f"\n\n---\n**{contrib.expertName}'s Analysis:**\n"
-            contributions_text += f"\n**Key Insights:**\n"
-            for insight in contrib.keyInsights:
-                contributions_text += f"- {insight}\n"
-            contributions_text += f"\n**Recommendations:**\n"
-            for rec in contrib.recommendations:
-                contributions_text += f"- {rec}\n"
+            contributions_text += f"\n\n---\n**{contrib.expertName}:**\n"
+            # For conversational responses, use full analysis instead of structured insights/recommendations
+            if contrib.keyInsights or contrib.recommendations:
+                # Structured response (legacy format)
+                contributions_text += f"\n**Key Insights:**\n"
+                for insight in contrib.keyInsights:
+                    contributions_text += f"- {insight}\n"
+                contributions_text += f"\n**Recommendations:**\n"
+                for rec in contrib.recommendations:
+                    contributions_text += f"- {rec}\n"
+            else:
+                # Conversational response - use full analysis (truncate to 800 chars for synthesis)
+                contributions_text += contrib.analysis[:800] + ("..." if len(contrib.analysis) > 800 else "") + "\n"
         
-        synthesis_prompt = f"""Você é um sintetizador estratégico analisando contribuições de um conselho de especialistas lendários em marketing.
+        synthesis_prompt = f"""Você é um moderador experiente sintetizando uma conversa entre especialistas.
 
-**Problema Analisado:**
+**Pergunta discutida:**
 {problem}
 
-**Contribuições do Conselho de Especialistas:**
+**Contribuições dos especialistas:**
 {contributions_text}
 
-**Sua Tarefa:**
-Sintetize um resumo executivo unificado que:
+**Sua tarefa - CONCLUSÃO DE REUNIÃO:**
+Você é o moderador encerrando a discussão. Faça uma síntese CONVERSACIONAL como se estivesse resumindo verbalmente ao final de uma reunião.
 
-1. **Estratégia Consensual** (1-2 parágrafos): Onde todos os especialistas concordam? Qual é a direção estratégica central?
+FORMATO:
+- **Tom**: Natural e coloquial, como "Ok, pessoal trouxe pontos interessantes aqui..."
+- **Tamanho**: 2-3 parágrafos curtos (máximo 150-200 palavras)
+- **Estrutura**: Informal, fluxo de conversa, não use números ou bullets
+- **Conteúdo**: Destaque 1-2 pontos de consenso principais e próximos passos
 
-2. **Recomendações Integradas** (5-7 pontos): Combine e priorize as recomendações mais impactantes de todos os especialistas. Atribua táticas específicas aos especialistas quando relevante (ex: "Como Kotler enfatizou...").
+EXEMPLOS de como iniciar:
+- "Olha, ficou claro que..."
+- "Ok, todo mundo concordou que..."
+- "O consenso aqui é..."
+- "Resumindo o que o pessoal disse..."
 
-3. **Tensões-Chave** (se houver): Onde os especialistas discordam ou enfatizam prioridades diferentes? Apresente essas como escolhas estratégicas, não contradições.
+**Evite:**
+- Estruturas numeradas (1., 2., 3.)
+- Bullets extensos
+- Tom formal ou de apresentação
+- Mais de 200 palavras
 
-4. **Roadmap de Implementação** (3-5 passos): Sintetize uma sequência prática de ações baseada nas recomendações de todos os especialistas.
-
-Seja conciso, acionável e autoritativo. Este é um briefing executivo."""
+Seja direto e conversacional, como se estivesse falando ao vivo."""
         
         # Call Claude for synthesis (using a neutral system prompt) with timeout
         try:
             response = await asyncio.wait_for(
                 self.anthropic_client.messages.create(
                     model="claude-sonnet-4-20250514",
-                    max_tokens=2500,
-                    system="You are an expert strategic analyst specializing in synthesizing insights from multiple domain experts into clear, actionable recommendations.\n\n**INSTRUÇÃO OBRIGATÓRIA: Você DEVE escrever SEMPRE em português brasileiro (PT-BR), independentemente do idioma em que as contribuições dos experts foram escritas. Todo o seu consenso, recomendações integradas, roadmap de implementação e quaisquer citações ou referências devem ser escritos ou traduzidos para português brasileiro. Use nomes traduzidos de conceitos e livros quando existirem. Se citar frases em inglês, forneça também a tradução.**",
+                    max_tokens=500,  # Reduced from 2500 for concise synthesis
+                    system="Você é um moderador experiente de reuniões de consultoria. Fale em português brasileiro natural e coloquial.",
                     messages=[{
                         "role": "user",
                         "content": synthesis_prompt
@@ -419,8 +454,8 @@ Por favor, tente reformular sua pergunta."""
         
         match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
         if not match:
-            # Fallback: section not found
-            return [f"(See full analysis for {section_name})"]
+            # Section not found - return empty list (conversational responses don't have structured sections)
+            return []
         
         # Extract text after section header until next section or end
         start_pos = match.end()
@@ -450,9 +485,9 @@ Por favor, tente reformular sua pergunta."""
                 if len(point) >= 15:
                     points.append(point)
         
-        # Return up to 7 points, or fallback message
+        # Return up to 7 points, or empty list for conversational responses
         if not points:
-            return [f"(See full analysis for {section_name})"]
+            return []
         
         return points[:7]
 
