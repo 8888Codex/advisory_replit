@@ -31,6 +31,11 @@ Preferred communication style: Simple, everyday language.
 - **Frontend (CouncilRoom.tsx)**: Uses `EventSource` API, ReactMarkdown for rich formatting, displays expert avatars and loading states.
 - **Backend (FastAPI)**: `StreamingResponse` for SSE, integrates `CouncilOrchestrator`, loads full conversation history for context.
 - **Memory System**: Nov 2025 bug fix - experts now receive full `analysis_context` including initial problem, consensus, and all prior contributions. Fixed issue where `user_context["analysis_context"]` was passed but never used in `_get_expert_analysis()`.
+- **Conversational Transformation (Nov 2025)**: Council Room responses transformed from formal academic format to natural Brazilian Portuguese conversation:
+  - **Expert Responses**: Conversational tone (500-600 words max), explicit memory references ("Como mencionei...", "Voltando ao que discutimos..."), Brazilian expressions ("O lance é...", "Olha só..."), token limit 800 (vs. 3000 before)
+  - **Synthesis**: Moderator tone ("Ok, pessoal trouxe pontos interessantes..."), 150-200 words, informal structure, token limit 500 (vs. 2500 before)
+  - **Language**: 100% PT-BR guaranteed with explicit instruction at prompt start
+  - **Format**: Free-flowing conversation vs. structured headers/bullets
 
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
