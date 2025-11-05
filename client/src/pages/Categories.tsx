@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { Link, useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo } from "react";
 import {
   TrendingUp,
   Rocket,
@@ -17,12 +18,20 @@ import {
   BarChart4,
   Handshake,
   TrendingUpDown,
+  Loader2,
+  Star,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/useDebounce";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Category {
   id: string;
@@ -31,6 +40,15 @@ interface Category {
   icon: string;
   color: string;
   expertCount: number;
+}
+
+interface ExpertRecommendation {
+  expertId: string;
+  name: string;
+  avatar?: string | null;
+  relevanceScore: number;
+  stars: number;
+  justification: string;
 }
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -221,9 +239,61 @@ function CategoryGridSkeleton() {
 }
 
 export default function Categories() {
+  const [, setLocation] = useLocation();
+  const [challenge, setChallenge] = useState("");
+  const [councilExperts, setCouncilExperts] = useState<string[]>([]);
+
   const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
+
+  // Debounce challenge input for semantic recommendations
+  const debouncedChallenge = useDebounce(challenge, 800);
+
+  // Get semantic recommendations based on challenge (NO category filter - search ALL experts)
+  const { data: semanticRecommendations, isLoading: loadingSemanticRecs } = useQuery<{ recommendations: ExpertRecommendation[] }>({
+    queryKey: ["/api/recommend-experts", debouncedChallenge],
+    queryFn: async () => {
+      if (!debouncedChallenge.trim() || debouncedChallenge.trim().length < 10) {
+        return { recommendations: [] };
+      }
+      
+      const response = await apiRequest("/api/recommend-experts", {
+        method: "POST",
+        body: JSON.stringify({ 
+          problem: debouncedChallenge,
+          // NO categoryFilter - we want cross-category recommendations
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      return response.json();
+    },
+    enabled: debouncedChallenge.trim().length >= 10,
+  });
+
+  const semanticRecs = semanticRecommendations?.recommendations || [];
+
+  const toggleCouncilExpert = (expertId: string) => {
+    setCouncilExperts(prev =>
+      prev.includes(expertId)
+        ? prev.filter(id => id !== expertId)
+        : [...prev, expertId]
+    );
+  };
+  
+  const startCouncil = () => {
+    // Guard against empty selection
+    if (councilExperts.length === 0) return;
+    
+    // Navigate to TestCouncil with pre-selected experts via localStorage
+    localStorage.setItem('preselectedExperts', JSON.stringify(councilExperts));
+    localStorage.setItem('preselectedProblem', challenge);
+    setLocation('/test-council');
+  };
+
+  const handleConsult = (rec: ExpertRecommendation) => {
+    setLocation(`/chat/${rec.expertId}`);
+  };
 
   return (
     <AnimatedPage>
@@ -240,10 +310,159 @@ export default function Categories() {
               Explore por Área de Expertise
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-categories-subtitle">
-              Navegue pelos nossos especialistas organizados por disciplina. Cada categoria reúne os maiores nomes
-              em suas respectivas áreas para oferecer consultoria ultra-especializada.
+              Descreva seu desafio e deixe a IA recomendar os especialistas ideais, ou navegue pelas categorias abaixo.
             </p>
           </motion.div>
+
+          {/* Semantic Search Section */}
+          <motion.div
+            className="mb-12 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="border-primary/20 bg-card/50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3 mb-3">
+                  <Sparkles className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold mb-1">Encontre o Especialista Ideal</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Descreva seu desafio em detalhes e nossa IA analisará qual especialista é ideal para você.
+                    </p>
+                  </div>
+                </div>
+                <Textarea
+                  placeholder="Ex: Preciso aumentar a conversão do meu e-commerce de moda. Temos 10mil visitas/mês mas apenas 1% de conversão..."
+                  value={challenge}
+                  onChange={(e) => setChallenge(e.target.value)}
+                  className="min-h-[100px] resize-none"
+                  data-testid="textarea-semantic-search"
+                />
+                {challenge.trim().length > 0 && challenge.trim().length < 10 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Digite pelo menos 10 caracteres para ver recomendações...
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Semantic Recommendations */}
+          {loadingSemanticRecs && debouncedChallenge.trim().length >= 10 && (
+            <motion.div
+              className="mb-12 max-w-4xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="flex items-center justify-center gap-3 py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <p className="text-muted-foreground">🔍 Analisando seu desafio...</p>
+              </div>
+            </motion.div>
+          )}
+
+          {semanticRecs.length > 0 && (
+            <motion.div
+              className="mb-16 max-w-4xl mx-auto"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" />
+                Especialistas Recomendados para Você
+              </h3>
+              
+              <div className="space-y-4">
+                {semanticRecs.map((rec) => {
+                  const initials = rec.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2);
+
+                  return (
+                    <motion.div
+                      key={rec.expertId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.26 }}
+                    >
+                      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-6">
+                          <div className="flex gap-4">
+                            <Avatar className="h-16 w-16">
+                              {rec.avatar && <AvatarImage src={rec.avatar} alt={rec.name} />}
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="font-semibold text-lg">{rec.name}</h4>
+                                <div className="flex items-center gap-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={cn(
+                                        "h-4 w-4",
+                                        i < rec.stars
+                                          ? "fill-primary text-primary"
+                                          : "text-muted-foreground/30"
+                                      )}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                {rec.justification}
+                              </p>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  className="flex-1 gap-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleConsult(rec);
+                                  }}
+                                  data-testid={`button-chat-${rec.expertId}`}
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                  Conversar
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant={councilExperts.includes(rec.expertId) ? "default" : "outline"}
+                                  className="flex-1 gap-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleCouncilExpert(rec.expertId);
+                                  }}
+                                  data-testid={`button-council-${rec.expertId}`}
+                                >
+                                  <Users className="h-4 w-4" />
+                                  {councilExperts.includes(rec.expertId) ? "Adicionado" : "Conselho"}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              <div className="text-center mt-6">
+                <p className="text-sm text-muted-foreground">
+                  Ou continue explorando as categorias abaixo
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Categories Grid */}
           {isLoading ? (
@@ -261,6 +480,44 @@ export default function Categories() {
           )}
         </div>
       </div>
+
+      {/* Floating Action Button for Council */}
+      <AnimatePresence>
+        {councilExperts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.26 }}
+            className="fixed bottom-8 right-8 z-50"
+          >
+            <Card className="border-primary bg-primary/5 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {councilExperts.length} {councilExperts.length === 1 ? 'especialista selecionado' : 'especialistas selecionados'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Monte sua mesa redonda
+                    </p>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={startCouncil}
+                    disabled={councilExperts.length === 0}
+                    className="gap-2"
+                    data-testid="button-start-council"
+                  >
+                    <Users className="h-5 w-5" />
+                    Iniciar Conselho
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatedPage>
   );
 }
