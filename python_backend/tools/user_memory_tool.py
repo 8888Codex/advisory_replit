@@ -3,6 +3,9 @@ UserMemoryTool - Access user's conversation history and profile for personalizat
 Enables continuity and context-aware recommendations
 """
 from typing import Optional, Dict, Any, List
+import os
+import asyncpg
+import json
 
 
 class UserMemoryTool:
@@ -40,18 +43,74 @@ class UserMemoryTool:
         Returns:
             Dict containing user profile, recent conversations, insights
         """
-        # TODO: Implement PostgreSQL queries to fetch:
-        # 1. user_profiles_extended table (psychographics, nicho, values)
-        # 2. conversations_memory table (recent interactions)
-        # 3. council_insights table (valuable outputs from past sessions)
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return self._empty_context(user_id)
         
-        # Placeholder implementation - will be completed in db-schema-memory task
+        conn = None
+        try:
+            conn = await asyncpg.connect(database_url)
+            
+            # 1. Get user profile extended (psychographics)
+            profile_row = await conn.fetchrow(
+                "SELECT * FROM user_profiles_extended WHERE user_id = $1",
+                user_id
+            )
+            profile = dict(profile_row) if profile_row else None
+            
+            # 2. Get recent council insights (valuable outputs)
+            insights_rows = await conn.fetch(
+                """SELECT insight, expert_name, category, created_at 
+                   FROM council_insights 
+                   WHERE user_id = $1 
+                   ORDER BY created_at DESC 
+                   LIMIT $2""",
+                user_id, limit
+            )
+            past_insights = [dict(row) for row in insights_rows]
+            
+            # 3. Get recent council sessions (for context continuity)
+            sessions_rows = await conn.fetch(
+                """SELECT id, problem, consensus, created_at 
+                   FROM council_sessions 
+                   WHERE user_id = $1 
+                   ORDER BY created_at DESC 
+                   LIMIT $2""",
+                user_id, 5
+            )
+            recent_sessions = [dict(row) for row in sessions_rows]
+            
+            # 4. Parse expert affinity if available
+            expert_affinity = {}
+            if profile and profile.get("expert_affinity"):
+                try:
+                    expert_affinity = json.loads(profile["expert_affinity"])
+                except:
+                    pass
+            
+            return {
+                "user_id": user_id,
+                "profile": profile,
+                "recent_sessions": recent_sessions,
+                "past_insights": past_insights,
+                "expert_affinity": expert_affinity,
+                "tool": self.name
+            }
+        except Exception as e:
+            print(f"⚠️ UserMemoryTool.get_user_context error: {str(e)}")
+            return self._empty_context(user_id)
+        finally:
+            if conn:
+                await conn.close()
+    
+    def _empty_context(self, user_id: str) -> Dict[str, Any]:
+        """Fallback empty context when DB unavailable"""
         return {
             "user_id": user_id,
             "profile": None,
-            "recent_conversations": [],
+            "recent_sessions": [],
             "past_insights": [],
-            "expert_affinity": {},  # Which experts user engaged with most
+            "expert_affinity": {},
             "tool": self.name
         }
     
@@ -60,7 +119,8 @@ class UserMemoryTool:
         user_id: str,
         insight: str,
         expert_name: str,
-        category: str
+        category: str,
+        session_id: Optional[str] = None
     ) -> bool:
         """
         Save a valuable insight from expert analysis
@@ -70,13 +130,38 @@ class UserMemoryTool:
             insight: The insight text
             expert_name: Which expert provided it
             category: Type of insight (strategy, tactic, warning, etc.)
+            session_id: Optional council session ID
         
         Returns:
             Success boolean
         """
-        # TODO: Implement PostgreSQL insert to council_insights table
-        # Will be completed in db-schema-memory task
-        return True
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return False
+        
+        conn = None
+        try:
+            conn = await asyncpg.connect(database_url)
+            
+            # Insert insight into council_insights table
+            await conn.execute(
+                """INSERT INTO council_insights 
+                   (session_id, user_id, expert_name, insight, category) 
+                   VALUES ($1, $2, $3, $4, $5)""",
+                session_id or "standalone",
+                user_id,
+                expert_name,
+                insight,
+                category
+            )
+            
+            return True
+        except Exception as e:
+            print(f"⚠️ UserMemoryTool.save_insight error: {str(e)}")
+            return False
+        finally:
+            if conn:
+                await conn.close()
     
     def get_prompt_instruction(self) -> str:
         """

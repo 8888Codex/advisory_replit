@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -121,3 +121,120 @@ export const insertBusinessProfileSchema = z.object({
 
 export type BusinessProfile = z.infer<typeof businessProfileSchema>;
 export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
+
+// ============================================
+// COUNCIL & COLLABORATION SCHEMAS
+// ============================================
+
+// Council Sessions - Tracks multi-expert collaborative analysis sessions
+export const councilSessions = pgTable("council_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  problem: text("problem").notNull(),
+  profileId: varchar("profile_id"),  // Optional BusinessProfile reference
+  marketResearch: text("market_research"),  // Perplexity findings
+  consensus: text("consensus").notNull(),  // Synthesized council consensus
+  citations: text("citations").array(),  // Research sources
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCouncilSessionSchema = createInsertSchema(councilSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCouncilSession = z.infer<typeof insertCouncilSessionSchema>;
+export type CouncilSession = typeof councilSessions.$inferSelect;
+
+// Council Participants - Tracks which experts participated in each session
+export const councilParticipants = pgTable("council_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull(),
+  expertId: varchar("expert_id").notNull(),
+  expertName: text("expert_name").notNull(),
+  contribution: text("contribution").notNull(),  // Expert's analysis
+  contributedAt: timestamp("contributed_at").defaultNow().notNull(),
+});
+
+export const insertCouncilParticipantSchema = createInsertSchema(councilParticipants).omit({
+  id: true,
+  contributedAt: true,
+});
+
+export type InsertCouncilParticipant = z.infer<typeof insertCouncilParticipantSchema>;
+export type CouncilParticipant = typeof councilParticipants.$inferSelect;
+
+// Council Insights - Valuable outputs from council sessions
+export const councilInsights = pgTable("council_insights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  expertName: text("expert_name").notNull(),
+  insight: text("insight").notNull(),
+  category: text("category").notNull(),  // strategy, tactic, warning, case_study, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCouncilInsightSchema = createInsertSchema(councilInsights).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCouncilInsight = z.infer<typeof insertCouncilInsightSchema>;
+export type CouncilInsight = typeof councilInsights.$inferSelect;
+
+// Expert Collaboration Graph - Tracks which expert combos work well together
+export const expertCollaborationGraph = pgTable("expert_collaboration_graph", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  expertIds: text("expert_ids").array().notNull(),  // Array of expert IDs in combo
+  expertNames: text("expert_names").array().notNull(),  // Array of expert names
+  sessionCount: integer("session_count").notNull().default(0),  // How many times this combo was used
+  successCount: integer("success_count").notNull().default(0),  // User feedback: successful outcomes
+  lastUsed: timestamp("last_used").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertExpertCollaborationSchema = createInsertSchema(expertCollaborationGraph).omit({
+  id: true,
+  createdAt: true,
+  lastUsed: true,
+});
+
+export type InsertExpertCollaboration = z.infer<typeof insertExpertCollaborationSchema>;
+export type ExpertCollaboration = typeof expertCollaborationGraph.$inferSelect;
+
+// ============================================
+// USER MEMORY & PERSONALIZATION SCHEMAS
+// ============================================
+
+// User Profiles Extended - Rich psychographic data for personalization
+export const userProfilesExtended = pgTable("user_profiles_extended", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  
+  // Psychographics
+  niche: text("niche"),  // Specific market niche
+  businessStage: text("business_stage"),  // startup, growth, mature, transformation
+  marketingMaturity: text("marketing_maturity"),  // beginner, intermediate, advanced
+  values: text("values").array(),  // Core values that drive decisions
+  
+  // Expert Affinity - Which experts user engages with most
+  expertAffinity: text("expert_affinity"),  // JSON: {expertId: engagementScore}
+  
+  // Behavioral Insights
+  preferredCommunicationStyle: text("preferred_communication_style"),  // direct, storytelling, data-driven, etc.
+  topChallenges: text("top_challenges").array(),  // Recurring challenges across sessions
+  
+  // Metadata
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserProfileExtendedSchema = createInsertSchema(userProfilesExtended).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserProfileExtended = z.infer<typeof insertUserProfileExtendedSchema>;
+export type UserProfileExtended = typeof userProfilesExtended.$inferSelect;
