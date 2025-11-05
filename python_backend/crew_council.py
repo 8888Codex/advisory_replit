@@ -110,34 +110,40 @@ class CouncilOrchestrator:
             research_findings = research_result["findings"]
             citations = research_result["sources"]
         
-        # Step 2: Get individual expert analyses concurrently with rate limiting
-        tasks = [
-            self._get_expert_analysis(
-                expert=expert,
-                problem=problem,
-                research_findings=research_findings,
-                profile=profile,
-                user_id=user_id,
-                user_context=user_context
-            )
-            for expert in experts
-        ]
+        # Step 2: Get individual expert analyses SEQUENTIALLY for roundtable discussion
+        # Each expert sees contributions from colleagues who already spoke
+        contributions = []
+        current_round_contributions = []
         
-        # Run concurrently but respect rate limits via semaphore
-        contributions = await asyncio.gather(*tasks, return_exceptions=True)
+        for idx, expert in enumerate(experts, 1):
+            print(f"🎙️ Getting analysis from Expert {idx}/{len(experts)}: {expert.name}")
+            if current_round_contributions:
+                print(f"   → This expert will see {len(current_round_contributions)} colleague(s) who already spoke")
+            
+            try:
+                contribution = await self._get_expert_analysis(
+                    expert=expert,
+                    problem=problem,
+                    research_findings=research_findings,
+                    profile=profile,
+                    user_id=user_id,
+                    user_context=user_context,
+                    colleague_contributions=current_round_contributions if current_round_contributions else None
+                )
+                contributions.append(contribution)
+                
+                # Add to current round for next expert to see
+                current_round_contributions.append({
+                    "expert_name": expert.name,
+                    "contribution": contribution.analysis
+                })
+                
+            except Exception as e:
+                print(f"⚠️ Expert {expert.name} analysis failed: {str(e)}")
+                continue
         
-        # Filter out failures and log them
-        valid_contributions = []
-        for i, contrib in enumerate(contributions):
-            if isinstance(contrib, Exception):
-                print(f"⚠️ Expert {experts[i].name} analysis failed: {str(contrib)}")
-            else:
-                valid_contributions.append(contrib)
-        
-        if not valid_contributions:
+        if not contributions:
             raise Exception("All expert analyses failed - unable to generate council analysis")
-        
-        contributions = valid_contributions
         
         # Step 3: Synthesize consensus from all contributions
         consensus = await self._synthesize_consensus(
@@ -256,22 +262,29 @@ class CouncilOrchestrator:
 **ROUNDTABLE DISCUSSION - DIALOGUE COM SEUS COLEGAS:**
 {colleagues_str} já {'falaram' if len(colleague_names) > 1 else 'falou'}. Você está em uma mesa redonda de consultoria.
 
-**OBRIGATÓRIO:**
-1. **COMENTE** o que seus colegas disseram:
-   - "Concordo com o [nome] sobre..."
-   - "Interessante o ponto do/da [nome], mas eu adicionaria..."
-   - "O [nome] levantou [X], e isso me faz pensar em..."
-   - "Diferente do que o/a [nome] sugeriu, eu vejo..."
+**OBRIGATÓRIO - DIALOGUE ESPECÍFICO:**
+Não basta dizer "concordo com X". Você DEVE:
 
-2. **CONSTRUA** em cima das contribuições deles:
-   - Complemente pontos que eles levantaram
-   - Ofereça perspectiva diferente quando discordar
-   - Conecte sua experiência com o que foi dito
+1. **MENCIONE O PONTO ESPECÍFICO** que o colega trouxe:
+   ✅ "Concordo com o Simon sobre começar pelo WHY do cliente, não pelas features..."
+   ❌ "Concordo com o Simon..." (muito genérico)
+   
+   ✅ "O Donald levantou a questão do StoryBrand, e de fato o framework dele..."
+   ❌ "O Donald falou sobre algo interessante..." (vago)
 
-3. **NÃO IGNORE** seus colegas - esta é uma CONVERSA entre vocês, não opiniões paralelas
+2. **REFERENCIE IDEIAS CONCRETAS**, não só o nome:
+   ✅ "Interessante o ponto do Seth sobre falar com as tribos primeiro, antes do mercado geral..."
+   ❌ "Interessante o que o Seth disse..." (sem especificar)
 
-**Exemplo de como começar:**
-"Olha, concordo com o [nome] sobre [ponto X]. E baseado na minha experiência com [Y], eu adicionaria que..."
+3. **CONSTRUA EM CIMA** com sua própria perspectiva:
+   ✅ "O Simon mencionou o Golden Circle - e conectando com minha experiência em [X], eu vejo que..."
+   ❌ Apenas repetir o que o colega disse
+
+**REGRA DE OURO:**
+Se você remover o nome do colega da sua frase, ela ainda deve fazer sentido e mostrar QUAL IDEIA ESPECÍFICA você está comentando.
+
+**Exemplo CORRETO:**
+"Olha, concordo com o Simon sobre começar pelo WHY do cliente ao invés de listar features. E baseado na minha experiência com posicionamento, eu adicionaria que esse WHY precisa ser diferenciado - não pode ser genérico tipo 'ajudamos empresas a crescer'..."
 """
 
             user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR) natural e coloquial.**
@@ -299,11 +312,19 @@ RESPONDA de forma:
 - Evite anglicismos e tom acadêmico
 - Fale como você falaria em uma conversa real de consultoria
 
+**CITAÇÕES - REGRA OBRIGATÓRIA:**
+- Se você citar algo ou alguém, TRADUZA a citação para português brasileiro natural
+- Mantenha a essência e impacto da frase original
+- Use aspas e atribua a fonte: "Frase traduzida" - Autor
+- Exemplo: "Pessoas não compram o que você faz, mas por que você faz" - Simon Sinek
+- NUNCA deixe citações em inglês ou outro idioma
+
 **Evite:**
 - Headers formais (## CORE ANALYSIS)
 - Listas extensas de bullet points
 - Repetir contexto já fornecido
 - Tom professoral ou apresentação de slides
+- Citações em inglês ou outros idiomas
 
 Seja você mesmo, mas numa conversa natural."""
             
