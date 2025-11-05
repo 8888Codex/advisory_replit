@@ -6,7 +6,7 @@ import os
 import json
 from enum import Enum
 from typing import Optional, Dict, Any
-import httpx
+import google.generativeai as genai
 from anthropic import AsyncAnthropic
 
 
@@ -42,9 +42,22 @@ class LLMRouter:
     """Routes LLM requests to the optimal model based on task complexity"""
     
     def __init__(self):
-        # Gemini via Replit AI Integrations (HTTP client)
-        self.gemini_base_url = os.getenv("AI_INTEGRATIONS_GEMINI_BASE_URL")
-        self.gemini_api_key = os.getenv("AI_INTEGRATIONS_GEMINI_API_KEY")
+        # Configure Gemini via Replit AI Integrations
+        # Note: AI_INTEGRATIONS_GEMINI_API_KEY is a dummy value for SDK compatibility
+        base_url = os.getenv("AI_INTEGRATIONS_GEMINI_BASE_URL")
+        api_key = os.getenv("AI_INTEGRATIONS_GEMINI_API_KEY", "dummy-key")
+        
+        if base_url:
+            # Configure with custom base URL for Replit AI Integrations
+            genai.configure(
+                api_key=api_key,
+                client_options={
+                    "api_endpoint": base_url
+                }
+            )
+        else:
+            # Fallback: configure with API key only (won't work, but prevents crashes)
+            genai.configure(api_key=api_key)
         
         # Initialize Claude client
         self.claude_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -59,41 +72,20 @@ class LLMRouter:
         max_tokens: int = 2048,
         temperature: float = 0.3
     ) -> str:
-        """Call Gemini API via Replit AI Integrations"""
-        async with httpx.AsyncClient() as client:
-            # Gemini API request format (Replit AI Integrations compatible)
-            request_body = {
-                "model": "gemini-2.5-flash",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                "max_tokens": max_tokens,
-                "temperature": temperature
-            }
-            
-            headers = {
-                "Authorization": f"Bearer {self.gemini_api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            response = await client.post(
-                f"{self.gemini_base_url}/v1/chat/completions",
-                json=request_body,
-                headers=headers,
-                timeout=60.0
-            )
-            
-            response.raise_for_status()
-            data = response.json()
-            
-            # Extract text from response
-            if "choices" in data and len(data["choices"]) > 0:
-                return data["choices"][0]["message"]["content"]
-            
-            raise ValueError("No content in Gemini response")
+        """
+        Call Gemini API via Replit AI Integrations using Google SDK
+        
+        NOTE: Currently experiencing issues with Gemini SDK configuration.
+        Temporarily disabled pending Replit AI Integrations troubleshooting.
+        System will automatically fallback to Claude Sonnet.
+        """
+        # TODO: Fix Gemini SDK configuration - currently causing timeouts
+        # Possible issues:
+        # 1. google-generativeai SDK may not support Replit AI Integrations base URL
+        # 2. Model name 'gemini-2.5-flash' may need adjustment
+        # 3. API endpoint format may differ from expected
+        
+        raise Exception("Gemini temporarily disabled - SDK configuration pending")
     
     async def generate_text(
         self,

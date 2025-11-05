@@ -27,7 +27,8 @@ from storage import storage
 from crew_agent import LegendAgentFactory
 from seed import seed_legends
 from crew_council import council_orchestrator
-from llm_router import llm_router, LLMTask
+# TODO: Re-enable LLM Router once Gemini SDK configuration is resolved
+# from llm_router import llm_router, LLMTask
 
 app = FastAPI(title="AdvisorIA - Marketing Legends API")
 
@@ -737,17 +738,32 @@ INSTRUÇÕES:
 
 IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
 
-        # Call LLM Router for intelligent analysis (routes to Gemini Flash for cost optimization)
-        response_text = await llm_router.generate_text(
-            task=LLMTask.RECOMMEND_EXPERTS,
-            prompt=analysis_prompt,
+        # TODO: Re-enable LLM Router once Gemini SDK configuration is resolved
+        # Currently using Claude Sonnet directly for reliability
+        # response_text = await llm_router.generate_text(...)
+        
+        # Call Claude for intelligent analysis (temporary until Gemini is configured)
+        from anthropic import AsyncAnthropic
+        anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        
+        response = await anthropic_client.messages.create(
+            model="claude-sonnet-4-20250514",
             max_tokens=2048,
             temperature=0.3,
-            fallback_to_claude=True  # Falls back to Claude if Gemini fails
+            messages=[{
+                "role": "user",
+                "content": analysis_prompt
+            }]
         )
         
+        # Extract JSON from response - check ALL content blocks
+        response_text = ""
+        for block in response.content:
+            if block.type == "text":
+                response_text += block.text + "\n"
+        
         if not response_text:
-            raise ValueError("No text content in LLM response")
+            raise ValueError("No text content in Claude response")
         
         # Robust JSON extraction - try ALL brace candidates and return first valid recommendations JSON
         # This handles Claude responses with prose, brace fragments, or irrelevant JSON before payload

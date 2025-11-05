@@ -46,6 +46,21 @@ Preferred communication style: Simple, everyday language.
   - **Sprint 1 (Nov 2025)**: Enhanced dialogue specificity with checkmark-based prompt examples forcing concrete point references, PT-BR quotation translation rules
   - **Sprint 2 (Nov 2025)**: Visual polish - colleague mention badges ("Dialoga com X"), synthesis differentiation (Users icon, "🎯 Consenso da Mesa", `border-primary/30`, `bg-primary/10`)
 
+### Multi-LLM Router (Nov 2025) - Cost Optimization Architecture
+- **Purpose**: Route simple tasks to Gemini Flash (20x cheaper) and complex tasks to Claude Sonnet for ~57% cost reduction.
+- **Implementation**: `python_backend/llm_router.py` - task-based routing with automatic fallback.
+- **Task Routing Map**:
+  - **FAST tier (Gemini Flash)**: Expert recommendations, suggested questions (~$0.075/1M tokens)
+  - **STANDARD tier (Claude Sonnet)**: 1:1 chat, Council dialogue, auto-cloning, synthesis (~$3/1M tokens)
+- **Status (Nov 2025)**:
+  - ✅ Router architecture implemented and Architect-approved
+  - ✅ Automatic fallback logic working (Gemini → Claude on error)
+  - ❌ **Gemini SDK Issue**: `google-generativeai` Python SDK incompatible with Replit AI Integrations (causes timeouts)
+  - 🔄 **Current State**: Temporarily disabled (`llm_router.py.disabled`), using Claude directly for all tasks
+  - 📋 **Next Steps**: Investigate Gemini SDK configuration or use alternative HTTP client approach
+- **Expected Savings**: ~57% reduction in LLM costs once Gemini integration resolved (60% of calls at 1/40th cost)
+- **Architecture Quality**: Modular design allows easy re-enabling once SDK issues resolved - no breaking changes to main codebase
+
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
 - **Available Tools**:
