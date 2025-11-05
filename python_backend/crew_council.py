@@ -20,8 +20,8 @@ class CouncilOrchestrator:
     """
     
     def __init__(self):
-        self._anthropic_client = None
-        self._semaphore = None
+        self._anthropic_client: Optional[AsyncAnthropic] = None
+        self._semaphore: Optional[asyncio.Semaphore] = None
     
     def _ensure_initialized(self):
         """Lazy initialization - validates API key only when needed"""
@@ -37,13 +37,17 @@ class CouncilOrchestrator:
             self._semaphore = asyncio.Semaphore(3)  # Max 3 concurrent Claude calls
     
     @property
-    def anthropic_client(self):
+    def anthropic_client(self) -> AsyncAnthropic:
         self._ensure_initialized()
+        if self._anthropic_client is None:
+            raise RuntimeError("Anthropic client failed to initialize")
         return self._anthropic_client
     
     @property
-    def semaphore(self):
+    def semaphore(self) -> asyncio.Semaphore:
         self._ensure_initialized()
+        if self._semaphore is None:
+            raise RuntimeError("Semaphore failed to initialize")
         return self._semaphore
     
     async def analyze(

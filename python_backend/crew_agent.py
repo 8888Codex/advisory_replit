@@ -65,17 +65,17 @@ class MarketingLegendAgent:
         
         # Extract text from response - handle different content block types
         for block in response.content:
-            if hasattr(block, 'text'):
-                return block.text
+            if block.type == "text":
+                return block.text  # type: ignore
         
         # Fallback to string representation if no text attribute found
-        return str(response.content[0])
+        return str(response.content[0]) if response.content else ""
 
 class LegendAgentFactory:
     """Factory to create agents for different marketing legends"""
     
     @staticmethod
-    def create_agent(expert_name: str, system_prompt: str = None) -> MarketingLegendAgent:
+    def create_agent(expert_name: str, system_prompt: Optional[str] = None) -> MarketingLegendAgent:
         """
         Create a cognitive clone agent for a marketing legend.
         
