@@ -1824,6 +1824,7 @@ async def council_chat_stream(session_id: str, message: str):
     - event: synthesis - Final consensus
     - event: complete - End of stream
     """
+    print(f"[SSE ENDPOINT] Council chat stream called - session_id={session_id}, message={message[:50]}")
     user_id = "default_user"
     
     async def event_generator():
@@ -1831,24 +1832,36 @@ async def council_chat_stream(session_id: str, message: str):
             return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
         
         try:
+            print(f"[SSE] Starting event generator for session {session_id}")
+            
             # Load session to get context
+            print(f"[SSE] Loading analysis...")
             analysis = await storage.get_council_analysis(session_id)
             if not analysis:
+                print(f"[SSE] ERROR: Analysis not found for session {session_id}")
                 yield sse_event("error", {"message": "Council session not found"})
                 return
             
+            print(f"[SSE] Analysis loaded successfully - {len(analysis.contributions)} experts")
+            
             # Load conversation history
+            print(f"[SSE] Loading conversation history...")
             history = await storage.get_council_messages(session_id)
+            print(f"[SSE] Loaded {len(history)} previous messages")
             
             # Get experts from original analysis
             expert_ids = [c.expertId for c in analysis.contributions]
+            print(f"[SSE] Getting {len(expert_ids)} experts...")
             experts = []
             for expert_id in expert_ids:
                 expert = await storage.get_expert(expert_id)
                 if expert:
                     experts.append(expert)
             
+            print(f"[SSE] Loaded {len(experts)} experts successfully")
+            
             if not experts:
+                print(f"[SSE] ERROR: No experts found!")
                 yield sse_event("error", {"message": "No experts found for this session"})
                 return
             
@@ -1868,12 +1881,16 @@ async def council_chat_stream(session_id: str, message: str):
             })
             
             # Build context from analysis + history
+            print(f"[SSE] Building context...")
             context = await _build_council_context(analysis, history, message)
+            print(f"[SSE] Context built - {len(context)} chars")
             
             # Stream contributions from each expert
             contributions_data = []
+            print(f"[SSE] Starting expert iteration...")
             
             for idx, expert in enumerate(experts):
+                print(f"[SSE] Processing expert {idx+1}/{len(experts)}: {expert.name}")
                 yield sse_event("expert_thinking", {
                     "expertName": expert.name,
                     "order": idx
@@ -1881,6 +1898,7 @@ async def council_chat_stream(session_id: str, message: str):
                 
                 # Get expert analysis with full context
                 try:
+                    print(f"[SSE] Calling CrewAI for {expert.name}...")
                     contribution = await council_orchestrator._get_expert_analysis(
                         expert=expert,
                         problem=message,
@@ -1889,6 +1907,7 @@ async def council_chat_stream(session_id: str, message: str):
                         user_id=user_id,
                         user_context={"analysis_context": context}
                     )
+                    print(f"[SSE] Got contribution from {expert.name} - {len(contribution.analysis)} chars")
                     
                     # Stream this expert's contribution
                     yield sse_event("contribution", {
@@ -1902,12 +1921,16 @@ async def council_chat_stream(session_id: str, message: str):
                         content=contribution.analysis,
                         order=idx
                     ))
+                    print(f"[SSE] Contribution {idx+1} added to list")
                     
                 except Exception as e:
-                    print(f"Expert {expert.name} failed: {str(e)}")
+                    print(f"[SSE] ERROR: Expert {expert.name} failed: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
                     continue
             
             # Synthesize consensus
+            print(f"[SSE] Starting synthesis with {len(contributions_data)} contributions...")
             yield sse_event("synthesizing", {})
             
             synthesis = await council_orchestrator._synthesize_consensus(
@@ -1923,18 +1946,26 @@ async def council_chat_stream(session_id: str, message: str):
                 ],
                 research_findings=None
             )
+            print(f"[SSE] Synthesis complete - {len(synthesis)} chars")
             
             yield sse_event("synthesis", {
                 "content": synthesis
             })
+            print(f"[SSE] Synthesis event emitted")
             
             # Save assistant message with contributions
-            await storage.create_council_message(
+            print(f"[SSE] Saving assistant message with {len(contributions_data)} contributions")
+            contrib_dicts = [c.model_dump() for c in contributions_data]
+            print(f"[SSE] Contributions data: {contrib_dicts}")
+            
+            message_id = await storage.create_council_message(
                 session_id=session_id,
                 role="assistant",
                 content=synthesis,
-                contributions=json.dumps([c.dict() for c in contributions_data])
+                contributions=json.dumps(contrib_dicts)
             )
+            
+            print(f"[SSE] Saved message ID: {message_id}")
             
             yield sse_event("complete", {})
             

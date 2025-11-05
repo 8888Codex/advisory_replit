@@ -83,6 +83,15 @@ export default function CouncilRoom() {
   // Sync history with local messages
   useEffect(() => {
     if (history.length > 0) {
+      console.log("[CouncilRoom] Loading history:", history);
+      history.forEach((msg, idx) => {
+        console.log(`[CouncilRoom] Message ${idx}:`, {
+          role: msg.role,
+          contentLength: msg.content?.length,
+          contributionsCount: msg.contributions?.length || 0,
+          contributions: msg.contributions
+        });
+      });
       setMessages(history);
     }
   }, [history]);
