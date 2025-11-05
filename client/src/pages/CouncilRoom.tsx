@@ -206,14 +206,14 @@ export default function CouncilRoom() {
       className="flex flex-col h-screen"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Header with Expert Avatars */}
       <motion.div 
         className="border-b bg-card/50 backdrop-blur-sm"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.26, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="container max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
@@ -234,8 +234,8 @@ export default function CouncilRoom() {
                   key={idx}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.2 + idx * 0.05, ease: [0.34, 1.56, 0.64, 1] }}
-                  className={`relative transition-all duration-300 ${
+                  transition={{ duration: 0.24, delay: 0.1 + idx * 0.035, ease: [0.34, 1.56, 0.64, 1] }}
+                  className={`relative transition-all duration-200 ${
                     currentExpert === expert.name ? "ring-2 ring-primary ring-offset-2 scale-110" : "scale-100"
                   }`}
                   data-testid={`avatar-${expert.name.toLowerCase().replace(/\s+/g, "-")}`}
@@ -249,7 +249,7 @@ export default function CouncilRoom() {
                       className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ duration: 0.2, ease: "backOut" }}
+                      transition={{ duration: 0.18, ease: "backOut" }}
                     >
                       <Loader2 className="h-3 w-3 animate-spin text-primary-foreground" />
                     </motion.div>
@@ -306,9 +306,9 @@ export default function CouncilRoom() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ 
-                        duration: 0.4, 
-                        delay: cIdx * 0.12,
-                        ease: [0.25, 0.1, 0.25, 1]
+                        duration: 0.26, 
+                        delay: cIdx * 0.06,
+                        ease: [0.16, 1, 0.3, 1]
                       }}
                       data-testid={`contribution-${contrib.expertName.toLowerCase().replace(/\s+/g, "-")}`}
                     >
@@ -358,8 +358,8 @@ export default function CouncilRoom() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ 
-                  duration: 0.4,
-                  ease: [0.25, 0.1, 0.25, 1]
+                  duration: 0.26,
+                  ease: [0.16, 1, 0.3, 1]
                 }}
                 data-testid={`streaming-contribution-${idx}`}
               >

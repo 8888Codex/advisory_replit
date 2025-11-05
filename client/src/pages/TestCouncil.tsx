@@ -440,7 +440,7 @@ export default function TestCouncil() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             >
               <Card className="rounded-2xl">
               <CardHeader>
@@ -511,7 +511,7 @@ export default function TestCouncil() {
                   className="pt-4 border-t mt-4"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                  transition={{ duration: 0.24, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Button
                     onClick={() => setLocation(`/council-room/${analysis.id}`)}
