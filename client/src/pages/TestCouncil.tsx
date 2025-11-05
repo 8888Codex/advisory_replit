@@ -437,7 +437,12 @@ export default function TestCouncil() {
         {/* Show results (for both streaming and non-streaming after completion) */}
         <div className={`lg:col-span-1 ${useStreaming && (streamState.isStreaming || !streamState.finalAnalysis) ? "hidden" : ""}`}>
           {analysis ? (
-            <Card className="rounded-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <Card className="rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-semibold">
                   <TrendingUp className="h-5 w-5 text-accent" />
@@ -502,7 +507,12 @@ export default function TestCouncil() {
                   </div>
                 </ScrollArea>
                 
-                <div className="pt-4 border-t mt-4">
+                <motion.div 
+                  className="pt-4 border-t mt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                >
                   <Button
                     onClick={() => setLocation(`/council-room/${analysis.id}`)}
                     className="w-full"
@@ -515,9 +525,10 @@ export default function TestCouncil() {
                   <p className="text-xs text-muted-foreground text-center mt-2">
                     Continue a conversa com os especialistas
                   </p>
-                </div>
+                </motion.div>
               </CardContent>
             </Card>
+            </motion.div>
           ) : (
             <Card className="border-dashed rounded-2xl">
               <CardContent className="pt-6">

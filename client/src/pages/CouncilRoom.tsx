@@ -83,15 +83,6 @@ export default function CouncilRoom() {
   // Sync history with local messages
   useEffect(() => {
     if (history.length > 0) {
-      console.log("[CouncilRoom] Loading history:", history);
-      history.forEach((msg, idx) => {
-        console.log(`[CouncilRoom] Message ${idx}:`, {
-          role: msg.role,
-          contentLength: msg.content?.length,
-          contributionsCount: msg.contributions?.length || 0,
-          contributions: msg.contributions
-        });
-      });
       setMessages(history);
     }
   }, [history]);
@@ -123,7 +114,6 @@ export default function CouncilRoom() {
     
     eventSource.addEventListener("user_message", (event) => {
       const data = JSON.parse(event.data);
-      console.log("User message confirmed:", data);
     });
     
     eventSource.addEventListener("expert_thinking", (event) => {
@@ -212,9 +202,19 @@ export default function CouncilRoom() {
   }
   
   return (
-    <div className="flex flex-col h-screen">
+    <motion.div 
+      className="flex flex-col h-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+    >
       {/* Header with Expert Avatars */}
-      <div className="border-b bg-card/50 backdrop-blur-sm">
+      <motion.div 
+        className="border-b bg-card/50 backdrop-blur-sm"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <div className="container max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
@@ -230,10 +230,13 @@ export default function CouncilRoom() {
             {/* Expert Avatars */}
             <div className="flex items-center gap-2">
               {expertAvatars.map((expert, idx) => (
-                <div
+                <motion.div
                   key={idx}
-                  className={`relative transition-all ${
-                    currentExpert === expert.name ? "ring-2 ring-primary ring-offset-2" : ""
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.2 + idx * 0.05, ease: [0.34, 1.56, 0.64, 1] }}
+                  className={`relative transition-all duration-300 ${
+                    currentExpert === expert.name ? "ring-2 ring-primary ring-offset-2 scale-110" : "scale-100"
                   }`}
                   data-testid={`avatar-${expert.name.toLowerCase().replace(/\s+/g, "-")}`}
                 >
@@ -242,16 +245,21 @@ export default function CouncilRoom() {
                     <AvatarFallback>{getExpertInitials(expert.name)}</AvatarFallback>
                   </Avatar>
                   {currentExpert === expert.name && (
-                    <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
+                    <motion.div 
+                      className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.2, ease: "backOut" }}
+                    >
                       <Loader2 className="h-3 w-3 animate-spin text-primary-foreground" />
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       {/* Messages Area */}
       <ScrollArea className="flex-1">
@@ -297,7 +305,11 @@ export default function CouncilRoom() {
                       key={cIdx}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: cIdx * 0.1 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: cIdx * 0.12,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }}
                       data-testid={`contribution-${contrib.expertName.toLowerCase().replace(/\s+/g, "-")}`}
                     >
                       <Card>
@@ -344,7 +356,11 @@ export default function CouncilRoom() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.4,
+                  ease: [0.25, 0.1, 0.25, 1]
+                }}
                 data-testid={`streaming-contribution-${idx}`}
               >
                 <Card>
@@ -457,6 +473,6 @@ export default function CouncilRoom() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
