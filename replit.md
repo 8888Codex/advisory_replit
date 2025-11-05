@@ -47,19 +47,21 @@ Preferred communication style: Simple, everyday language.
   - **Sprint 2 (Nov 2025)**: Visual polish - colleague mention badges ("Dialoga com X"), synthesis differentiation (Users icon, "🎯 Consenso da Mesa", `border-primary/30`, `bg-primary/10`)
 
 ### Multi-LLM Router (Nov 2025) - Cost Optimization Architecture
-- **Purpose**: Route simple tasks to Gemini Flash (20x cheaper) and complex tasks to Claude Sonnet for ~57% cost reduction.
-- **Implementation**: `python_backend/llm_router.py` - task-based routing with automatic fallback.
+- **Purpose**: Route simple tasks to cheaper models and complex tasks to premium models for significant cost reduction.
+- **Implementation**: `python_backend/llm_router.py` - task-based routing with unified Anthropic API.
 - **Task Routing Map**:
-  - **FAST tier (Gemini Flash)**: Expert recommendations, suggested questions (~$0.075/1M tokens)
-  - **STANDARD tier (Claude Sonnet)**: 1:1 chat, Council dialogue, auto-cloning, synthesis (~$3/1M tokens)
+  - **FAST tier (Claude Haiku 3.5)**: Expert recommendations, suggested questions (~$0.25/1M input tokens)
+  - **STANDARD tier (Claude Sonnet 4)**: 1:1 chat, Council dialogue, auto-cloning, synthesis (~$3/1M input tokens)
 - **Status (Nov 2025)**:
-  - ✅ Router architecture implemented and Architect-approved
-  - ✅ Automatic fallback logic working (Gemini → Claude on error)
-  - ❌ **Gemini SDK Issue**: `google-generativeai` Python SDK incompatible with Replit AI Integrations (causes timeouts)
-  - 🔄 **Current State**: Temporarily disabled (`llm_router.py.disabled`), using Claude directly for all tasks
-  - 📋 **Next Steps**: Investigate Gemini SDK configuration or use alternative HTTP client approach
-- **Expected Savings**: ~57% reduction in LLM costs once Gemini integration resolved (60% of calls at 1/40th cost)
-- **Architecture Quality**: Modular design allows easy re-enabling once SDK issues resolved - no breaking changes to main codebase
+  - ✅ **Fully Operational**: Active in production with Claude Haiku 3.5 for cost optimization
+  - ✅ End-to-end tested: Semantic search, recommendations, Quick Actions all working with Haiku
+  - ✅ Logs confirm routing: "[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)"
+  - ⚡ **Simple integration**: No SDK complexity - uses same AsyncAnthropic client for both tiers
+- **Actual Savings**: ~92% cost reduction on FAST tier tasks (Haiku vs Sonnet)
+  - Haiku: $0.25 input / $1.25 output per 1M tokens
+  - Sonnet: $3 input / $15 output per 1M tokens
+  - **12x cheaper** for ~60% of LLM calls (recommendations, questions)
+- **Architecture Quality**: Clean, maintainable design using single API provider - no fallback complexity needed
 
 ### Research Tools Integration
 - **Feature**: AdvisorIA experts can access real-time research capabilities via Perplexity API.
