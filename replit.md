@@ -38,6 +38,69 @@ Preferred communication style: Simple, everyday language.
 - **Multi-Category Navigation System**: 15 distinct categories with consistent neutral iconography and filtering capabilities.
 - **Personalization System**: Expert recommendations based on user profiles, contextual AI prompt enrichment, Perplexity-powered suggested questions, business insights, and smart filters.
 
+### Council Room - Real-Time SSE Streaming (November 5, 2025)
+
+**✅ Implementation Complete - Tasks 1-9**
+
+AdvisorIA's premium feature: after initial multi-expert analysis, users enter a conversational "Council Room" where they can ask follow-up questions and receive real-time streaming responses from the council with full memory retention.
+
+**Architecture:**
+- **SSE Streaming Endpoint**: `GET /api/council/chat/{session_id}/stream?message={message}` - Server-Sent Events for real-time AI responses
+- **Message Persistence**: PostgreSQL table `council_messages` stores user messages + assistant contributions (JSON array with expert attributions)
+- **Event Types**: `user_message`, `expert_thinking`, `contribution` (expert name + content + order), `synthesizing`, `synthesis`, `complete`, `error`
+- **Context Building**: Each follow-up includes: original analysis + full conversation history + new question for maximum continuity
+- **Sequential Streaming**: Experts contribute in order (Expert 1 → Expert 2 → Expert 3 → Synthesis), each visually attributed with badges + avatars
+
+**Frontend (CouncilRoom.tsx):**
+- **EventSource API**: Native browser SSE client consuming GET endpoint with query parameter
+- **Visual Attribution**: Each expert contribution displays with avatar + name badge + coral accent border
+- **ReactMarkdown Integration**: Markdown rendering with `remarkGfm` plugin for rich formatting (bold, bullets, code)
+- **Synthesis Card**: Highlighted final consensus with border-primary/20 bg-primary/5 styling
+- **Loading States**: "Expert pensando..." indicators during AI generation, disabled input during streaming
+- **Responsive Layout**: Expert avatars at top, analysis summary card, scrollable chat area, persistent input at bottom
+
+**Backend (FastAPI):**
+- **SSE Response**: `StreamingResponse` with `text/event-stream` content-type, `async def event_generator()` yields sequential events
+- **CouncilOrchestrator Integration**: Reuses existing `_get_expert_analysis()` and `_synthesize_consensus()` methods
+- **Full Memory**: Loads `CouncilAnalysis` (original analysis) + `CouncilMessage[]` (chat history) before processing new question
+- **Contribution Serialization**: Pydantic `StreamContribution` model with `.model_dump()` for JSON serialization in SSE data
+
+**Database Schema (shared/schema.ts):**
+```typescript
+council_messages: {
+  id: varchar (UUID),
+  sessionId: varchar (FK to council_analyses),
+  role: varchar ('user' | 'assistant'),
+  content: text,
+  contributions: json (optional - [{expertName, content, order}] for assistant messages),
+  createdAt: timestamp
+}
+```
+
+**UX Flow:**
+1. User completes initial council analysis (2-5 experts selected)
+2. "Entrar na Sala do Conselho" button transitions to `/council-room/:sessionId`
+3. Page loads: displays expert avatars, analysis summary, empty chat history
+4. User types follow-up question → sends → input disables
+5. SSE stream begins: sequential expert contributions appear with visual attribution
+6. Synthesis card appears at end with consensus decision
+7. Input re-enables → user can ask unlimited follow-ups with full memory retention
+
+**Technical Decisions:**
+- **GET vs POST**: SSE requires GET (EventSource API limitation), message passed as query parameter
+- **Sequential vs Parallel**: Sequential streaming (one expert at a time) for clearer attribution and better UX
+- **Memory Strategy**: Load full history on every request (simple, reliable) vs incremental updates (complex, error-prone)
+- **Persistence Timing**: Save assistant message AFTER synthesis complete (ensures atomic save of contributions + synthesis)
+
+**Testing:**
+- ✅ E2E playwright validation: analysis → council room transition, SSE streaming works, contributions persist, GET /messages returns correctly
+- ✅ Manual curl tests: endpoint responds to EventSource GET requests, returns proper SSE format
+- ✅ Backend logging: extensive `[SSE]` prefixed logs for debugging event generator flow
+
+**Next Steps:**
+- 🔄 Tools Integration (Tasks 10-14): YouTube Research, Trend Analysis, News Monitoring via Perplexity
+- 🔄 Polish & Animations (Tasks 15-17): Avatar highlights, smooth transitions, final E2E Disney-level validation
+
 ## External Dependencies
 
 - **Anthropic Claude API**: AI model interactions and cognitive cloning.
