@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Users, Sparkles, TrendingUp, Zap, Star, Lightbulb } from "lucide-react";
+import { Loader2, Users, Sparkles, TrendingUp, Zap, Star, Lightbulb, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -46,6 +47,7 @@ interface CouncilAnalysis {
 }
 
 export default function TestCouncil() {
+  const [, setLocation] = useLocation();
   const [problem, setProblem] = useState("");
   const [selectedExperts, setSelectedExperts] = useState<string[]>([]);
   const [useStreaming, setUseStreaming] = useState(true); // Auto-enable for 2+ experts
@@ -499,6 +501,21 @@ export default function TestCouncil() {
                     </div>
                   </div>
                 </ScrollArea>
+                
+                <div className="pt-4 border-t mt-4">
+                  <Button
+                    onClick={() => setLocation(`/council-room/${analysis.id}`)}
+                    className="w-full"
+                    variant="default"
+                    data-testid="button-enter-council-room"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Entrar na Sala do Conselho
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Continue a conversa com os especialistas
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (

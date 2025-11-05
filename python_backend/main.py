@@ -17,10 +17,12 @@ from models import (
     Conversation, ConversationCreate,
     Message, MessageCreate, MessageSend, MessageResponse,
     BusinessProfile, BusinessProfileCreate,
-    CouncilAnalysis, CouncilAnalysisCreate,
+    CouncilAnalysis, CouncilAnalysisCreate, AgentContribution,
     RecommendExpertsRequest, RecommendExpertsResponse, ExpertRecommendation,
     AutoCloneRequest
 )
+import uuid
+from datetime import datetime
 from storage import storage
 from crew_agent import LegendAgentFactory
 from seed import seed_legends
@@ -1796,6 +1798,200 @@ async def get_council_analysis(analysis_id: str):
     if not analysis:
         raise HTTPException(status_code=404, detail="Council analysis not found")
     return analysis
+
+# ============================================================================
+# COUNCIL ROOM CHAT ENDPOINTS (Follow-up conversational mode)
+# ============================================================================
+
+from models import CouncilChatMessage, CouncilChatRequest, StreamContribution
+
+@app.get("/api/council/chat/{session_id}/messages", response_model=List[CouncilChatMessage])
+async def get_council_chat_messages(session_id: str):
+    """Get chat history for a council session"""
+    messages = await storage.get_council_messages(session_id)
+    return messages
+
+@app.get("/api/council/chat/{session_id}/stream")
+async def council_chat_stream(session_id: str, message: str):
+    """
+    Follow-up chat with council using SSE streaming.
+    
+    Query params:
+    - message: User's follow-up question
+    
+    Streams expert contributions sequentially with attribution:
+    - event: contribution - Individual expert response
+    - event: synthesis - Final consensus
+    - event: complete - End of stream
+    """
+    user_id = "default_user"
+    
+    async def event_generator():
+        def sse_event(event_type: str, data: dict) -> str:
+            return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+        
+        try:
+            # Load session to get context
+            analysis = await storage.get_council_analysis(session_id)
+            if not analysis:
+                yield sse_event("error", {"message": "Council session not found"})
+                return
+            
+            # Load conversation history
+            history = await storage.get_council_messages(session_id)
+            
+            # Get experts from original analysis
+            expert_ids = [c.expertId for c in analysis.contributions]
+            experts = []
+            for expert_id in expert_ids:
+                expert = await storage.get_expert(expert_id)
+                if expert:
+                    experts.append(expert)
+            
+            if not experts:
+                yield sse_event("error", {"message": "No experts found for this session"})
+                return
+            
+            # Save user message
+            user_message_id = str(uuid.uuid4())
+            await storage.create_council_message(
+                session_id=session_id,
+                role="user",
+                content=message,
+                contributions=None
+            )
+            
+            yield sse_event("user_message", {
+                "id": user_message_id,
+                "content": message,
+                "createdAt": datetime.utcnow().isoformat()
+            })
+            
+            # Build context from analysis + history
+            context = await _build_council_context(analysis, history, message)
+            
+            # Stream contributions from each expert
+            contributions_data = []
+            
+            for idx, expert in enumerate(experts):
+                yield sse_event("expert_thinking", {
+                    "expertName": expert.name,
+                    "order": idx
+                })
+                
+                # Get expert analysis with full context
+                try:
+                    contribution = await council_orchestrator._get_expert_analysis(
+                        expert=expert,
+                        problem=message,
+                        research_findings=None,  # No new research for follow-up
+                        profile=None,
+                        user_id=user_id,
+                        user_context={"analysis_context": context}
+                    )
+                    
+                    # Stream this expert's contribution
+                    yield sse_event("contribution", {
+                        "expertName": contribution.expertName,
+                        "content": contribution.analysis,
+                        "order": idx
+                    })
+                    
+                    contributions_data.append(StreamContribution(
+                        expertName=contribution.expertName,
+                        content=contribution.analysis,
+                        order=idx
+                    ))
+                    
+                except Exception as e:
+                    print(f"Expert {expert.name} failed: {str(e)}")
+                    continue
+            
+            # Synthesize consensus
+            yield sse_event("synthesizing", {})
+            
+            synthesis = await council_orchestrator._synthesize_consensus(
+                problem=message,
+                contributions=[
+                    AgentContribution(
+                        expertId="",
+                        expertName=c.expertName,
+                        analysis=c.content,
+                        keyInsights=[],
+                        recommendations=[]
+                    ) for c in contributions_data
+                ],
+                research_findings=None
+            )
+            
+            yield sse_event("synthesis", {
+                "content": synthesis
+            })
+            
+            # Save assistant message with contributions
+            await storage.create_council_message(
+                session_id=session_id,
+                role="assistant",
+                content=synthesis,
+                contributions=json.dumps([c.dict() for c in contributions_data])
+            )
+            
+            yield sse_event("complete", {})
+            
+        except Exception as e:
+            print(f"Council chat stream error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            yield sse_event("error", {"message": str(e)})
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+async def _build_council_context(
+    analysis: CouncilAnalysis,
+    history: List[CouncilChatMessage],
+    new_question: str
+) -> str:
+    """Build rich context for follow-up including analysis + history"""
+    context = f"""**CONTEXTO DA ANÁLISE INICIAL:**
+
+Problema Original: {analysis.problem}
+
+Consenso do Conselho:
+{analysis.consensus}
+
+"""
+    
+    # Add contributions from original analysis
+    context += "**CONTRIBUIÇÕES ORIGINAIS DOS ESPECIALISTAS:**\n\n"
+    for contrib in analysis.contributions:
+        context += f"**{contrib.expertName}:**\n{contrib.analysis[:500]}...\n\n"
+    
+    # Add conversation history
+    if history:
+        context += "**HISTÓRICO DA CONVERSA:**\n\n"
+        for msg in history:
+            if msg.role == "user":
+                context += f"User perguntou: {msg.content}\n\n"
+            else:
+                context += f"Conselho respondeu: {msg.content[:300]}...\n\n"
+    
+    context += f"\n**NOVA PERGUNTA DO USER:**\n{new_question}\n\n"
+    context += """**INSTRUÇÕES:**
+- Você JÁ analisou este negócio em profundidade
+- Referencie insights da análise inicial quando relevante
+- Continue a conversa de forma natural
+- Não peça informações já fornecidas
+"""
+    
+    return context
 
 # ============================================================================
 # PERSONA BUILDER ENDPOINTS

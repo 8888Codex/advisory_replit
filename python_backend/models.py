@@ -125,6 +125,26 @@ class CouncilAnalysisCreate(BaseModel):
     problem: str
     expertIds: Optional[List[str]] = None  # If None, use all 8 legends
 
+class StreamContribution(BaseModel):
+    """Individual expert contribution for SSE streaming"""
+    expertName: str
+    content: str
+    order: int
+    isResearching: bool = False  # True when expert is using tools
+
+class CouncilChatMessage(BaseModel):
+    """Chat message in council room conversation"""
+    id: str
+    sessionId: str
+    role: Literal["user", "assistant"]
+    content: str
+    contributions: Optional[List[StreamContribution]] = None
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+
+class CouncilChatRequest(BaseModel):
+    """Request payload for council chat follow-up"""
+    message: str
+
 class ExpertRecommendation(BaseModel):
     """Single expert recommendation with relevance score and justification"""
     expertId: str

@@ -203,6 +203,24 @@ export const insertExpertCollaborationSchema = createInsertSchema(expertCollabor
 export type InsertExpertCollaboration = z.infer<typeof insertExpertCollaborationSchema>;
 export type ExpertCollaboration = typeof expertCollaborationGraph.$inferSelect;
 
+// Council Messages - Chat history for follow-up conversations with the council
+export const councilMessages = pgTable("council_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull(),
+  role: text("role").notNull(),  // "user" or "assistant"
+  content: text("content").notNull(),  // User question or assistant synthesis
+  contributions: text("contributions"),  // JSON: [{expertName, content, order}]
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCouncilMessageSchema = createInsertSchema(councilMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCouncilMessage = z.infer<typeof insertCouncilMessageSchema>;
+export type CouncilMessage = typeof councilMessages.$inferSelect;
+
 // ============================================
 // USER MEMORY & PERSONALIZATION SCHEMAS
 // ============================================

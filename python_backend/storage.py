@@ -165,6 +165,64 @@ class MemStorage:
         analyses.sort(key=lambda x: x.createdAt, reverse=True)
         return analyses
     
+    # Council Chat Messages operations (PostgreSQL)
+    async def get_council_messages(self, session_id: str) -> List:
+        """Get chat history for a council session"""
+        conn = await self._get_db_connection()
+        try:
+            rows = await conn.fetch(
+                """
+                SELECT * FROM council_messages 
+                WHERE session_id = $1 
+                ORDER BY created_at ASC
+                """,
+                session_id
+            )
+            
+            from models import CouncilChatMessage, StreamContribution
+            messages = []
+            for row in rows:
+                contributions = None
+                if row["contributions"]:
+                    contrib_list = json.loads(row["contributions"])
+                    contributions = [StreamContribution(**c) for c in contrib_list]
+                
+                messages.append(CouncilChatMessage(
+                    id=str(row["id"]),
+                    sessionId=row["session_id"],
+                    role=row["role"],
+                    content=row["content"],
+                    contributions=contributions,
+                    createdAt=row["created_at"]
+                ))
+            
+            return messages
+        finally:
+            await conn.close()
+    
+    async def create_council_message(
+        self, 
+        session_id: str, 
+        role: str, 
+        content: str,
+        contributions: Optional[str] = None
+    ):
+        """Save a council chat message"""
+        conn = await self._get_db_connection()
+        try:
+            message_id = str(uuid.uuid4())
+            await conn.execute(
+                """
+                INSERT INTO council_messages (
+                    id, session_id, role, content, contributions
+                ) VALUES ($1, $2, $3, $4, $5)
+                """,
+                message_id, session_id, role, content, contributions
+            )
+            return message_id
+        finally:
+            await conn.close()
+    
     # Persona operations (PostgreSQL)
     async def _get_db_connection(self):
         """Get PostgreSQL connection from DATABASE_URL"""

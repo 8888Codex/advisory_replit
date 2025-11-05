@@ -17,6 +17,7 @@ import AdminExperts from "@/pages/AdminExperts";
 import Onboarding from "@/pages/Onboarding";
 import TestCouncil from "@/pages/TestCouncil";
 import Personas from "@/pages/Personas";
+import CouncilRoom from "@/pages/CouncilRoom";
 
 function Redirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -45,7 +46,8 @@ function Router() {
         <Route path="/create" component={Create} />
         <Route path="/admin/experts" component={AdminExperts} />
         <Route path="/test-council" component={TestCouncil} />
-      <Route path="/personas" component={Personas} />
+        <Route path="/personas" component={Personas} />
+        <Route path="/council-room/:sessionId" component={CouncilRoom} />
         <Route component={NotFound} />
       </Switch>
     </AnimatePresence>
