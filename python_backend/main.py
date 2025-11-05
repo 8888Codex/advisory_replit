@@ -27,8 +27,7 @@ from storage import storage
 from crew_agent import LegendAgentFactory
 from seed import seed_legends
 from crew_council import council_orchestrator
-# TODO: Re-enable LLM Router once Gemini SDK configuration is resolved
-# from llm_router import llm_router, LLMTask
+from llm_router import llm_router, LLMTask
 
 app = FastAPI(title="AdvisorIA - Marketing Legends API")
 
@@ -738,32 +737,16 @@ INSTRUÇÕES:
 
 IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
 
-        # TODO: Re-enable LLM Router once Gemini SDK configuration is resolved
-        # Currently using Claude Sonnet directly for reliability
-        # response_text = await llm_router.generate_text(...)
-        
-        # Call Claude for intelligent analysis (temporary until Gemini is configured)
-        from anthropic import AsyncAnthropic
-        anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        
-        response = await anthropic_client.messages.create(
-            model="claude-sonnet-4-20250514",
+        # Use LLM Router to optimize costs (Haiku for simple recommendations)
+        response_text = await llm_router.generate_text(
+            task=LLMTask.RECOMMEND_EXPERTS,
+            prompt=analysis_prompt,
             max_tokens=2048,
-            temperature=0.3,
-            messages=[{
-                "role": "user",
-                "content": analysis_prompt
-            }]
+            temperature=0.3
         )
         
-        # Extract JSON from response - check ALL content blocks
-        response_text = ""
-        for block in response.content:
-            if block.type == "text":
-                response_text += block.text + "\n"
-        
         if not response_text:
-            raise ValueError("No text content in Claude response")
+            raise ValueError("No text content in LLM response")
         
         # Robust JSON extraction - try ALL brace candidates and return first valid recommendations JSON
         # This handles Claude responses with prose, brace fragments, or irrelevant JSON before payload
