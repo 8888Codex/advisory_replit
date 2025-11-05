@@ -55,6 +55,29 @@ export default function TestCouncil() {
   const { data: experts = [], isLoading: loadingExperts } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],
   });
+  
+  // Load preselected experts from localStorage (from Experts page)
+  useEffect(() => {
+    const preselected = localStorage.getItem('preselectedExperts');
+    const preselectedProblem = localStorage.getItem('preselectedProblem');
+    
+    if (preselected) {
+      try {
+        const expertIds = JSON.parse(preselected);
+        if (Array.isArray(expertIds) && expertIds.length > 0) {
+          setSelectedExperts(expertIds);
+          localStorage.removeItem('preselectedExperts'); // Clean up
+        }
+      } catch (e) {
+        console.error('Failed to parse preselected experts:', e);
+      }
+    }
+    
+    if (preselectedProblem) {
+      setProblem(preselectedProblem);
+      localStorage.removeItem('preselectedProblem'); // Clean up
+    }
+  }, []);
 
   // Debounce problem input for recommendations (800ms delay)
   const debouncedProblem = useDebounce(problem, 800);

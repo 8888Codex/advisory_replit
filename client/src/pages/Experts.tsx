@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AnimatedPage } from "@/components/AnimatedPage";
-import { Search, Loader2, SlidersHorizontal, Star, X, Sparkles, MessageSquare } from "lucide-react";
+import { Search, Loader2, SlidersHorizontal, Star, X, Sparkles, MessageSquare, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { ExpertGridSkeleton } from "@/components/skeletons/SkeletonCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,6 +59,7 @@ export default function Experts() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [challenge, setChallenge] = useState("");
+  const [councilExperts, setCouncilExperts] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [filterExpertise, setFilterExpertise] = useState<string>("all");
   const [showRecommendedOnly, setShowRecommendedOnly] = useState(false);
@@ -109,6 +110,28 @@ export default function Experts() {
   });
   
   const semanticRecs = semanticRecommendations?.recommendations || [];
+  
+  // Contextual hints by category (IDs match API category IDs)
+  const categoryHints: Record<string, string> = {
+    'all': 'Ex: Como aumentar conversão no meu e-commerce de moda?',
+    'positioning': 'Ex: Como diferenciar minha marca num mercado saturado?',
+    'customer-experience': 'Ex: Como melhorar a jornada do cliente no meu app?',
+    'content-creation': 'Ex: Preciso criar conteúdo viral para Instagram, como começar?',
+    'social-media': 'Ex: Qual estratégia de social media para meu B2B?',
+    'digital-marketing': 'Ex: Como otimizar meu funil de conversão digital?',
+    'copywriting-sales': 'Ex: Como escrever emails que realmente convertem?',
+    'data-analytics': 'Ex: Quais métricas devo acompanhar para crescer?',
+    'product-development': 'Ex: Como validar uma nova feature antes de lançar?',
+    'influencer-marketing': 'Ex: Como escolher influenciadores para minha campanha?',
+    'public-relations': 'Ex: Como criar um press release que gera mídia espontânea?',
+    'brand-management': 'Ex: Como construir brand equity para minha startup?',
+    'neuromarketing': 'Ex: Como usar gatilhos mentais sem ser manipulativo?',
+    'ecommerce': 'Ex: Como reduzir abandono de carrinho no meu e-commerce?',
+    'podcasting-audio': 'Ex: Vale a pena investir em podcast para minha marca?',
+    'guerrilla-marketing': 'Ex: Preciso de uma campanha de baixo custo e alto impacto',
+  };
+  
+  const currentPlaceholder = categoryHints[selectedCategory] || categoryHints['all'];
 
   const expertRecommendationMap = useMemo(() => {
     if (!recommendationsData?.recommendations) return new Map();
@@ -200,6 +223,24 @@ export default function Experts() {
   const handleConsult = async (expert: Expert) => {
     setLocation(`/chat/${expert.id}`);
   };
+  
+  const toggleCouncilExpert = (expertId: string) => {
+    setCouncilExperts(prev =>
+      prev.includes(expertId)
+        ? prev.filter(id => id !== expertId)
+        : [...prev, expertId]
+    );
+  };
+  
+  const startCouncil = () => {
+    // Guard against empty selection
+    if (councilExperts.length === 0) return;
+    
+    // Navigate to TestCouncil with pre-selected experts via localStorage
+    localStorage.setItem('preselectedExperts', JSON.stringify(councilExperts));
+    localStorage.setItem('preselectedProblem', challenge);
+    setLocation('/test-council');
+  };
 
   return (
     <AnimatedPage>
@@ -233,7 +274,7 @@ export default function Experts() {
                   <Textarea
                     value={challenge}
                     onChange={(e) => setChallenge(e.target.value)}
-                    placeholder="Ex: Como aumentar conversão no meu e-commerce de moda?"
+                    placeholder={currentPlaceholder}
                     className="min-h-[80px] resize-none"
                     data-testid="textarea-challenge"
                   />
@@ -437,14 +478,33 @@ export default function Experts() {
                                 <p className="text-sm text-muted-foreground line-clamp-3">
                                   {rec.justification}
                                 </p>
-                                <Button 
-                                  size="sm" 
-                                  className="w-full mt-4 gap-2"
-                                  data-testid={`button-consult-${rec.expertId}`}
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                  Conversar
-                                </Button>
+                                <div className="flex gap-2 mt-4">
+                                  <Button 
+                                    size="sm" 
+                                    className="flex-1 gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleConsult(expert);
+                                    }}
+                                    data-testid={`button-consult-${rec.expertId}`}
+                                  >
+                                    <MessageSquare className="h-4 w-4" />
+                                    Conversar
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant={councilExperts.includes(rec.expertId) ? "default" : "outline"}
+                                    className="flex-1 gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleCouncilExpert(rec.expertId);
+                                    }}
+                                    data-testid={`button-council-${rec.expertId}`}
+                                  >
+                                    <Users className="h-4 w-4" />
+                                    {councilExperts.includes(rec.expertId) ? "Adicionado" : "Conselho"}
+                                  </Button>
+                                </div>
                               </CardContent>
                             </Card>
                           </motion.div>
@@ -537,6 +597,44 @@ export default function Experts() {
         </div>
       </div>
       </div>
+      
+      {/* Floating Action Button for Council */}
+      <AnimatePresence>
+        {councilExperts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.26 }}
+            className="fixed bottom-8 right-8 z-50"
+          >
+            <Card className="border-primary bg-primary/5 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {councilExperts.length} {councilExperts.length === 1 ? 'especialista selecionado' : 'especialistas selecionados'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Monte sua mesa redonda
+                    </p>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={startCouncil}
+                    disabled={councilExperts.length === 0}
+                    className="gap-2"
+                    data-testid="button-start-council"
+                  >
+                    <Users className="h-5 w-5" />
+                    Iniciar Conselho
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatedPage>
   );
 }
