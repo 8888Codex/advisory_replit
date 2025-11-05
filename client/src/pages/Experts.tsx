@@ -2,11 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExpertCard, type Expert } from "@/components/ExpertCard";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -15,13 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AnimatedPage } from "@/components/AnimatedPage";
-import { Search, Loader2, SlidersHorizontal, Star, X, Sparkles, MessageSquare, Users } from "lucide-react";
+import { Search, SlidersHorizontal, Star, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { ExpertGridSkeleton } from "@/components/skeletons/SkeletonCard";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useURLSearchParam } from "@/hooks/use-url-search-params";
-import { useDebounce } from "@/hooks/useDebounce";
-import { apiRequest } from "@/lib/queryClient";
 
 interface Category {
   id: string;
@@ -41,13 +35,6 @@ interface Recommendation {
   breakdown: Record<string, number>;
 }
 
-interface ExpertRecommendation {
-  expertId: string;
-  expertName: string;
-  relevanceScore: number;
-  justification: string;
-}
-
 interface RecommendationsResponse {
   hasProfile: boolean;
   recommendations: Recommendation[];
@@ -58,17 +45,12 @@ type SortOption = "relevance" | "name-asc" | "name-desc";
 export default function Experts() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
-  const [challenge, setChallenge] = useState("");
-  const [councilExperts, setCouncilExperts] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [filterExpertise, setFilterExpertise] = useState<string>("all");
   const [showRecommendedOnly, setShowRecommendedOnly] = useState(false);
 
   // Use custom hook to get category from URL - automatically syncs with all navigation types
   const selectedCategory = useURLSearchParam("category", "all");
-  
-  // Debounce challenge input for semantic recommendations
-  const debouncedChallenge = useDebounce(challenge, 800);
 
   // Fetch categories
   const { data: categories = [] } = useQuery<Category[]>({
@@ -87,51 +69,6 @@ export default function Experts() {
   const { data: recommendationsData } = useQuery<RecommendationsResponse>({
     queryKey: ["/api/experts/recommendations"],
   });
-  
-  // Get semantic recommendations based on challenge
-  const { data: semanticRecommendations, isLoading: loadingSemanticRecs } = useQuery<{ recommendations: ExpertRecommendation[] }>({
-    queryKey: ["/api/recommend-experts", debouncedChallenge, selectedCategory],
-    queryFn: async () => {
-      if (!debouncedChallenge.trim() || debouncedChallenge.trim().length < 10) {
-        return { recommendations: [] };
-      }
-      
-      const response = await apiRequest("/api/recommend-experts", {
-        method: "POST",
-        body: JSON.stringify({ 
-          problem: debouncedChallenge,
-          categoryFilter: selectedCategory !== "all" ? selectedCategory : undefined
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-      return response.json();
-    },
-    enabled: debouncedChallenge.trim().length >= 10,
-  });
-  
-  const semanticRecs = semanticRecommendations?.recommendations || [];
-  
-  // Contextual hints by category (IDs match API category IDs)
-  const categoryHints: Record<string, string> = {
-    'all': 'Ex: Como aumentar conversão no meu e-commerce de moda?',
-    'positioning': 'Ex: Como diferenciar minha marca num mercado saturado?',
-    'customer-experience': 'Ex: Como melhorar a jornada do cliente no meu app?',
-    'content-creation': 'Ex: Preciso criar conteúdo viral para Instagram, como começar?',
-    'social-media': 'Ex: Qual estratégia de social media para meu B2B?',
-    'digital-marketing': 'Ex: Como otimizar meu funil de conversão digital?',
-    'copywriting-sales': 'Ex: Como escrever emails que realmente convertem?',
-    'data-analytics': 'Ex: Quais métricas devo acompanhar para crescer?',
-    'product-development': 'Ex: Como validar uma nova feature antes de lançar?',
-    'influencer-marketing': 'Ex: Como escolher influenciadores para minha campanha?',
-    'public-relations': 'Ex: Como criar um press release que gera mídia espontânea?',
-    'brand-management': 'Ex: Como construir brand equity para minha startup?',
-    'neuromarketing': 'Ex: Como usar gatilhos mentais sem ser manipulativo?',
-    'ecommerce': 'Ex: Como reduzir abandono de carrinho no meu e-commerce?',
-    'podcasting-audio': 'Ex: Vale a pena investir em podcast para minha marca?',
-    'guerrilla-marketing': 'Ex: Preciso de uma campanha de baixo custo e alto impacto',
-  };
-  
-  const currentPlaceholder = categoryHints[selectedCategory] || categoryHints['all'];
 
   const expertRecommendationMap = useMemo(() => {
     if (!recommendationsData?.recommendations) return new Map();
@@ -223,24 +160,6 @@ export default function Experts() {
   const handleConsult = async (expert: Expert) => {
     setLocation(`/chat/${expert.id}`);
   };
-  
-  const toggleCouncilExpert = (expertId: string) => {
-    setCouncilExperts(prev =>
-      prev.includes(expertId)
-        ? prev.filter(id => id !== expertId)
-        : [...prev, expertId]
-    );
-  };
-  
-  const startCouncil = () => {
-    // Guard against empty selection
-    if (councilExperts.length === 0) return;
-    
-    // Navigate to TestCouncil with pre-selected experts via localStorage
-    localStorage.setItem('preselectedExperts', JSON.stringify(councilExperts));
-    localStorage.setItem('preselectedProblem', challenge);
-    setLocation('/test-council');
-  };
 
   return (
     <AnimatedPage>
@@ -252,40 +171,6 @@ export default function Experts() {
             <p className="text-muted-foreground mb-6">
               Consulte especialistas de elite em diversas áreas estratégicas
             </p>
-
-            {/* Semantic Search Bar */}
-            <motion.div 
-              className="mb-6"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3 mb-3">
-                    <Sparkles className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-base mb-1">Encontre o Especialista Ideal</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Descreva seu desafio e nossa IA recomendará os melhores experts
-                      </p>
-                    </div>
-                  </div>
-                  <Textarea
-                    value={challenge}
-                    onChange={(e) => setChallenge(e.target.value)}
-                    placeholder={currentPlaceholder}
-                    className="min-h-[80px] resize-none"
-                    data-testid="textarea-challenge"
-                  />
-                  {challenge.length > 0 && challenge.length < 10 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Digite pelo menos 10 caracteres para análise
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1 max-w-md">
@@ -400,128 +285,7 @@ export default function Experts() {
             <ExpertGridSkeleton count={6} />
           ) : (
             <>
-              {/* Loading State for Semantic Search */}
-              {loadingSemanticRecs && challenge.length >= 10 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6"
-                >
-                  <Card className="border-primary/30 bg-primary/5">
-                    <CardContent className="py-6">
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <p className="text-sm font-medium">🔍 Analisando seu desafio...</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Semantic Recommendations */}
-              <AnimatePresence>
-                {semanticRecs.length > 0 && !loadingSemanticRecs && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="mb-8"
-                  >
-                    <div className="mb-4">
-                      <h2 className="text-2xl font-semibold flex items-center gap-2">
-                        <Sparkles className="h-6 w-6 text-primary" />
-                        Recomendados para Seu Desafio
-                      </h2>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Top {semanticRecs.length} especialistas para o seu caso específico
-                      </p>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-                      {semanticRecs.slice(0, 5).map((rec, idx) => {
-                        const expert = experts.find(e => e.id === rec.expertId);
-                        if (!expert) return null;
-
-                        const stars = Math.round(rec.relevanceScore);
-                        
-                        return (
-                          <motion.div
-                            key={rec.expertId}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.26, delay: idx * 0.05 }}
-                          >
-                            <Card className="h-full hover-elevate cursor-pointer" onClick={() => handleConsult(expert)}>
-                              <CardHeader className="pb-3">
-                                <div className="flex items-start gap-3">
-                                  <Avatar className="h-12 w-12 flex-shrink-0">
-                                    <AvatarImage src={expert.avatar} alt={expert.name} />
-                                    <AvatarFallback>{expert.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-base line-clamp-1">{expert.name}</h3>
-                                    <div className="flex items-center gap-1 mt-1">
-                                      {Array.from({ length: 5 }).map((_, i) => (
-                                        <Star
-                                          key={i}
-                                          className={`h-3 w-3 ${
-                                            i < stars ? 'fill-primary text-primary' : 'text-muted-foreground/30'
-                                          }`}
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent>
-                                <p className="text-sm text-muted-foreground line-clamp-3">
-                                  {rec.justification}
-                                </p>
-                                <div className="flex gap-2 mt-4">
-                                  <Button 
-                                    size="sm" 
-                                    className="flex-1 gap-2"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleConsult(expert);
-                                    }}
-                                    data-testid={`button-consult-${rec.expertId}`}
-                                  >
-                                    <MessageSquare className="h-4 w-4" />
-                                    Conversar
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant={councilExperts.includes(rec.expertId) ? "default" : "outline"}
-                                    className="flex-1 gap-2"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleCouncilExpert(rec.expertId);
-                                    }}
-                                    data-testid={`button-council-${rec.expertId}`}
-                                  >
-                                    <Users className="h-4 w-4" />
-                                    {councilExperts.includes(rec.expertId) ? "Adicionado" : "Conselho"}
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="text-center mb-6">
-                      <p className="text-sm text-muted-foreground">
-                        ou veja todos os especialistas abaixo
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {hasProfile && !semanticRecs.length && (
+              {hasProfile && (
                 <div className="mb-6 bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Personalizado para você:</span> Os especialistas estão ordenados por relevância com base no seu perfil de negócio.
@@ -597,44 +361,6 @@ export default function Experts() {
         </div>
       </div>
       </div>
-      
-      {/* Floating Action Button for Council */}
-      <AnimatePresence>
-        {councilExperts.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ duration: 0.26 }}
-            className="fixed bottom-8 right-8 z-50"
-          >
-            <Card className="border-primary bg-primary/5 shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="font-semibold text-sm">
-                      {councilExperts.length} {councilExperts.length === 1 ? 'especialista selecionado' : 'especialistas selecionados'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Monte sua mesa redonda
-                    </p>
-                  </div>
-                  <Button
-                    size="lg"
-                    onClick={startCouncil}
-                    disabled={councilExperts.length === 0}
-                    className="gap-2"
-                    data-testid="button-start-council"
-                  >
-                    <Users className="h-5 w-5" />
-                    Iniciar Conselho
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </AnimatedPage>
   );
 }
