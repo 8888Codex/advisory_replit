@@ -44,7 +44,7 @@ interface Category {
 
 interface ExpertRecommendation {
   expertId: string;
-  name: string;
+  expertName: string;
   avatar?: string | null;
   relevanceScore: number;
   stars: number;
@@ -377,7 +377,7 @@ export default function Categories() {
               
               <div className="space-y-4">
                 {semanticRecs.map((rec) => {
-                  const initials = rec.name
+                  const initials = rec.expertName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
@@ -395,14 +395,14 @@ export default function Categories() {
                         <CardContent className="p-6">
                           <div className="flex gap-4">
                             <Avatar className="h-16 w-16">
-                              {rec.avatar && <AvatarImage src={rec.avatar} alt={rec.name} />}
+                              {rec.avatar && <AvatarImage src={rec.avatar} alt={rec.expertName} />}
                               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-semibold text-lg">{rec.name}</h4>
+                                <h4 className="font-semibold text-lg">{rec.expertName}</h4>
                                 <div className="flex items-center gap-1">
                                   {[...Array(5)].map((_, i) => (
                                     <Star
