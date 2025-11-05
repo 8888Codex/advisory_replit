@@ -43,7 +43,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Criador do Brand Equity Model (1991) - 5 components framework (loyalty, awareness, perceived quality, associations, proprietary assets). Vice Chairman da Prophet consultancy. Professor Emeritus UC Berkeley. Autor de 17+ livros sobre branding. Apple, Amazon, Coca-Cola = classic examples de positive brand equity.",
             "expertise": ["Brand Equity", "Brand Identity", "Brand Leadership", "5 Components Model", "Brands as Assets", "Long-Term Value"],
             "system_prompt": LEGENDS_PROMPTS["david_aaker"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/David_Aaker_professor_portrait_33270885.png",
             "category": CategoryType.MARKETING,
         },
         {
@@ -52,7 +52,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Autor de 'Guerrilla Marketing' (1984) - TIME Magazine Top 25 Best Business Book. 21M+ copies sold, 62 languages. Revolucionou marketing para small businesses. 200+ marketing weapons documented - mais de metade são FREE. Focus: time, energy, imagination > money.",
             "expertise": ["Guerrilla Marketing", "200 Marketing Weapons", "Low-Cost High-Impact", "Creativity Over Budget", "Unconventional Tactics"],
             "system_prompt": LEGENDS_PROMPTS["jay_levinson"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Jay_Levinson_creative_portrait_81a448c6.png",
             "category": CategoryType.MARKETING,
         },
         
@@ -72,7 +72,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Autor 'Start With Why' (2009). TED Talk 'How Great Leaders Inspire Action': 40M+ views (one of most-watched ever). Golden Circle framework: WHY (purpose) → HOW (process) → WHAT (product). Apple 'Think Different': WHY-first exemplar. Think Different campaign: $90M budget, Apple near bankruptcy → +20% revenue year 1, 2.8%→5% market share.",
             "expertise": ["Start With Why", "Golden Circle", "WHY-HOW-WHAT", "Inside-Out Communication", "Purpose-Driven Leadership"],
             "system_prompt": LEGENDS_PROMPTS["simon_sinek"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Simon_Sinek_leadership_portrait_296da32e.png",
             "category": CategoryType.POSITIONING,
         },
         {
@@ -81,7 +81,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Criador do StoryBrand Framework (SB7) baseado no Hero's Journey. Autor de 'Building a StoryBrand' (bestseller). Clientes: Intel, Charity Water, Chick-fil-A, TOMS, TREK, Tempur Sealy. Thousands companies from startups to Fortune 500. Multiple cases de $1M→$20M+ growth em <2 anos.",
             "expertise": ["StoryBrand SB7", "Hero's Journey Marketing", "Clear Messaging", "Customer as Hero", "Brand as Guide", "7-Part Framework"],
             "system_prompt": LEGENDS_PROMPTS["donald_miller"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Donald_Miller_speaker_portrait_7ea0fc1c.png",
             "category": CategoryType.POSITIONING,
         },
         
@@ -101,7 +101,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Autor de 'Breakthrough Advertising' (1966), considerado a bíblia do copywriting persuasivo. Criador dos frameworks 5 Stages of Awareness e 5 Stages of Market Sophistication. Livro vendido por $125-900 quando fora de catálogo, republicado tornou-se essencial para todo copywriter. Desenvolveu Mass Desire Principle e 13 Intensification Techniques que definem copywriting moderno.",
             "expertise": ["Breakthrough Advertising", "5 Stages of Awareness", "Market Sophistication", "Mass Desire", "Copywriting Psicológico", "Headline Frameworks", "Intensification Techniques"],
             "system_prompt": LEGENDS_PROMPTS["eugene_schwartz"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Eugene_Schwartz_professional_portrait_2f34b506.png",
             "category": CategoryType.DIRECT_RESPONSE,
         },
         {
@@ -110,7 +110,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "David Ogilvy: 'Drayton Bird knows more about direct marketing than anyone in the world.' International Vice-Chairman O&M Direct, Creative Director building world's largest direct marketing agency network. Autor 'Commonsense Direct Marketing' (1982) - UK #1 bestseller EVERY YEAR since 1982, 17 languages, 5 editions. £1.5M+ from <2K prospects via integrated campaigns.",
             "expertise": ["Direct Response", "Testing Obsession", "Commonsense Direct Marketing", "Results-Driven", "Customer Understanding", "Integrated Campaigns"],
             "system_prompt": LEGENDS_PROMPTS["drayton_bird"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Drayton_Bird_veteran_portrait_fe61a50f.png",
             "category": CategoryType.DIRECT_RESPONSE,
         },
         {
@@ -119,7 +119,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Autor de 'Influence: Psychology of Persuasion' (1984, 5M+ copies sold, 44 languages). Professor Arizona State University. Pesquisador de 35+ anos em persuasion science. Criador dos 6 Principles of Influence testados em centenas de experiments. Consultor de Google, Microsoft, Coca-Cola.",
             "expertise": ["6 Principles of Influence", "Reciprocity", "Social Proof", "Scarcity", "Authority", "Commitment/Consistency", "Liking", "Ethical Persuasion"],
             "system_prompt": LEGENDS_PROMPTS["robert_cialdini"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Robert_Cialdini_academic_portrait_5ea5e2f2.png",
             "category": CategoryType.DIRECT_RESPONSE,
         },
         {
@@ -128,7 +128,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Nobel Prize Economics 2002 por integrar psychology em economics (nunca fez curso de economics!). Autor 'Thinking Fast and Slow' (2011 bestseller). Com Amos Tversky, criou Prospect Theory (1979, most-cited economics paper). Loss aversion: losses hurt 2x more than equivalent gains. Bat & Ball problem demonstra System 1 substitution.",
             "expertise": ["System 1 and System 2", "Prospect Theory", "Loss Aversion", "Cognitive Biases", "Heuristics", "Behavioral Economics"],
             "system_prompt": LEGENDS_PROMPTS["daniel_kahneman"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Daniel_Kahneman_Nobel_laureate_portrait_4f25346c.png",
             "category": CategoryType.DIRECT_RESPONSE,
         },
         
@@ -181,7 +181,7 @@ async def seed_legends(storage: MemStorage):
             "bio": "Conhecido como 'The $9.4 Billion Man' - documentou ter gerado $75B+ em revenue increases para 10.000+ empresas em 400+ indústrias. Criador do framework '3 Ways to Grow Business', Parthenon Strategy (múltiplos pilares de revenue), e Strategy of Preeminence (value-first, advisor mindset). Autor de 'Getting Everything You Can Out of All You've Got'. Consultor de Tony Robbins, Daymond John, e centenas de Fortune 500. Master de identificar hidden assets e aplicar best practices cross-industry.",
             "expertise": ["3 Ways to Grow Business", "Strategy of Preeminence", "Parthenon Principles", "Geometric Growth", "Funnel Vision", "Lifetime Value Optimization", "Strategic Joint Ventures"],
             "system_prompt": LEGENDS_PROMPTS["jay_abraham"],
-            "avatar": None,
+            "avatar": "/attached_assets/generated_images/Jay_Abraham_business_portrait_b06938cd.png",
             "category": CategoryType.GROWTH,
         },
     ]
