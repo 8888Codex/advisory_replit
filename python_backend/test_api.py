@@ -76,7 +76,7 @@ async def test_seed():
 
 async def main():
     print("=" * 60)
-    print("AdvisorIA Backend Test Suite")
+    print("O Conselho Backend Test Suite")
     print("=" * 60)
     
     results = []

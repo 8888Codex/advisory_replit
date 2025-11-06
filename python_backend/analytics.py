@@ -324,7 +324,7 @@ class AnalyticsEngine:
         categories = await self.get_category_distribution(user_id=user_id)
         
         # Build prompt for Claude Haiku (cost-optimized)
-        context = f"""Analyze this user's AdvisorIA usage and generate 3-5 actionable recommendations:
+        context = f"""Analyze this user's O Conselho usage and generate 3-5 actionable recommendations:
 
 ACTIVITY OVERVIEW:
 - Total conversations: {overview['totalConversations']}
