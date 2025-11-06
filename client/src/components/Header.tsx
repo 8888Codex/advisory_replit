@@ -1,15 +1,23 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { ThemeToggle } from "./ThemeToggle";
 import { MobileNav } from "./MobileNav";
 import logoImage from "@assets/o conselho_1762287383861.png";
 
 export function Header() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const onboardingComplete = localStorage.getItem("onboarding_complete");
+    setIsAuthenticated(!!onboardingComplete);
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <MobileNav />
-          <Link href="/">
+          <Link href={isAuthenticated ? "/home" : "/"}>
             <div className="hover-elevate active-elevate-2 px-3 py-2 rounded-lg -ml-3 cursor-pointer" data-testid="link-home">
               <img src={logoImage} alt="θconselho" className="h-16 w-auto invert dark:invert-0" />
             </div>
@@ -17,6 +25,13 @@ export function Header() {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
+          {isAuthenticated && (
+            <Link href="/home">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-dashboard">
+                Home
+              </span>
+            </Link>
+          )}
           <Link href="/categories">
             <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-categories">
               Categorias

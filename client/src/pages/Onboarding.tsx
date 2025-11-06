@@ -135,11 +135,12 @@ export default function Onboarding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
+      localStorage.setItem("onboarding_complete", "true");
       toast({
         title: "Perfil criado com sucesso!",
         description: "Seu perfil foi salvo. O Conselho está pronto para ajudar!",
       });
-      navigate("/persona-dashboard");
+      navigate("/home");
     },
     onError: (error: Error) => {
       toast({
