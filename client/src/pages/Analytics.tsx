@@ -234,7 +234,7 @@ function ExpertRankingList({ data, isLoading }: { data?: TopExpert[]; isLoading:
           Ranking dos seus especialistas favoritos
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 pt-0 pb-0">
         {experts.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             Comece a consultar experts para ver seu ranking!
