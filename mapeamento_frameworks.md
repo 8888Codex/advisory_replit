@@ -1,4 +1,4 @@
-# Mapeamento Completo de Frameworks - AdvisorIA
+# Mapeamento Completo de Frameworks - O Conselho
 
 ## Resumo Executivo
 

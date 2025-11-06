@@ -1,4 +1,4 @@
-# Análise Forense: Clones AdvisorIA vs Padrão Clone Profissional R$ 88.000
+# Análise Forense: Clones O Conselho vs Padrão Clone Profissional R$ 88.000
 
 ## Resumo Executivo
 

@@ -1,4 +1,4 @@
-# AdvisorIA - Design Guidelines (Apple-Inspired Minimalism)
+# O Conselho - Design Guidelines (Apple-Inspired Minimalism)
 
 ## Design Approach
 **Apple Store Minimalism**: Inspired by Apple Store, iOS design language, and premium tech showrooms. Philosophy of "radical simplicity" where every element serves a clear purpose with maximum breathing room.
