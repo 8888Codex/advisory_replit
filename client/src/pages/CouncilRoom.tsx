@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
+import type { UserPersona } from "@shared/schema";
+import { PersonaContextBadge } from "@/components/PersonaContextBadge";
 
 // Helper: Detect if expert mentions colleague names
 function detectColleagueMentions(content: string, allExpertNames: string[], currentExpert: string): string[] {
@@ -96,6 +98,11 @@ export default function CouncilRoom() {
       const response = await apiRequest(`/api/council/chat/${sessionId}/messages`);
       return response.json();
     },
+  });
+
+  // Load user persona for context display
+  const { data: persona } = useQuery<UserPersona | null>({
+    queryKey: ["/api/persona/current"],
   });
   
   // Auto-scroll to bottom when new messages arrive
@@ -241,10 +248,13 @@ export default function CouncilRoom() {
         <div className="container max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-semibold flex items-center gap-2">
-                <Brain className="h-6 w-6 text-primary" />
-                Sala do Conselho
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-semibold flex items-center gap-2">
+                  <Brain className="h-6 w-6 text-primary" />
+                  Sala do Conselho
+                </h1>
+                <PersonaContextBadge persona={persona || null} />
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Continue a conversa com os especialistas
               </p>

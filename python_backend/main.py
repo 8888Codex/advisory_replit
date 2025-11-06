@@ -1047,34 +1047,54 @@ async def send_message(conversation_id: str, data: MessageSend):
             for msg in all_messages
         ]
         
-        # Get user's business profile for context injection
+        # Get user's persona for context injection (Persona Intelligence Hub)
         user_id = "default_user"
-        profile = await storage.get_business_profile(user_id)
+        persona = await storage.get_user_persona(user_id)
         
-        # Enrich system prompt with profile context if available
+        # Enrich system prompt with persona context if available
         enriched_system_prompt = expert.systemPrompt
-        if profile:
-            # Safe access to profile fields with defaults
-            channels_str = ', '.join(profile.channels) if profile.channels else 'Não especificado'
-            profile_context = f"""
+        if persona:
+            # Build persona context with core business data
+            persona_context = f"""
 
 ---
-[CONTEXTO DO NEGÓCIO DO CLIENTE]:
-• Empresa: {profile.companyName}
-• Indústria: {profile.industry}
-• Tamanho: {profile.companySize}
-• Público-alvo: {profile.targetAudience}
-• Produtos: {profile.mainProducts}
-• Canais: {channels_str}
-• Orçamento: {profile.budgetRange}
-• Objetivo Principal: {profile.primaryGoal}
-• Desafio Principal: {profile.mainChallenge}
-• Timeline: {profile.timeline}
-
-INSTRUÇÃO IMPORTANTE: Use essas informações para oferecer conselhos mais específicos e relevantes ao negócio do cliente. NÃO mencione explicitamente que você recebeu essas informações - simplesmente use-as naturalmente para contextualizar suas recomendações e análises.
+[CONTEXTO DO NEGÓCIO DO CLIENTE - Persona Intelligence Hub]:
+• Empresa: {persona.companyName or 'Não especificado'}
+• Indústria: {persona.industry or 'Não especificado'}
+• Público-alvo: {persona.targetAudience or 'Não especificado'}
+• Objetivo Principal: {persona.primaryGoal or 'Não especificado'}
+• Desafio Principal: {persona.mainChallenge or 'Não especificado'}
+"""
+            
+            # Add YouTube campaign insights if enriched
+            if persona.campaignReferences and len(persona.campaignReferences) > 0:
+                persona_context += "\n🎥 CAMPANHAS DE REFERÊNCIA (YouTube Research):\n"
+                for i, campaign in enumerate(persona.campaignReferences[:5], 1):
+                    # Defensive: handle both dict and Pydantic model access
+                    if isinstance(campaign, dict):
+                        title = campaign.get('title', 'N/A')
+                        channel = campaign.get('channel', 'N/A')
+                        insights = campaign.get('insights', [])
+                    else:
+                        title = getattr(campaign, 'title', 'N/A')
+                        channel = getattr(campaign, 'channel', 'N/A')
+                        insights = getattr(campaign, 'insights', [])
+                    
+                    persona_context += f"  {i}. \"{title}\" por {channel}\n"
+                    if insights:
+                        persona_context += f"     → Insights: {', '.join(insights[:2])}\n"
+            
+            # Add pain points and psychographics if available
+            if persona.painPoints and len(persona.painPoints) > 0:
+                persona_context += "\n💬 INSIGHTS DO PÚBLICO:\n"
+                for i, pain_point in enumerate(persona.painPoints[:3], 1):
+                    persona_context += f"  {i}. {pain_point}\n"
+            
+            persona_context += """
+INSTRUÇÃO IMPORTANTE: Use essas informações para oferecer conselhos personalizados e estratégicos. NÃO mencione explicitamente "recebi informações da sua empresa" - simplesmente use o contexto naturalmente para enriquecer suas análises e recomendações com exemplos relevantes.
 ---
 """
-            enriched_system_prompt = expert.systemPrompt + profile_context
+            enriched_system_prompt = expert.systemPrompt + persona_context
         
         # Create agent for this expert with enriched system prompt
         agent = LegendAgentFactory.create_agent(
@@ -1980,9 +2000,17 @@ async def council_chat_stream(session_id: str, message: str):
                 "createdAt": datetime.utcnow().isoformat()
             })
             
-            # Build context from analysis + history
+            # Load user persona for context enrichment
+            print(f"[SSE] Loading user persona...")
+            persona = await storage.get_user_persona(user_id)
+            if persona:
+                print(f"[SSE] Persona loaded: {persona.companyName}")
+            else:
+                print(f"[SSE] No persona found for user")
+            
+            # Build context from analysis + history + persona
             print(f"[SSE] Building context...")
-            context = await _build_council_context(analysis, history, message)
+            context = await _build_council_context(analysis, history, message, persona)
             print(f"[SSE] Context built - {len(context)} chars")
             
             # Stream contributions from each expert (ROUNDTABLE: experts see previous contributions)
@@ -2115,10 +2143,39 @@ async def council_chat_stream(session_id: str, message: str):
 async def _build_council_context(
     analysis: CouncilAnalysis,
     history: List[CouncilChatMessage],
-    new_question: str
+    new_question: str,
+    persona: Optional['UserPersona'] = None
 ) -> str:
-    """Build rich context for follow-up including analysis + history"""
-    context = f"""**CONTEXTO DA ANÁLISE INICIAL:**
+    """Build rich context for follow-up including analysis + history + persona"""
+    
+    # Start with persona context if available (Persona Intelligence Hub)
+    context = ""
+    if persona:
+        context += f"""**CONTEXTO DO NEGÓCIO DO CLIENTE (Persona Intelligence Hub):**
+• Empresa: {persona.companyName or 'Não especificado'}
+• Indústria: {persona.industry or 'Não especificado'}
+• Público-alvo: {persona.targetAudience or 'Não especificado'}
+• Objetivo Principal: {persona.primaryGoal or 'Não especificado'}
+• Desafio Principal: {persona.mainChallenge or 'Não especificado'}
+"""
+        
+        # Add enrichment data if available
+        if persona.campaignReferences and len(persona.campaignReferences) > 0:
+            context += "\n🎥 CAMPANHAS DE REFERÊNCIA (YouTube Research):\n"
+            for i, campaign in enumerate(persona.campaignReferences[:3], 1):
+                # Defensive: handle both dict and Pydantic model access
+                if isinstance(campaign, dict):
+                    title = campaign.get('title', 'N/A')
+                    channel = campaign.get('channel', 'N/A')
+                else:
+                    title = getattr(campaign, 'title', 'N/A')
+                    channel = getattr(campaign, 'channel', 'N/A')
+                
+                context += f"  {i}. \"{title}\" por {channel}\n"
+        
+        context += "\n**INSTRUÇÃO**: Use essas informações do cliente para personalizar suas análises.\n\n---\n\n"
+    
+    context += f"""**CONTEXTO DA ANÁLISE INICIAL:**
 
 Problema Original: {analysis.problem}
 

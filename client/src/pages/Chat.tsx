@@ -11,9 +11,10 @@ import { ArrowLeft, Send, Sparkles, Loader2 } from "lucide-react";
 import { ChatMessage } from "@/components/ChatMessage";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import type { Expert, Conversation, Message } from "@shared/schema";
+import type { Expert, Conversation, Message, UserPersona } from "@shared/schema";
 import { ChatLoadingSkeleton } from "@/components/skeletons/ChatMessageSkeleton";
 import { PulseLoader } from "@/components/PulseLoader";
+import { PersonaContextBadge } from "@/components/PersonaContextBadge";
 
 export default function Chat() {
   const [, params] = useRoute("/chat/:id");
@@ -31,6 +32,10 @@ export default function Chat() {
   const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", conversationId, "messages"],
     enabled: !!conversationId,
+  });
+
+  const { data: persona } = useQuery<UserPersona | null>({
+    queryKey: ["/api/persona/current"],
   });
 
   const createConversationMutation = useMutation({
@@ -154,7 +159,10 @@ export default function Chat() {
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold">{expert.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">{expert.name}</h2>
+                <PersonaContextBadge persona={persona || null} compact />
+              </div>
               <p className="text-sm text-muted-foreground">{expert.title}</p>
             </div>
             <div className="hidden md:flex gap-2">
