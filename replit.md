@@ -36,7 +36,7 @@ The platform features an Apple-style minimalist design with a professional dark-
   - Before onboarding: Logo redirects to `/`, no "Home" link visible
   - After onboarding: Logo redirects to `/home`, "Home" link appears in navigation
   - Persists across all page navigations
-- **Expert Assets**: All 18 marketing experts use real professional stock photos stored in `/attached_assets/stock_images/`. Photos are properly referenced in `python_backend/seed.py` and render across all platform interfaces (cards, chats, carousels).
+- **Expert Assets**: All 18 marketing experts use real professional stock photos uploaded to `/attached_assets/stock_images/`. Avatar paths in `python_backend/seed.py` now reference exact user-uploaded filenames (e.g., "Philip Kotler.png", "David Ogilvy .png", "Gary Vaynerchuk .jpg"). Photos render successfully across all platform interfaces (dashboard, categories, chats, landing carousel). Note: Some filenames contain trailing spaces and inconsistent casing, but this doesn't affect current Linux-based deployment.
 - **Multi-Category Navigation**: Supports 15 distinct categories with consistent iconography and filtering.
 - **Personalization System**: Includes expert recommendations, contextual AI prompt enrichment, Perplexity-powered suggested questions, business insights, and smart filters.
 - **Research Tools Integration**: Experts can access real-time research capabilities via Perplexity API, including YouTube research, trend analysis, and news monitoring.
