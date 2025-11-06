@@ -29,6 +29,8 @@ from crew_agent import LegendAgentFactory
 from seed import seed_legends
 from crew_council import council_orchestrator
 from llm_router import llm_router, LLMTask
+from analytics import AnalyticsEngine
+from seed_analytics import seed_analytics_data, clear_analytics_data
 
 app = FastAPI(title="AdvisorIA - Marketing Legends API")
 
@@ -40,6 +42,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize Analytics Engine
+analytics_engine = AnalyticsEngine(storage)
 
 # Initialize with seeded legends
 @app.on_event("startup")
@@ -2319,6 +2324,143 @@ async def download_persona(persona_id: str):
             "Content-Disposition": f"attachment; filename=persona_{persona_id}.json"
         }
     )
+
+
+# ============================================
+# ANALYTICS & INSIGHTS DASHBOARD ENDPOINTS
+# ============================================
+
+@app.get("/api/analytics/overview")
+async def get_analytics_overview():
+    """
+    Get high-level analytics overview: total conversations, experts, councils, streak, last active.
+    """
+    try:
+        user_id = "default"  # TODO: Get from auth context
+        stats = await analytics_engine.get_overview_stats(user_id)
+        return stats
+    except Exception as e:
+        print(f"[Analytics] Error getting overview: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/timeline")
+async def get_analytics_timeline(days: int = 30):
+    """
+    Get activity timeline for last N days.
+    Returns array of {date, chats, councils, total}
+    """
+    try:
+        if days < 1 or days > 365:
+            raise HTTPException(status_code=400, detail="Days must be between 1 and 365")
+        
+        user_id = "default"  # TODO: Get from auth context
+        timeline = await analytics_engine.get_activity_timeline(user_id=user_id, days=days)
+        return timeline
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Analytics] Error getting timeline: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/top-experts")
+async def get_top_experts(limit: int = 10):
+    """
+    Get ranking of most consulted experts.
+    Returns array of {expertId, expertName, category, consultations, lastConsulted, avatar}
+    """
+    try:
+        if limit < 1 or limit > 50:
+            raise HTTPException(status_code=400, detail="Limit must be between 1 and 50")
+        
+        user_id = "default"  # TODO: Get from auth context
+        experts = await analytics_engine.get_top_experts(user_id=user_id, limit=limit)
+        return experts
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Analytics] Error getting top experts: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/categories")
+async def get_category_distribution():
+    """
+    Get consultation count by category.
+    Returns object like {categoryName: count}
+    """
+    try:
+        user_id = "default"  # TODO: Get from auth context
+        categories = await analytics_engine.get_category_distribution(user_id=user_id)
+        return categories
+    except Exception as e:
+        print(f"[Analytics] Error getting category distribution: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/highlights")
+async def get_analytics_highlights():
+    """
+    Get user's saved favorites and top insights.
+    Returns {favoriteMessages, topCouncilInsights, referencedCampaigns}
+    """
+    try:
+        user_id = "default"  # TODO: Get from auth context
+        highlights = await analytics_engine.get_highlights(user_id)
+        return highlights
+    except Exception as e:
+        print(f"[Analytics] Error getting highlights: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/recommendations")
+async def get_analytics_recommendations():
+    """
+    Generate AI-powered recommendations based on usage patterns.
+    Returns array of {type, title, description, action}
+    """
+    try:
+        user_id = "default"  # TODO: Get from auth context
+        recommendations = await analytics_engine.generate_recommendations(user_id)
+        return recommendations
+    except Exception as e:
+        print(f"[Analytics] Error generating recommendations: {e}")
+        # Return fallback instead of error
+        return [{
+            "type": "system_message",
+            "title": "Continue explorando",
+            "description": "Consulte mais especialistas para receber recomendações personalizadas!",
+            "action": "Ver Categorias"
+        }]
+
+
+@app.post("/api/analytics/seed")
+async def seed_analytics():
+    """
+    Seed analytics database with 30 days of realistic test data.
+    For development/testing only.
+    """
+    try:
+        await seed_analytics_data()
+        return {"success": True, "message": "Analytics data seeded successfully"}
+    except Exception as e:
+        print(f"[Analytics] Error seeding data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/analytics/seed")
+async def clear_analytics():
+    """
+    Clear all analytics data. For development/testing only.
+    """
+    try:
+        await clear_analytics_data()
+        return {"success": True, "message": "Analytics data cleared successfully"}
+    except Exception as e:
+        print(f"[Analytics] Error clearing data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

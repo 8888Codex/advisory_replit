@@ -313,3 +313,56 @@ export const insertUserPersonaSchema = createInsertSchema(userPersonas).omit({
 
 export type InsertUserPersona = z.infer<typeof insertUserPersonaSchema>;
 export type UserPersona = typeof userPersonas.$inferSelect;
+
+// ============================================
+// ANALYTICS & INSIGHTS DASHBOARD
+// ============================================
+
+// User Activity Tracking - Records all user actions for analytics
+export const userActivity = pgTable("user_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  activityType: text("activity_type").notNull(), // 'chat_sent' | 'council_started' | 'expert_consulted' | 'message_favorited'
+  metadata: json("metadata").$type<{
+    expertId?: string;
+    expertName?: string;
+    categoryId?: string;
+    conversationId?: string;
+    councilSessionId?: string;
+    messageId?: string;
+    duration?: number; // Duration in seconds (for sessions)
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserActivitySchema = createInsertSchema(userActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type UserActivity = typeof userActivity.$inferSelect;
+
+// User Favorites - Save insights, messages, campaigns for later reference
+export const userFavorites = pgTable("user_favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  itemType: text("item_type").notNull(), // 'council_message' | 'conversation_message' | 'campaign' | 'consensus'
+  itemId: varchar("item_id").notNull(),
+  notes: text("notes"), // Optional user notes about why they saved this
+  metadata: json("metadata").$type<{
+    expertName?: string;
+    snippet?: string;
+    category?: string;
+    tags?: string[];
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserFavoriteSchema = createInsertSchema(userFavorites).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
+export type UserFavorite = typeof userFavorites.$inferSelect;

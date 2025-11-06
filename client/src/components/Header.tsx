@@ -32,6 +32,11 @@ export function Header() {
               Persona Builder
             </span>
           </Link>
+          <Link href="/analytics">
+            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-analytics">
+              Analytics
+            </span>
+          </Link>
           <Link href="/create">
             <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-create">
               Criar Especialista

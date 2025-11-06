@@ -19,6 +19,7 @@ import TestCouncil from "@/pages/TestCouncil";
 import Personas from "@/pages/Personas";
 import CouncilRoom from "@/pages/CouncilRoom";
 import PersonaDashboard from "@/pages/PersonaDashboard";
+import Analytics from "@/pages/Analytics";
 
 function Redirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -42,6 +43,7 @@ function Router() {
         </Route>
         <Route path="/onboarding" component={Onboarding} />
         <Route path="/persona-dashboard" component={PersonaDashboard} />
+        <Route path="/analytics" component={Analytics} />
         <Route path="/experts" component={Experts} />
         <Route path="/categories" component={Categories} />
         <Route path="/chat/:id" component={Chat} />
