@@ -71,6 +71,31 @@ Preferred communication style: Simple, everyday language.
     3. **NewsMonitorTool**: Monitors recent news about markets, competitors, and industries.
 - **Integration Architecture**: Tools use Perplexity's `sonar-pro` model, lazy initialization, async `httpx` client, and structured JSON responses. Tools are documented in expert system prompts.
 
+### Persona Intelligence Hub (Nov 2025) - Disney-Quality Profile System
+- **Purpose**: Transform user persona creation into a premium "Intelligence Hub" experience with deep YouTube + Reddit research enrichment.
+- **Architecture**: PostgreSQL (`user_personas` table), Python Pydantic models, TypeScript Zod schemas, unified schema in `shared/schema.ts`.
+- **Database Schema**: `id` (varchar UUID), `company_name`, `industry`, `target_audience`, `main_challenges`, `goals`, `youtube_campaigns` (JSON array), `reddit_insights` (JSON array), `created_at`, `updated_at`.
+- **API Endpoints**:
+  - `POST /api/persona/create` - Create new persona with basic company info
+  - `GET /api/persona/current` - Fetch active persona with enrichment data
+  - `POST /api/persona/enrich/youtube` - Trigger YouTube research orchestration (3 modes: Quick/Strategic/Complete)
+  - `DELETE /api/persona/{personaId}` - Delete persona and reset profile
+- **YouTube Research Orchestrator** (`python_backend/persona_enrichment.py`):
+  - **Modes**: Quick (Reddit only, 3min), Strategic (Reddit + 5 videos, 7min - RECOMMENDED), Complete (10+ videos, 12min)
+  - **Process**: Query generation (Claude Haiku) → Parallel Perplexity calls → Synthesis (Claude Sonnet) → Storage
+  - **Output**: Structured JSON with campaign titles, creators, strategy notes, key insights
+  - **Integration**: Uses Perplexity API + Multi-LLM Router for cost optimization
+- **Frontend (Sprint 2 - Nov 2025)**:
+  - **Onboarding.tsx**: 4-step wizard with Framer Motion animations, research mode selector (Quick/Strategic/Complete), clean form validation, redirect to PersonaDashboard
+  - **PersonaDashboard.tsx**: Premium hub displaying persona data, stats cards (Company, Industry, Audience, Challenges), enrichment CTA, YouTube videos + Reddit insights cards, "Enriquecer Perfil" button
+  - **EnrichmentModal.tsx**: Interactive modal with 3 research modes, real-time progress simulation (elapsed time-based, 3-12 min), status text updates, auto-close on completion
+- **Bug Fixes (Architect-Approved Nov 2025)**:
+  - Toast render loop fixed with useEffect guard
+  - Progress simulation now respects full durations (3/7/12 min) using `Date.now()` elapsed time tracking
+  - Modal only closes when BOTH conditions met: `elapsed >= totalTime` AND `apiCompleted === true`
+- **Design Standard**: Apple Store minimalism - generous whitespace, rounded-2xl corners, accent coral for CTAs, font-semibold max weight, subtle hover states
+- **Status (Nov 2025)**: Sprint 1 backend (100% complete, architect-approved), Sprint 2 UI (100% complete, all bugs fixed, architect-approved, ready for e2e testing)
+
 ### Key Architectural Decisions
 - **Monorepo Structure**: `/client` (React), `/server` (Express), `/python_backend` (FastAPI), and `/shared` (TypeScript types).
 - **Data Flow**: User -> React -> TanStack Query -> Express -> FastAPI -> Storage/AI -> React.

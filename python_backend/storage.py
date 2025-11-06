@@ -429,7 +429,7 @@ class MemStorage:
     
     # UserPersona operations (Unified Persona Model with YouTube enrichment)
     async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
-        """Create a new unified user persona in PostgreSQL"""
+        """Create or replace user persona (UPSERT logic to handle unique constraint on user_id)"""
         conn = await self._get_db_connection()
         try:
             persona_id = str(uuid.uuid4())
@@ -452,6 +452,19 @@ class MemStorage:
                     $13, $14, $15, $16, $17, $18, $19, $20,
                     $21, $22, $23, $24, $25, $26, $27, $28, $29
                 )
+                ON CONFLICT (user_id) DO UPDATE SET
+                    company_name = EXCLUDED.company_name,
+                    industry = EXCLUDED.industry,
+                    company_size = EXCLUDED.company_size,
+                    target_audience = EXCLUDED.target_audience,
+                    main_products = EXCLUDED.main_products,
+                    channels = EXCLUDED.channels,
+                    budget_range = EXCLUDED.budget_range,
+                    primary_goal = EXCLUDED.primary_goal,
+                    main_challenge = EXCLUDED.main_challenge,
+                    timeline = EXCLUDED.timeline,
+                    research_mode = EXCLUDED.research_mode,
+                    updated_at = EXCLUDED.updated_at
                 RETURNING *
                 """,
                 persona_id, user_id,

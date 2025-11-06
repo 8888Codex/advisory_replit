@@ -8,7 +8,6 @@ including campaign references, video insights, and curated content recommendatio
 import asyncio
 import os
 from typing import List, Dict, Any
-from anthropic import AsyncAnthropic
 from models import UserPersona, PersonaEnrichmentResult
 from tools.youtube_research import youtube_tool
 
@@ -72,7 +71,7 @@ def generate_youtube_queries(persona: UserPersona) -> List[str]:
 
 async def synthesize_video_insights(results: List[dict], persona: UserPersona) -> dict:
     """
-    Extract key insights from YouTube research results using Claude.
+    Extract key insights from YouTube research results using LLM Router.
     
     Analyzes YouTube research findings and synthesizes them into structured
     insights, campaign references, and curated video recommendations.
@@ -87,7 +86,6 @@ async def synthesize_video_insights(results: List[dict], persona: UserPersona) -
             - campaigns: List[dict] - Structured campaign data (videoId, title, url, channel, insights)
             - top_videos: List[dict] - Top 3-5 curated videos
     """
-    anthropic = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     
     combined_findings = "\n\n---\n\n".join([
         f"Query: {r['query']}\n{r['findings']}" 
@@ -142,24 +140,17 @@ IMPORTANTE:
 5. Atribua relevanceScore de 1-5 (5 = altamente relevante)
 6. RETORNE APENAS O JSON, sem texto adicional."""
 
-    response = await anthropic.messages.create(
-        model="claude-3-5-sonnet-20241022",
+    from llm_router import llm_router, LLMTask
+    import json
+    
+    synthesis_text = await llm_router.generate_text(
+        task=LLMTask.SYNTHESIS,
+        prompt=synthesis_prompt,
         max_tokens=4000,
-        temperature=0.2,
-        messages=[{
-            "role": "user",
-            "content": synthesis_prompt
-        }]
+        temperature=0.2
     )
     
-    import json
-    from anthropic.types import TextBlock
-    
-    text_block = next((block for block in response.content if isinstance(block, TextBlock)), None)
-    if not text_block:
-        raise ValueError("No text response from Claude")
-    
-    synthesis_text = text_block.text.strip()
+    synthesis_text = synthesis_text.strip()
     
     if synthesis_text.startswith("```json"):
         synthesis_text = synthesis_text[7:]
