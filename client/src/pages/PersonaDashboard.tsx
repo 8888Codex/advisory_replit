@@ -125,7 +125,16 @@ export default function PersonaDashboard() {
   const levelColor = ENRICHMENT_LEVEL_CONFIG[enrichmentLevel]?.color || "";
   const modulesCount = ENRICHMENT_LEVEL_CONFIG[enrichmentLevel]?.modules || 0;
 
-  const hasDeepModules = !!(persona.psychographicCore || persona.buyerJourney || persona.strategicInsights);
+  const hasDeepModules = !!(
+    persona.psychographicCore ||
+    persona.buyerJourney ||
+    persona.behavioralProfile ||
+    persona.languageCommunication ||
+    persona.strategicInsights ||
+    persona.jobsToBeDone ||
+    persona.decisionProfile ||
+    persona.copyExamples
+  );
   const canUpgrade = enrichmentLevel !== "complete";
 
   return (

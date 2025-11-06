@@ -504,8 +504,18 @@ class MemStorage:
                 campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -549,8 +559,18 @@ class MemStorage:
                 campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -594,8 +614,18 @@ class MemStorage:
                 campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -636,14 +666,28 @@ class MemStorage:
                 "campaignReferences": "campaign_references",
                 "inspirationVideos": "inspiration_videos",
                 "researchMode": "research_mode",
+                "enrichmentLevel": "enrichment_level",
                 "researchCompleteness": "research_completeness",
-                "lastEnrichedAt": "last_enriched_at"
+                "lastEnrichedAt": "last_enriched_at",
+                # 8-Module Deep Persona System
+                "psychographicCore": "psychographic_core",
+                "buyerJourney": "buyer_journey",
+                "behavioralProfile": "behavioral_profile",
+                "languageCommunication": "language_communication",
+                "strategicInsights": "strategic_insights",
+                "jobsToBeDone": "jobs_to_be_done",
+                "decisionProfile": "decision_profile",
+                "copyExamples": "copy_examples"
             }
             
             json_fields = [
                 "demographics", "psychographics", "behavioral_patterns", 
                 "content_preferences", "youtube_research", "campaign_references", 
-                "inspiration_videos"
+                "inspiration_videos",
+                # 8-Module Deep Persona System (all JSON)
+                "psychographic_core", "buyer_journey", "behavioral_profile",
+                "language_communication", "strategic_insights", "jobs_to_be_done",
+                "decision_profile", "copy_examples"
             ]
             
             for field_camel, field_snake in field_mapping.items():
@@ -689,8 +733,18 @@ class MemStorage:
                 campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )

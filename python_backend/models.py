@@ -284,8 +284,19 @@ class UserPersona(BaseModel):
     campaignReferences: List[dict] = []  # Structured campaign data
     inspirationVideos: List[dict] = []  # Top curated videos
     
+    # 8-Module Deep Persona System (Quick/Strategic/Complete)
+    psychographicCore: Optional[dict] = None  # Module 1: Values, fears, aspirations
+    buyerJourney: Optional[dict] = None  # Module 2: Schwartz levels, triggers, objections
+    behavioralProfile: Optional[dict] = None  # Module 3: Cialdini principles, channels
+    languageCommunication: Optional[dict] = None  # Module 4: StoryBrand, tone, vocabulary
+    strategicInsights: Optional[dict] = None  # Module 5: Core message, UVP, channel priority
+    jobsToBeDone: Optional[dict] = None  # Module 6: Functional/emotional/social jobs
+    decisionProfile: Optional[dict] = None  # Module 7: Decision criteria, speed, validation
+    copyExamples: Optional[dict] = None  # Module 8: Headlines, CTAs, landing page copy
+    
     # Research Metadata
-    researchMode: Optional[str] = None  # "quick" | "strategic" | "complete"
+    researchMode: Optional[str] = None  # "quick" | "strategic" | "complete" (deprecated, use enrichmentLevel)
+    enrichmentLevel: Optional[str] = None  # "quick" | "strategic" | "complete"
     researchCompleteness: int = 0  # 0-100 score
     lastEnrichedAt: Optional[datetime] = None
     
