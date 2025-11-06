@@ -294,8 +294,81 @@ export const userPersonas = pgTable("user_personas", {
   campaignReferences: json("campaign_references").$type<any[]>(),  // Structured campaign data
   inspirationVideos: json("inspiration_videos").$type<any[]>(),  // Top curated videos
   
+  // 8-Module Deep Persona System (Quick/Strategic/Complete)
+  psychographicCore: json("psychographic_core").$type<{
+    values?: string[];  // Core values that drive decisions
+    fears?: string[];  // Dominant fears
+    aspirations?: string[];  // Where they want to be in 1-3 years
+    thinkingSystem?: 'system1' | 'system2' | 'balanced';  // Kahneman: emotional/fast vs logical/analytical
+    decisionDrivers?: string[];  // What motivates their decisions
+  }>(),
+  
+  buyerJourney: json("buyer_journey").$type<{
+    awarenessLevel?: string;  // Schwartz 5 levels: unaware, problem-aware, solution-aware, product-aware, most-aware
+    currentStage?: string;  // Where they are in journey
+    triggers?: string[];  // What moves them to next stage
+    objections?: string[];  // Points of friction
+    salesCycle?: string;  // 7 days, 3 months, 1 year, etc.
+    touchpointsNeeded?: number;  // Average interactions before purchase
+  }>(),
+  
+  behavioralProfile: json("behavioral_profile").$type<{
+    cialdiniPrinciples?: Array<{principle: string; priority: number}>;  // 6 principles ranked
+    researchChannels?: string[];  // Google, YouTube, LinkedIn, Reddit, etc.
+    trustedInfluencers?: string[];  // Who they listen to
+    preferredFormat?: string[];  // Video, articles, podcasts, infographics
+    engagementPatterns?: Record<string, any>;  // When/how they engage
+  }>(),
+  
+  languageCommunication: json("language_communication").$type<{
+    idealTone?: string;  // corporate, casual, technical, inspirational
+    vocabularyKeys?: string[];  // Words that resonate
+    vocabularyAvoid?: string[];  // Words that repel
+    complexityLevel?: string;  // technical-details, simplified, executive-summary
+    storyBrandFramework?: {
+      hero?: string;
+      problem?: string;
+      guide?: string;
+      plan?: string;
+      callToAction?: string;
+    };
+  }>(),
+  
+  strategicInsights: json("strategic_insights").$type<{
+    coreMessage?: string;  // The phrase that captures their heart
+    uniqueValueProp?: string;  // What makes them choose you
+    channelPriority?: Array<{channel: string; priority: number}>;  // LinkedIn > Email > Ads
+    contentStrategy?: string[];  // Educational, case studies, demos, etc.
+    competitivePosition?: string;  // How to differentiate
+  }>(),
+  
+  jobsToBeDone: json("jobs_to_be_done").$type<{
+    functionalJob?: string;  // What they're trying to accomplish
+    emotionalJob?: string;  // How they want to feel
+    socialJob?: string;  // How they want to be seen
+    progressDesired?: string;  // From where to where
+    successMetrics?: string[];  // How they measure success
+  }>(),
+  
+  decisionProfile: json("decision_profile").$type<{
+    decisionMakerType?: string;  // Analytical, Impulsive, Social, Cautious
+    decisionCriteria?: Array<{criterion: string; weight: number}>;  // ROI, ease, support, innovation ranked
+    decisionSpeed?: string;  // Fast (days), Medium (weeks), Slow (months)
+    validationNeeded?: string[];  // Team, Board, Partner, References
+    riskTolerance?: string;  // high, medium, low
+  }>(),
+  
+  copyExamples: json("copy_examples").$type<{
+    headlines?: string[];  // Ready-to-use headlines
+    emailSubjects?: string[];  // Email subject lines
+    socialPosts?: string[];  // LinkedIn/Twitter posts
+    ctas?: string[];  // Call-to-action examples
+    landingPageCopy?: string;  // Full landing page template
+  }>(),
+  
   // Research Metadata
-  researchMode: text("research_mode"),  // "quick" | "strategic" | "complete"
+  enrichmentLevel: text("enrichment_level"),  // "quick" | "strategic" | "complete"
+  researchMode: text("research_mode"),  // "quick" | "strategic" | "complete" (deprecated, use enrichmentLevel)
   researchCompleteness: integer("research_completeness").default(0),  // 0-100 score
   lastEnrichedAt: timestamp("last_enriched_at"),
   
