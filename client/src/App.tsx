@@ -18,6 +18,7 @@ import Onboarding from "@/pages/Onboarding";
 import TestCouncil from "@/pages/TestCouncil";
 import Personas from "@/pages/Personas";
 import CouncilRoom from "@/pages/CouncilRoom";
+import PersonaDashboard from "@/pages/PersonaDashboard";
 
 function Redirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -40,6 +41,7 @@ function Router() {
           <Redirect to="/" />
         </Route>
         <Route path="/onboarding" component={Onboarding} />
+        <Route path="/persona-dashboard" component={PersonaDashboard} />
         <Route path="/experts" component={Experts} />
         <Route path="/categories" component={Categories} />
         <Route path="/chat/:id" component={Chat} />

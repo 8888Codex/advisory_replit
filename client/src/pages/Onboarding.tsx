@@ -117,12 +117,12 @@ export default function Onboarding() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/persona"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
       toast({
         title: "Perfil criado com sucesso!",
         description: "Seu perfil foi salvo. O Conselho de Clones está pronto para ajudar!",
       });
-      navigate("/experts");
+      navigate("/persona-dashboard");
     },
     onError: (error: Error) => {
       toast({
