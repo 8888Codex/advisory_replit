@@ -550,7 +550,7 @@ for legend_key, callbacks in SPECIFIC_CALLBACKS.items():
 **Benchmark internacional**:
 - Clones genéricos: ~10-12/20 (50-60%)
 - Clones bons: ~14-16/20 (70-80%)
-- **AdvisorIA**: ~18.5/20 (92.5%) ⭐ **TOP-TIER**
+- **O Conselho**: ~18.5/20 (92.5%) ⭐ **TOP-TIER**
 
 ### Diferenciais Competitivos
 

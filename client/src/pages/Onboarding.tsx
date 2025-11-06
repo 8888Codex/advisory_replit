@@ -196,7 +196,7 @@ export default function Onboarding() {
         <CardContent className="p-8 lg:p-10">
           <div className="mb-8">
             <h1 className="text-4xl font-semibold tracking-tight mb-2">
-              Bem-vindo ao AdvisorIA
+              Bem-vindo ao O Conselho
             </h1>
             <p className="text-muted-foreground">
               Configure seu perfil para análises personalizadas do Conselho de Clones
