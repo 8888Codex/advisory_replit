@@ -223,3 +223,103 @@ class PersonaCreate(BaseModel):
     targetDescription: str  # "Empreendedores de e-commerce no Brasil"
     industry: Optional[str] = None
     additionalContext: Optional[str] = None
+
+# ============================================
+# PERSONA INTELLIGENCE HUB MODELS
+# ============================================
+
+class CampaignReference(BaseModel):
+    """Structured campaign data from YouTube research"""
+    videoId: str
+    title: str
+    url: str
+    channel: str
+    thumbnail: Optional[str] = None
+    insights: List[str] = []
+    relevanceScore: Optional[int] = None  # 1-5
+
+class VideoInsightSummary(BaseModel):
+    """Summary of insights from a single video"""
+    videoTitle: str
+    videoUrl: str
+    keyInsights: List[str]
+
+class YouTubeResearchResult(BaseModel):
+    """Result from YouTube research via Perplexity"""
+    query: str
+    findings: str  # Markdown formatted
+    videos: List[CampaignReference] = []
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class UserPersona(BaseModel):
+    """Unified user persona (Business Context + Psychographics + YouTube Research)"""
+    id: str
+    userId: str
+    
+    # Business Context (from Onboarding)
+    companyName: Optional[str] = None
+    industry: Optional[str] = None
+    companySize: Optional[str] = None
+    targetAudience: Optional[str] = None
+    mainProducts: Optional[str] = None
+    channels: List[str] = []
+    budgetRange: Optional[str] = None
+    primaryGoal: Optional[str] = None
+    mainChallenge: Optional[str] = None
+    timeline: Optional[str] = None
+    
+    # Psychographic Data (from Reddit Research)
+    demographics: dict = {}
+    psychographics: dict = {}
+    painPoints: List[str] = []
+    goals: List[str] = []
+    values: List[str] = []
+    communities: List[str] = []
+    behavioralPatterns: dict = {}
+    contentPreferences: dict = {}
+    
+    # YouTube Research Enrichment
+    youtubeResearch: List[dict] = []  # Raw Perplexity results
+    videoInsights: List[str] = []  # Extracted insights
+    campaignReferences: List[dict] = []  # Structured campaign data
+    inspirationVideos: List[dict] = []  # Top curated videos
+    
+    # Research Metadata
+    researchMode: Optional[str] = None  # "quick" | "strategic" | "complete"
+    researchCompleteness: int = 0  # 0-100 score
+    lastEnrichedAt: Optional[datetime] = None
+    
+    # Timestamps
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+
+class UserPersonaCreate(BaseModel):
+    """Request to create a new unified persona"""
+    # Business Context
+    companyName: Optional[str] = None
+    industry: Optional[str] = None
+    companySize: Optional[str] = None
+    targetAudience: str  # Required
+    mainProducts: Optional[str] = None
+    channels: List[str] = []
+    budgetRange: Optional[str] = None
+    primaryGoal: Optional[str] = None
+    mainChallenge: Optional[str] = None
+    timeline: Optional[str] = None
+    
+    # Research Configuration
+    researchMode: Literal["quick", "strategic", "complete"] = "strategic"
+    additionalContext: Optional[str] = None
+
+class PersonaEnrichmentRequest(BaseModel):
+    """Request to enrich persona with YouTube research"""
+    personaId: str
+    mode: Literal["quick", "strategic", "complete"] = "strategic"
+
+class PersonaEnrichmentResult(BaseModel):
+    """Result of YouTube enrichment"""
+    personaId: str
+    videosFound: int
+    insightsExtracted: int
+    campaignsIdentified: int
+    completenessScore: int  # Updated completeness

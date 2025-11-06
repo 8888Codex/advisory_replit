@@ -1,15 +1,21 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 import uuid
 from models import (
     Expert, ExpertCreate, Conversation, ConversationCreate, 
     Message, MessageCreate, ExpertType, CategoryType, BusinessProfile, BusinessProfileCreate,
-    CouncilAnalysis, Persona, PersonaCreate
+    CouncilAnalysis, Persona, PersonaCreate, UserPersona, UserPersonaCreate
 )
 import os
 import json
 from datetime import datetime as dt
 import asyncpg
+
+def _parse_timestamp(value):
+    """Parse timestamp from database - handles both datetime objects and ISO format strings"""
+    if isinstance(value, str):
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    return value
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""
@@ -283,8 +289,8 @@ class MemStorage:
                 communities=list(row["communities"]) if row["communities"] else [],
                 behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
                 researchData=json.loads(row["research_data"]) if row["research_data"] else {},
-                createdAt=row["created_at"].isoformat() if hasattr(row["created_at"], 'isoformat') else str(row["created_at"]),
-                updatedAt=row["updated_at"].isoformat() if hasattr(row["updated_at"], 'isoformat') else str(row["updated_at"])
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
             )
         finally:
             await conn.close()
@@ -311,8 +317,8 @@ class MemStorage:
                 communities=list(row["communities"]) if row["communities"] else [],
                 behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
                 researchData=json.loads(row["research_data"]) if row["research_data"] else {},
-                createdAt=row["created_at"].isoformat() if hasattr(row["created_at"], 'isoformat') else str(row["created_at"]),
-                updatedAt=row["updated_at"].isoformat() if hasattr(row["updated_at"], 'isoformat') else str(row["updated_at"])
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
             )
         finally:
             await conn.close()
@@ -342,8 +348,8 @@ class MemStorage:
                     communities=list(row["communities"]) if row["communities"] else [],
                     behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
                     researchData=json.loads(row["research_data"]) if row["research_data"] else {},
-                    createdAt=row["created_at"],
-                    updatedAt=row["updated_at"]
+                    createdAt=_parse_timestamp(row["created_at"]),
+                    updatedAt=_parse_timestamp(row["updated_at"])
                 ))
             
             return personas
@@ -358,7 +364,7 @@ class MemStorage:
             
             # Build dynamic UPDATE query based on provided fields
             set_clauses = ["updated_at = $1"]
-            params = [now]
+            params: List[Any] = [now]
             param_num = 2
             
             field_mapping = {
@@ -406,8 +412,8 @@ class MemStorage:
                 communities=list(row["communities"]) if row["communities"] else [],
                 behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
                 researchData=json.loads(row["research_data"]) if row["research_data"] else {},
-                createdAt=row["created_at"].isoformat() if hasattr(row["created_at"], 'isoformat') else str(row["created_at"]),
-                updatedAt=row["updated_at"].isoformat() if hasattr(row["updated_at"], 'isoformat') else str(row["updated_at"])
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
             )
         finally:
             await conn.close()
@@ -417,6 +423,287 @@ class MemStorage:
         conn = await self._get_db_connection()
         try:
             result = await conn.execute("DELETE FROM personas WHERE id = $1", persona_id)
+            return result == "DELETE 1"
+        finally:
+            await conn.close()
+    
+    # UserPersona operations (Unified Persona Model with YouTube enrichment)
+    async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
+        """Create a new unified user persona in PostgreSQL"""
+        conn = await self._get_db_connection()
+        try:
+            persona_id = str(uuid.uuid4())
+            now = datetime.utcnow()
+            
+            row = await conn.fetchrow(
+                """
+                INSERT INTO user_personas (
+                    id, user_id,
+                    company_name, industry, company_size, target_audience,
+                    main_products, channels, budget_range, primary_goal,
+                    main_challenge, timeline,
+                    demographics, psychographics, pain_points, goals, values,
+                    communities, behavioral_patterns, content_preferences,
+                    youtube_research, video_insights, campaign_references, inspiration_videos,
+                    research_mode, research_completeness, last_enriched_at,
+                    created_at, updated_at
+                ) VALUES (
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                    $13, $14, $15, $16, $17, $18, $19, $20,
+                    $21, $22, $23, $24, $25, $26, $27, $28, $29
+                )
+                RETURNING *
+                """,
+                persona_id, user_id,
+                data.companyName, data.industry, data.companySize, data.targetAudience,
+                data.mainProducts, data.channels, data.budgetRange, data.primaryGoal,
+                data.mainChallenge, data.timeline,
+                json.dumps({}), json.dumps({}), [], [], [],
+                [], json.dumps({}), json.dumps({}),
+                json.dumps([]), [], json.dumps([]), json.dumps([]),
+                data.researchMode, 0, None,
+                now, now
+            )
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+        finally:
+            await conn.close()
+    
+    async def get_user_persona(self, user_id: str) -> Optional[UserPersona]:
+        """Get the user persona for a specific user"""
+        conn = await self._get_db_connection()
+        try:
+            row = await conn.fetchrow(
+                "SELECT * FROM user_personas WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+                user_id
+            )
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+        finally:
+            await conn.close()
+    
+    async def get_user_persona_by_id(self, persona_id: str) -> Optional[UserPersona]:
+        """Get a specific user persona by ID"""
+        conn = await self._get_db_connection()
+        try:
+            row = await conn.fetchrow(
+                "SELECT * FROM user_personas WHERE id = $1",
+                persona_id
+            )
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+        finally:
+            await conn.close()
+    
+    async def update_user_persona(self, persona_id: str, updates: dict) -> UserPersona:
+        """Update a user persona with partial updates"""
+        conn = await self._get_db_connection()
+        try:
+            now = datetime.utcnow()
+            
+            set_clauses = ["updated_at = $1"]
+            params: List[Any] = [now]
+            param_num = 2
+            
+            field_mapping = {
+                "companyName": "company_name",
+                "industry": "industry",
+                "companySize": "company_size",
+                "targetAudience": "target_audience",
+                "mainProducts": "main_products",
+                "channels": "channels",
+                "budgetRange": "budget_range",
+                "primaryGoal": "primary_goal",
+                "mainChallenge": "main_challenge",
+                "timeline": "timeline",
+                "demographics": "demographics",
+                "psychographics": "psychographics",
+                "painPoints": "pain_points",
+                "goals": "goals",
+                "values": "values",
+                "communities": "communities",
+                "behavioralPatterns": "behavioral_patterns",
+                "contentPreferences": "content_preferences",
+                "youtubeResearch": "youtube_research",
+                "videoInsights": "video_insights",
+                "campaignReferences": "campaign_references",
+                "inspirationVideos": "inspiration_videos",
+                "researchMode": "research_mode",
+                "researchCompleteness": "research_completeness",
+                "lastEnrichedAt": "last_enriched_at"
+            }
+            
+            json_fields = [
+                "demographics", "psychographics", "behavioral_patterns", 
+                "content_preferences", "youtube_research", "campaign_references", 
+                "inspiration_videos"
+            ]
+            
+            for field_camel, field_snake in field_mapping.items():
+                if field_camel in updates:
+                    value = updates[field_camel]
+                    if field_snake in json_fields:
+                        value = json.dumps(value)
+                    
+                    set_clauses.append(f"{field_snake} = ${param_num}")
+                    params.append(value)
+                    param_num += 1
+            
+            params.append(persona_id)
+            query = f"UPDATE user_personas SET {', '.join(set_clauses)} WHERE id = ${param_num} RETURNING *"
+            
+            row = await conn.fetchrow(query, *params)
+            if not row:
+                raise ValueError(f"UserPersona with id {persona_id} not found")
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+        finally:
+            await conn.close()
+    
+    async def enrich_persona_youtube(self, persona_id: str, youtube_data: dict) -> UserPersona:
+        """Enrich persona with YouTube research data"""
+        now = datetime.utcnow()
+        
+        updates = {
+            "youtubeResearch": youtube_data.get("youtubeResearch", []),
+            "videoInsights": youtube_data.get("videoInsights", []),
+            "campaignReferences": youtube_data.get("campaignReferences", []),
+            "inspirationVideos": youtube_data.get("inspirationVideos", []),
+            "researchCompleteness": youtube_data.get("researchCompleteness", 50),
+            "lastEnrichedAt": now
+        }
+        
+        return await self.update_user_persona(persona_id, updates)
+    
+    async def delete_user_persona(self, persona_id: str) -> bool:
+        """Delete a user persona"""
+        conn = await self._get_db_connection()
+        try:
+            result = await conn.execute("DELETE FROM user_personas WHERE id = $1", persona_id)
             return result == "DELETE 1"
         finally:
             await conn.close()

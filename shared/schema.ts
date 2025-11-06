@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -256,3 +256,60 @@ export const insertUserProfileExtendedSchema = createInsertSchema(userProfilesEx
 
 export type InsertUserProfileExtended = z.infer<typeof insertUserProfileExtendedSchema>;
 export type UserProfileExtended = typeof userProfilesExtended.$inferSelect;
+
+// ============================================
+// PERSONA INTELLIGENCE HUB
+// ============================================
+
+// User Personas - Unified persona system (Business Context + Psychographics + YouTube Research)
+export const userPersonas = pgTable("user_personas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  
+  // Business Context (from Onboarding)
+  companyName: text("company_name"),
+  industry: text("industry"),
+  companySize: text("company_size"),  // "1-10", "11-50", "51-200", etc.
+  targetAudience: text("target_audience"),
+  mainProducts: text("main_products"),
+  channels: text("channels").array(),  // ["online", "retail", "b2b", etc.]
+  budgetRange: text("budget_range"),  // "< $10k/month", "$10k-$50k/month", etc.
+  primaryGoal: text("primary_goal"),  // "growth", "positioning", "retention", etc.
+  mainChallenge: text("main_challenge"),
+  timeline: text("timeline"),  // "immediate", "3-6 months", etc.
+  
+  // Psychographic Data (from Reddit Research)
+  demographics: json("demographics").$type<Record<string, any>>(),  // Age, location, occupation
+  psychographics: json("psychographics").$type<Record<string, any>>(),  // Personality traits
+  painPoints: text("pain_points").array(),  // Array of pain points
+  goals: text("goals").array(),  // Array of goals
+  values: text("values").array(),  // Array of core values
+  communities: text("communities").array(),  // Subreddits where audience hangs out
+  behavioralPatterns: json("behavioral_patterns").$type<Record<string, any>>(),  // Decision-making patterns
+  contentPreferences: json("content_preferences").$type<Record<string, any>>(),  // Preferred content formats
+  
+  // YouTube Research Enrichment
+  youtubeResearch: json("youtube_research").$type<any[]>(),  // Raw video data from Perplexity
+  videoInsights: text("video_insights").array(),  // Extracted key insights
+  campaignReferences: json("campaign_references").$type<any[]>(),  // Structured campaign data
+  inspirationVideos: json("inspiration_videos").$type<any[]>(),  // Top curated videos
+  
+  // Research Metadata
+  researchMode: text("research_mode"),  // "quick" | "strategic" | "complete"
+  researchCompleteness: integer("research_completeness").default(0),  // 0-100 score
+  lastEnrichedAt: timestamp("last_enriched_at"),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserPersonaSchema = createInsertSchema(userPersonas).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastEnrichedAt: true,
+});
+
+export type InsertUserPersona = z.infer<typeof insertUserPersonaSchema>;
+export type UserPersona = typeof userPersonas.$inferSelect;

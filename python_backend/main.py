@@ -19,7 +19,8 @@ from models import (
     BusinessProfile, BusinessProfileCreate,
     CouncilAnalysis, CouncilAnalysisCreate, AgentContribution,
     RecommendExpertsRequest, RecommendExpertsResponse, ExpertRecommendation,
-    AutoCloneRequest
+    AutoCloneRequest,
+    UserPersona, UserPersonaCreate, PersonaEnrichmentRequest
 )
 import uuid
 from datetime import datetime
@@ -1131,6 +1132,91 @@ async def get_profile():
     user_id = "default_user"
     profile = await storage.get_business_profile(user_id)
     return profile
+
+# UserPersona endpoints (Unified Persona Intelligence Hub)
+@app.post("/api/persona/create", response_model=UserPersona, status_code=201)
+async def create_user_persona(data: UserPersonaCreate):
+    """
+    Create a new unified user persona with optional Reddit research.
+    
+    This endpoint creates a UserPersona combining:
+    - Business context (from onboarding/form data)
+    - Psychographic data (from Reddit research - optional)
+    - Initial research mode configuration
+    """
+    user_id = "default_user"
+    try:
+        persona = await storage.create_user_persona(user_id, data)
+        return persona
+    except Exception as e:
+        print(f"Error creating persona: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
+
+@app.get("/api/persona/current", response_model=Optional[UserPersona])
+async def get_current_persona():
+    """
+    Get the current user's persona.
+    Returns the most recent persona for user_id="default_user".
+    """
+    user_id = "default_user"
+    try:
+        persona = await storage.get_user_persona(user_id)
+        return persona
+    except Exception as e:
+        print(f"Error fetching persona: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch persona: {str(e)}")
+
+@app.post("/api/persona/enrich/youtube", response_model=UserPersona)
+async def enrich_persona_youtube(data: PersonaEnrichmentRequest):
+    """
+    Enrich an existing persona with YouTube research data.
+    
+    This endpoint:
+    1. Takes persona_id and enrichment mode
+    2. Calls YouTube/Perplexity research orchestrator
+    3. Updates persona with video insights, campaign references, and inspiration videos
+    4. Returns updated persona with increased completeness score
+    """
+    try:
+        from persona_enrichment import enrich_persona_with_youtube
+        
+        result = await enrich_persona_with_youtube(
+            persona_id=data.personaId,
+            mode=data.mode,
+            storage=storage
+        )
+        
+        persona = await storage.get_user_persona_by_id(data.personaId)
+        if not persona:
+            raise HTTPException(status_code=404, detail=f"Persona {data.personaId} not found after enrichment")
+        
+        return persona
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print(f"Error enriching persona: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to enrich persona: {str(e)}")
+
+@app.delete("/api/persona/{persona_id}", status_code=204)
+async def delete_user_persona(persona_id: str):
+    """
+    Delete a user persona by ID.
+    Returns 204 No Content on success.
+    """
+    try:
+        deleted = await storage.delete_user_persona(persona_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail=f"Persona with id {persona_id} not found")
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting persona: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete persona: {str(e)}")
 
 # Expert Recommendations endpoint (based on business profile)
 @app.get("/api/experts/recommendations")
