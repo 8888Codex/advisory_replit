@@ -40,7 +40,7 @@ const onboardingSchema = insertUserPersonaSchema.extend({
   targetAudience: z.string().min(50, "Descreva seu público-alvo com pelo menos 50 caracteres"),
   primaryGoal: z.string().min(1, "Objetivo principal é obrigatório"),
   mainChallenge: z.string().min(30, "Descreva seu desafio com pelo menos 30 caracteres"),
-  researchMode: z.enum(["quick", "strategic", "complete"]).default("strategic"),
+  enrichmentLevel: z.enum(["quick", "strategic", "complete"]).default("quick"),
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -49,33 +49,50 @@ const STEPS = [
   { id: 1, title: "Sobre Seu Negócio", icon: Building2 },
   { id: 2, title: "Seu Público-Alvo", icon: Users },
   { id: 3, title: "Objetivos & Desafios", icon: Target },
-  { id: 4, title: "Modo de Pesquisa", icon: Sparkles },
+  { id: 4, title: "Nível de Enriquecimento", icon: Sparkles },
 ];
 
-const RESEARCH_MODES = [
+const ENRICHMENT_LEVELS = [
   {
     id: "quick",
     name: "Quick",
-    duration: "2-3 min",
-    description: "Pesquisa rápida em Reddit",
-    features: ["Análise de Reddit", "Insights básicos", "Configuração rápida"],
+    duration: "~30-45s",
+    description: "Análise essencial e rápida",
+    modules: 3,
+    features: [
+      "Núcleo Psicográfico (valores, medos)",
+      "Jornada do Comprador (gatilhos, objeções)",
+      "Insights Estratégicos (mensagem central)",
+    ],
     icon: Zap,
   },
   {
     id: "strategic",
     name: "Strategic",
-    duration: "5-8 min",
-    description: "Reddit + YouTube (Recomendado)",
-    features: ["Análise Reddit completa", "Pesquisa em YouTube", "Campanhas de referência"],
+    duration: "~2-3min",
+    description: "Análise intermediária (Recomendado)",
+    modules: 6,
+    features: [
+      "Tudo do Quick +",
+      "Perfil Comportamental (Cialdini)",
+      "Linguagem & Comunicação (StoryBrand)",
+      "Jobs-to-be-Done (funcional, emocional)",
+    ],
     icon: TrendingUp,
     recommended: true,
   },
   {
     id: "complete",
     name: "Complete",
-    duration: "10-15 min",
-    description: "Enriquecimento abrangente",
-    features: ["Reddit + YouTube", "Análise psicográfica profunda", "Banco de histórias", "Insights completos"],
+    duration: "~5-7min",
+    description: "Análise completa com todos especialistas",
+    modules: 8,
+    features: [
+      "Tudo do Strategic +",
+      "Perfil de Decisão (critérios, velocidade)",
+      "Exemplos de Copy Prontos (headline, email)",
+      "YouTube research + 18 especialistas",
+    ],
     icon: Sparkles,
   },
 ];
@@ -102,7 +119,7 @@ export default function Onboarding() {
       targetAudience: "",
       primaryGoal: "",
       mainChallenge: "",
-      researchMode: "strategic",
+      enrichmentLevel: "quick",
     },
   });
 
@@ -165,7 +182,7 @@ export default function Onboarding() {
       case 3:
         return ["primaryGoal", "mainChallenge"];
       case 4:
-        return ["researchMode"];
+        return ["enrichmentLevel"];
       default:
         return [];
     }
@@ -405,36 +422,36 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Escolha Seu Modo de Pesquisa</h3>
+                      <h3 className="text-lg font-semibold mb-2">Escolha o Nível de Enriquecimento</h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Selecione o nível de profundidade da análise do seu público-alvo
+                        Selecione a profundidade da análise. Você pode fazer upgrade a qualquer momento.
                       </p>
                     </div>
 
                     <FormField
                       control={form.control}
-                      name="researchMode"
+                      name="enrichmentLevel"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {RESEARCH_MODES.map((mode) => {
-                                const Icon = mode.icon;
-                                const isSelected = field.value === mode.id;
+                              {ENRICHMENT_LEVELS.map((level) => {
+                                const Icon = level.icon;
+                                const isSelected = field.value === level.id;
                                 
                                 return (
                                   <button
-                                    key={mode.id}
+                                    key={level.id}
                                     type="button"
-                                    onClick={() => field.onChange(mode.id)}
-                                    className={`relative rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-md ${
+                                    onClick={() => field.onChange(level.id)}
+                                    className={`relative rounded-2xl p-6 text-left transition-all duration-200 hover-elevate ${
                                       isSelected
                                         ? "border-2 border-accent bg-accent/5"
-                                        : "border border-border/50 hover:border-border"
+                                        : "border border-border/50"
                                     }`}
-                                    data-testid={`card-research-mode-${mode.id}`}
+                                    data-testid={`card-enrichment-level-${level.id}`}
                                   >
-                                    {mode.recommended && (
+                                    {level.recommended && (
                                       <Badge className="absolute top-3 right-3 bg-accent text-white text-xs">
                                         Recomendado
                                       </Badge>
@@ -445,20 +462,23 @@ export default function Onboarding() {
                                         <Icon className={`w-5 h-5 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
                                       </div>
                                       <div>
-                                        <h4 className="font-medium">{mode.name}</h4>
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <h4 className="font-medium">{level.name}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                           <Clock className="w-3 h-3" />
-                                          <span>{mode.duration}</span>
+                                          <span>{level.duration}</span>
+                                          <Badge variant="outline" className="ml-1 text-xs">
+                                            {level.modules} módulos
+                                          </Badge>
                                         </div>
                                       </div>
                                     </div>
 
                                     <p className="text-sm text-muted-foreground mb-4">
-                                      {mode.description}
+                                      {level.description}
                                     </p>
 
                                     <ul className="space-y-2">
-                                      {mode.features.map((feature, idx) => (
+                                      {level.features.map((feature, idx) => (
                                         <li key={idx} className="flex items-start gap-2 text-sm">
                                           <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
                                           <span className="text-muted-foreground">{feature}</span>
