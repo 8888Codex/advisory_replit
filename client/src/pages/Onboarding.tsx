@@ -3,8 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Building2, Target, TrendingUp, CheckCircle2 } from "lucide-react";
-import { insertBusinessProfileSchema, type InsertBusinessProfile } from "@shared/schema";
+import { Building2, Users, Target, Zap, CheckCircle2, Clock, Sparkles, TrendingUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { insertUserPersonaSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,25 +26,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { z } from "zod";
+
+const onboardingSchema = insertUserPersonaSchema.extend({
+  userId: z.string().default("demo-user"),
+  companyName: z.string().optional(),
+  industry: z.string().min(1, "Setor é obrigatório"),
+  companySize: z.string().min(1, "Tamanho da empresa é obrigatório"),
+  targetAudience: z.string().min(50, "Descreva seu público-alvo com pelo menos 50 caracteres"),
+  primaryGoal: z.string().min(1, "Objetivo principal é obrigatório"),
+  mainChallenge: z.string().min(30, "Descreva seu desafio com pelo menos 30 caracteres"),
+  researchMode: z.enum(["quick", "strategic", "complete"]).default("strategic"),
+});
+
+type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 const STEPS = [
-  { id: 1, title: "Informações da Empresa", icon: Building2 },
-  { id: 2, title: "Contexto de Marketing", icon: TrendingUp },
-  { id: 3, title: "Objetivos e Desafios", icon: Target },
+  { id: 1, title: "Sobre Seu Negócio", icon: Building2 },
+  { id: 2, title: "Seu Público-Alvo", icon: Users },
+  { id: 3, title: "Objetivos & Desafios", icon: Target },
+  { id: 4, title: "Modo de Pesquisa", icon: Sparkles },
 ];
 
-const CHANNEL_OPTIONS = [
-  { id: "online", label: "E-commerce / Online" },
-  { id: "retail", label: "Varejo Físico" },
-  { id: "b2b", label: "B2B / Vendas Corporativas" },
-  { id: "marketplace", label: "Marketplace" },
-  { id: "social", label: "Redes Sociais" },
-  { id: "direct", label: "Vendas Diretas" },
+const RESEARCH_MODES = [
+  {
+    id: "quick",
+    name: "Quick",
+    duration: "2-3 min",
+    description: "Pesquisa rápida em Reddit",
+    features: ["Análise de Reddit", "Insights básicos", "Configuração rápida"],
+    icon: Zap,
+  },
+  {
+    id: "strategic",
+    name: "Strategic",
+    duration: "5-8 min",
+    description: "Reddit + YouTube (Recomendado)",
+    features: ["Análise Reddit completa", "Pesquisa em YouTube", "Campanhas de referência"],
+    icon: TrendingUp,
+    recommended: true,
+  },
+  {
+    id: "complete",
+    name: "Complete",
+    duration: "10-15 min",
+    description: "Enriquecimento abrangente",
+    features: ["Reddit + YouTube", "Análise psicográfica profunda", "Banco de histórias", "Insights completos"],
+    icon: Sparkles,
+  },
 ];
+
+const pageVariants = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2, ease: "easeIn" } },
+};
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -50,25 +92,23 @@ export default function Onboarding() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<InsertBusinessProfile>({
-    resolver: zodResolver(insertBusinessProfileSchema),
+  const form = useForm<OnboardingFormData>({
+    resolver: zodResolver(onboardingSchema),
     defaultValues: {
+      userId: "demo-user",
       companyName: "",
       industry: "",
       companySize: "",
       targetAudience: "",
-      mainProducts: "",
-      channels: [],
-      budgetRange: "",
       primaryGoal: "",
       mainChallenge: "",
-      timeline: "",
+      researchMode: "strategic",
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: InsertBusinessProfile) => {
-      return await apiRequest("/api/profile", {
+    mutationFn: async (data: OnboardingFormData) => {
+      return await apiRequest("/api/persona/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,10 +117,10 @@ export default function Onboarding() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/persona"] });
       toast({
         title: "Perfil criado com sucesso!",
-        description: "Seu perfil foi salvo. O Conselho de Clones estará disponível em breve!",
+        description: "Seu perfil foi salvo. O Conselho de Clones está pronto para ajudar!",
       });
       navigate("/experts");
     },
@@ -93,7 +133,7 @@ export default function Onboarding() {
     },
   });
 
-  const onSubmit = async (data: InsertBusinessProfile) => {
+  const onSubmit = async (data: OnboardingFormData) => {
     await saveMutation.mutateAsync(data);
   };
 
@@ -102,7 +142,7 @@ export default function Onboarding() {
     const isValid = await form.trigger(fieldsToValidate);
     
     if (isValid) {
-      if (step < 3) {
+      if (step < 4) {
         setStep(step + 1);
       } else {
         form.handleSubmit(onSubmit)();
@@ -116,14 +156,16 @@ export default function Onboarding() {
     }
   };
 
-  const getStepFields = (currentStep: number): (keyof InsertBusinessProfile)[] => {
+  const getStepFields = (currentStep: number): (keyof OnboardingFormData)[] => {
     switch (currentStep) {
       case 1:
-        return ["companyName", "industry", "companySize"];
+        return ["industry", "companySize"];
       case 2:
-        return ["targetAudience", "mainProducts", "channels", "budgetRange"];
+        return ["targetAudience"];
       case 3:
-        return ["primaryGoal", "mainChallenge", "timeline"];
+        return ["primaryGoal", "mainChallenge"];
+      case 4:
+        return ["researchMode"];
       default:
         return [];
     }
@@ -132,304 +174,317 @@ export default function Onboarding() {
   const progress = (step / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <CardTitle className="text-2xl">Bem-vindo ao AdvisorIA</CardTitle>
-              <CardDescription className="mt-2">
-                Configure seu perfil para receber análises personalizadas do nosso Conselho de Clones
-              </CardDescription>
-            </div>
+    <div className="min-h-screen flex items-center justify-center p-6 lg:p-8">
+      <Card className="w-full max-w-3xl rounded-2xl border border-border/50">
+        <CardContent className="p-8 lg:p-10">
+          <div className="mb-8">
+            <h1 className="text-4xl font-semibold tracking-tight mb-2">
+              Bem-vindo ao AdvisorIA
+            </h1>
+            <p className="text-muted-foreground">
+              Configure seu perfil para análises personalizadas do Conselho de Clones
+            </p>
           </div>
-          
-          <div className="space-y-4 mt-6">
-            <Progress value={progress} className="h-2" data-testid="progress-onboarding" />
-            <div className="flex justify-between">
-              {STEPS.map((s) => {
+
+          <div className="space-y-6 mb-8">
+            <Progress value={progress} className="h-1.5" data-testid="progress-onboarding" />
+            <div className="flex justify-between gap-2">
+              {STEPS.map((s, idx) => {
                 const Icon = s.icon;
                 const isActive = step === s.id;
                 const isCompleted = step > s.id;
                 
                 return (
-                  <div key={s.id} className="flex items-center gap-2">
+                  <div key={s.id} className="flex items-center gap-3 flex-1">
                     <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
                         isCompleted
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-accent text-white"
                           : isActive
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-accent text-white"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5" />
                       ) : (
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-5 h-5" />
                       )}
                     </div>
-                    <span className={`text-sm hidden md:inline ${isActive ? "font-semibold" : ""}`}>
-                      {s.title}
-                    </span>
+                    <div className="hidden md:block flex-1">
+                      <p className={`text-sm font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                        {s.title}
+                      </p>
+                    </div>
+                    {idx < STEPS.length - 1 && (
+                      <div className="hidden md:block h-px flex-1 bg-border" />
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {step === 1 && (
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="companyName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome da Empresa</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ex: Minha Empresa Ltda" 
-                            {...field} 
-                            data-testid="input-company-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="industry"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Setor / Indústria</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ex: E-commerce de moda, SaaS, Consultoria..." 
-                            {...field} 
-                            data-testid="input-industry"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="companySize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tamanho da Empresa</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <AnimatePresence mode="wait">
+                {step === 1 && (
+                  <motion.div
+                    key="step1"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Nome da Empresa (Opcional)</FormLabel>
                           <FormControl>
-                            <SelectTrigger data-testid="select-company-size">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1-10">1-10 funcionários</SelectItem>
-                            <SelectItem value="11-50">11-50 funcionários</SelectItem>
-                            <SelectItem value="51-200">51-200 funcionários</SelectItem>
-                            <SelectItem value="201-1000">201-1000 funcionários</SelectItem>
-                            <SelectItem value="1000+">Mais de 1000 funcionários</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="targetAudience"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Público-Alvo Principal</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Ex: Mulheres 25-35 anos, classe A/B, interessadas em moda sustentável..." 
-                            {...field} 
-                            data-testid="textarea-target-audience"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="mainProducts"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Principais Produtos / Serviços</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Ex: Roupas femininas, acessórios de moda, consultoria de estilo..." 
-                            {...field} 
-                            data-testid="textarea-main-products"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="channels"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Canais de Venda (selecione todos aplicáveis)</FormLabel>
-                        <div className="grid grid-cols-2 gap-3 mt-2">
-                          {CHANNEL_OPTIONS.map((option) => (
-                            <FormField
-                              key={option.id}
-                              control={form.control}
-                              name="channels"
-                              render={({ field }) => {
-                                return (
-                                  <FormItem className="flex items-center space-x-2 space-y-0">
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(option.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...field.value, option.id])
-                                            : field.onChange(
-                                                field.value?.filter((value) => value !== option.id)
-                                              );
-                                        }}
-                                        data-testid={`checkbox-channel-${option.id}`}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer">
-                                      {option.label}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
+                            <Input 
+                              placeholder="Ex: Minha Empresa Ltda" 
+                              {...field} 
+                              className="rounded-xl"
+                              data-testid="input-company-name"
                             />
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="budgetRange"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Orçamento de Marketing (mensal)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-budget-range">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="< $10k/month">Menos de R$ 10k/mês</SelectItem>
-                            <SelectItem value="$10k-$50k/month">R$ 10k - R$ 50k/mês</SelectItem>
-                            <SelectItem value="$50k-$100k/month">R$ 50k - R$ 100k/mês</SelectItem>
-                            <SelectItem value="> $100k/month">Mais de R$ 100k/mês</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {step === 3 && (
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="primaryGoal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Objetivo Principal</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                    <FormField
+                      control={form.control}
+                      name="industry"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Setor / Indústria *</FormLabel>
                           <FormControl>
-                            <SelectTrigger data-testid="select-primary-goal">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
+                            <Input 
+                              placeholder="Ex: E-commerce de moda, SaaS, Consultoria..." 
+                              {...field} 
+                              className="rounded-xl"
+                              data-testid="input-industry"
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="growth">Crescimento / Aquisição</SelectItem>
-                            <SelectItem value="positioning">Posicionamento de Marca</SelectItem>
-                            <SelectItem value="retention">Retenção de Clientes</SelectItem>
-                            <SelectItem value="launch">Lançamento de Produto</SelectItem>
-                            <SelectItem value="awareness">Awareness / Reconhecimento</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="mainChallenge"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Maior Desafio Atual</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Ex: Alto CAC, baixa conversão, competição agressiva, falta de diferenciação..." 
-                            {...field} 
-                            data-testid="textarea-main-challenge"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="companySize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Tamanho da Empresa *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="rounded-xl" data-testid="select-company-size">
+                                <SelectValue placeholder="Selecione o tamanho..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="1-10">1-10 funcionários</SelectItem>
+                              <SelectItem value="11-50">11-50 funcionários</SelectItem>
+                              <SelectItem value="51-200">51-200 funcionários</SelectItem>
+                              <SelectItem value="201-1000">201-1000 funcionários</SelectItem>
+                              <SelectItem value="1000+">Mais de 1000 funcionários</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
 
-                  <FormField
-                    control={form.control}
-                    name="timeline"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prazo para Resultados</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                {step === 2 && (
+                  <motion.div
+                    key="step2"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="targetAudience"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Descreva Seu Público-Alvo *</FormLabel>
+                          <FormDescription>
+                            Seja específico: idade, localização, interesses, comportamentos, valores...
+                          </FormDescription>
                           <FormControl>
-                            <SelectTrigger data-testid="select-timeline">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
+                            <Textarea 
+                              placeholder="Ex: Mulheres entre 25-35 anos, urbanas, classe A/B, interessadas em moda sustentável e consciente. Valorizam qualidade sobre quantidade, engajadas nas redes sociais, e procuram marcas com propósito alinhado aos seus valores..." 
+                              {...field} 
+                              rows={8}
+                              className="rounded-xl resize-none"
+                              data-testid="textarea-target-audience"
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="immediate">Imediato (0-3 meses)</SelectItem>
-                            <SelectItem value="3-6 months">Curto prazo (3-6 meses)</SelectItem>
-                            <SelectItem value="6-12 months">Médio prazo (6-12 meses)</SelectItem>
-                            <SelectItem value="long-term">Longo prazo (12+ meses)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
 
-              <div className="flex justify-between pt-4">
+                {step === 3 && (
+                  <motion.div
+                    key="step3"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="primaryGoal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Objetivo Principal *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="rounded-xl" data-testid="select-primary-goal">
+                                <SelectValue placeholder="Selecione seu objetivo..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="growth">Crescimento / Aquisição</SelectItem>
+                              <SelectItem value="positioning">Posicionamento de Marca</SelectItem>
+                              <SelectItem value="retention">Retenção de Clientes</SelectItem>
+                              <SelectItem value="launch">Lançamento de Produto</SelectItem>
+                              <SelectItem value="awareness">Awareness / Reconhecimento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="mainChallenge"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-medium">Maior Desafio Atual *</FormLabel>
+                          <FormDescription>
+                            Descreva o principal obstáculo que você enfrenta
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Ex: Alto custo de aquisição de clientes (CAC), dificuldade em se diferenciar da concorrência, baixa taxa de conversão no funil..." 
+                              {...field} 
+                              rows={6}
+                              className="rounded-xl resize-none"
+                              data-testid="textarea-main-challenge"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div
+                    key="step4"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Escolha Seu Modo de Pesquisa</h3>
+                      <p className="text-sm text-muted-foreground mb-6">
+                        Selecione o nível de profundidade da análise do seu público-alvo
+                      </p>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="researchMode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {RESEARCH_MODES.map((mode) => {
+                                const Icon = mode.icon;
+                                const isSelected = field.value === mode.id;
+                                
+                                return (
+                                  <button
+                                    key={mode.id}
+                                    type="button"
+                                    onClick={() => field.onChange(mode.id)}
+                                    className={`relative rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-md ${
+                                      isSelected
+                                        ? "border-2 border-accent bg-accent/5"
+                                        : "border border-border/50 hover:border-border"
+                                    }`}
+                                    data-testid={`card-research-mode-${mode.id}`}
+                                  >
+                                    {mode.recommended && (
+                                      <Badge className="absolute top-3 right-3 bg-accent text-white text-xs">
+                                        Recomendado
+                                      </Badge>
+                                    )}
+                                    
+                                    <div className="flex items-center gap-3 mb-3">
+                                      <div className={`p-2 rounded-lg ${isSelected ? "bg-accent/10" : "bg-muted"}`}>
+                                        <Icon className={`w-5 h-5 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
+                                      </div>
+                                      <div>
+                                        <h4 className="font-medium">{mode.name}</h4>
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <Clock className="w-3 h-3" />
+                                          <span>{mode.duration}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                      {mode.description}
+                                    </p>
+
+                                    <ul className="space-y-2">
+                                      {mode.features.map((feature, idx) => (
+                                        <li key={idx} className="flex items-start gap-2 text-sm">
+                                          <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
+                                          <span className="text-muted-foreground">{feature}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex justify-between pt-6">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleBack}
                   disabled={step === 1}
+                  className="rounded-xl px-6"
                   data-testid="button-back"
                 >
                   Voltar
@@ -438,9 +493,10 @@ export default function Onboarding() {
                   type="button"
                   onClick={handleNext}
                   disabled={saveMutation.isPending}
+                  className="rounded-xl px-8 bg-accent hover:bg-accent text-white font-medium"
                   data-testid="button-next"
                 >
-                  {step === 3 ? (saveMutation.isPending ? "Salvando..." : "Finalizar") : "Próximo"}
+                  {step === 4 ? (saveMutation.isPending ? "Criando seu perfil..." : "Finalizar") : "Próximo"}
                 </Button>
               </div>
             </form>
