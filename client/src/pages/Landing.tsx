@@ -70,6 +70,19 @@ export default function Landing() {
     timeline: "",
   });
 
+  const handleConsult = (expertId: string) => {
+    // Check if user completed onboarding
+    const onboardingComplete = localStorage.getItem("onboarding_complete");
+    
+    if (!onboardingComplete) {
+      // Redirect to onboarding first
+      setLocation("/onboarding");
+    } else {
+      // Go directly to chat
+      setLocation(`/chat/${expertId}`);
+    }
+  };
+
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],
   });
@@ -551,7 +564,7 @@ export default function Landing() {
                           </p>
 
                           <Button
-                            onClick={() => setLocation(`/chat/${currentExpert.id}`)}
+                            onClick={() => handleConsult(currentExpert.id)}
                             className="gap-2"
                             data-testid={`button-chat-${currentExpert.id}`}
                           >
