@@ -25,8 +25,18 @@ The platform features an Apple-style minimalist design with a professional dark-
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client` (React), `/server` (Express), `/python_backend` (FastAPI), and `/shared` (TypeScript types).
 - **Data Flow**: User interaction flows from React -> TanStack Query -> Express -> FastAPI -> Storage/AI -> React.
-- **Landing Page (Conversion-Focused)**: Route `/` serves `Landing.tsx` - a Steve Jobs-inspired minimalist conversion funnel with "450+ Anos de Expertise em Marketing" core message, compressed Hero section ensuring CTA above-the-fold (320px from top), expert tour carousel with onboarding gate, and touch-friendly mobile interactions.
-- **Onboarding Gate**: localStorage-based temporary authentication using `onboarding_complete` flag. All expert CTAs (`Landing.tsx`, `ExpertShowcase.tsx`) check flag before routing: new users → `/onboarding`, returning users → `/chat/:id`. Prevents unauthorized access to expert chats.
+- **Route Architecture**: Clear separation between public and authenticated areas:
+  - `/` - Public Landing page with conversion-focused messaging
+  - `/home` - Authenticated dashboard with featured experts and quick actions
+  - `/onboarding` - 4-step user onboarding flow
+  - All expert interactions require `onboarding_complete` localStorage flag
+- **Landing Page (Conversion-Focused)**: Route `/` serves `Landing.tsx` - a Steve Jobs-inspired minimalist conversion funnel with "450+ Anos de Expertise em Marketing" core message, expert tour carousel, and final CTA redirecting to `/onboarding`.
+- **Authenticated Dashboard**: Route `/home` serves authenticated users with featured expert grid (6 experts), quick action cards (Categories, Council, Personas), and analytics teaser. Only accessible after onboarding completion.
+- **Onboarding Gate & Header Authentication**: localStorage-based authentication using `onboarding_complete` flag. Header component uses `useLocation()` hook to reactively update when authentication state changes:
+  - Before onboarding: Logo redirects to `/`, no "Home" link visible
+  - After onboarding: Logo redirects to `/home`, "Home" link appears in navigation
+  - Persists across all page navigations
+- **Expert Assets**: All 18 marketing experts use real professional stock photos stored in `/attached_assets/stock_images/`. Photos are properly referenced in `python_backend/seed.py` and render across all platform interfaces (cards, chats, carousels).
 - **Multi-Category Navigation**: Supports 15 distinct categories with consistent iconography and filtering.
 - **Personalization System**: Includes expert recommendations, contextual AI prompt enrichment, Perplexity-powered suggested questions, business insights, and smart filters.
 - **Research Tools Integration**: Experts can access real-time research capabilities via Perplexity API, including YouTube research, trend analysis, and news monitoring.
