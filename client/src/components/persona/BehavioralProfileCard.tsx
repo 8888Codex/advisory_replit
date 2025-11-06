@@ -4,8 +4,8 @@ import { Users, MessageSquare, TrendingUp, Radio } from "lucide-react";
 
 interface BehavioralProfileCardProps {
   data: {
-    cialdiniPrinciples?: string[];
-    preferredChannels?: string[];
+    cialdiniPrinciples?: Array<string | { principle: string; priority?: string }>;
+    preferredChannels?: Array<string | { channel: string; usage?: string }>;
     influencerTypes?: string[];
     contentFormat?: string;
     engagementPatterns?: {
@@ -48,11 +48,15 @@ export function BehavioralProfileCard({ data }: BehavioralProfileCardProps) {
           <div className="space-y-2">
             <div className="text-sm font-semibold">Princípios de Cialdini Ativos</div>
             <div className="flex flex-wrap gap-2">
-              {data.cialdiniPrinciples.map((principle, idx) => (
-                <Badge key={idx} variant="default">
-                  {principle}
-                </Badge>
-              ))}
+              {data.cialdiniPrinciples.map((item, idx) => {
+                const text = typeof item === 'string' ? item : item.principle;
+                const priority = typeof item === 'object' && item.priority ? ` (${item.priority})` : '';
+                return (
+                  <Badge key={idx} variant="default">
+                    {text}{priority}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         )}
@@ -64,11 +68,15 @@ export function BehavioralProfileCard({ data }: BehavioralProfileCardProps) {
               Canais Preferidos
             </div>
             <div className="flex flex-wrap gap-2">
-              {data.preferredChannels.map((channel, idx) => (
-                <Badge key={idx} variant="secondary">
-                  {channel}
-                </Badge>
-              ))}
+              {data.preferredChannels.map((item, idx) => {
+                const text = typeof item === 'string' ? item : item.channel;
+                const usage = typeof item === 'object' && item.usage ? ` (${item.usage})` : '';
+                return (
+                  <Badge key={idx} variant="secondary">
+                    {text}{usage}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         )}
