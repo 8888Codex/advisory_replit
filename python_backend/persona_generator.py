@@ -114,6 +114,7 @@ class PsychographicCoreGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-sonnet-4-20250514"  # Complex psychological analysis needs Sonnet
     
     async def generate(
         self, 
@@ -158,7 +159,7 @@ Responda APENAS com JSON válido, sem markdown."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-sonnet-4-20250514",  # Best quality for psychographic depth
+                model=self.model,  # Sonnet for complex psychographic analysis
                 max_tokens=2000,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -188,6 +189,7 @@ class BuyerJourneyGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-sonnet-4-20250514"  # Complex buyer psychology needs Sonnet
     
     async def generate(
         self,
@@ -229,7 +231,7 @@ Responda APENAS com JSON válido, sem markdown."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model=self.model,  # Sonnet for complex journey mapping
                 max_tokens=1500,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -259,6 +261,7 @@ class BehavioralProfileGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-haiku-20250305"  # Simple pattern matching, Haiku sufficient
     
     async def generate(
         self,
@@ -299,7 +302,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-haiku-20250305",  # Haiku for cost optimization
+                model=self.model,  # Haiku for cost optimization (~70% savings)
                 max_tokens=1500,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -331,6 +334,7 @@ class LanguageCommunicationGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-haiku-20250305"  # Simple linguistic patterns, Haiku sufficient
     
     async def generate(
         self,
@@ -376,7 +380,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-haiku-20250305",
+                model=self.model,  # Haiku for linguistic analysis (~70% cost savings)
                 max_tokens=1500,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -411,6 +415,7 @@ class StrategicInsightsGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-sonnet-4-20250514"  # Strategic synthesis needs Sonnet's reasoning
     
     async def generate(
         self,
@@ -449,7 +454,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model=self.model,  # Sonnet for complex strategic synthesis
                 max_tokens=2000,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -480,6 +485,7 @@ class JobsToBeDoneGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-haiku-20250305"  # Framework application, Haiku sufficient
     
     async def generate(
         self,
@@ -517,7 +523,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-haiku-20250305",
+                model=self.model,  # Haiku for JTBD framework (~70% cost savings)
                 max_tokens=1000,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -546,6 +552,7 @@ class DecisionProfileGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-haiku-20250305"  # Simple decision profiling, Haiku sufficient
     
     async def generate(
         self,
@@ -586,7 +593,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-haiku-20250305",
+                model=self.model,  # Haiku for decision profiling (~70% cost savings)
                 max_tokens=1000,
                 temperature=0.7,
                 messages=[{"role": "user", "content": prompt}]
@@ -618,6 +625,7 @@ class CopyExamplesGenerator:
     
     def __init__(self, client: AsyncAnthropic):
         self.client = client
+        self.model = "claude-sonnet-4-20250514"  # Creative copywriting needs Sonnet's creativity
     
     async def generate(
         self,
@@ -654,7 +662,7 @@ Responda APENAS com JSON válido."""
 
         try:
             response = await self.client.messages.create(
-                model="claude-sonnet-4-20250514",  # Best model for creative copy
+                model=self.model,  # Sonnet for creative high-quality copywriting
                 max_tokens=3000,
                 temperature=0.8,  # More creative
                 messages=[{"role": "user", "content": prompt}]

@@ -3,13 +3,16 @@ Persona Enrichment Orchestrator for YouTube Research Integration
 
 This module orchestrates the enrichment of user personas with YouTube research data,
 including campaign references, video insights, and curated content recommendations.
+
+UPDATED: Now integrates 8-Module Deep Persona System (Quick/Strategic/Complete)
 """
 
 import asyncio
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Literal
 from models import UserPersona, PersonaEnrichmentResult
 from tools.youtube_api import YouTubeAPITool
+from persona_generator import PersonaOrchestrator
 
 RESEARCH_DEPTH = {
     "quick": 2,      # 2 YouTube queries
@@ -321,3 +324,120 @@ async def enrich_persona_with_youtube(
         campaignsIdentified=len(synthesis.get("campaigns", [])),
         completenessScore=completeness_score
     )
+
+
+async def enrich_persona_with_deep_modules(
+    persona_id: str,
+    level: Literal["quick", "strategic", "complete"],
+    storage,
+    existing_modules: Dict[str, Any] = None
+) -> UserPersona:
+    """
+    COMPREHENSIVE PERSONA ENRICHMENT - YouTube + 8-Module Deep Analysis
+    
+    This function combines:
+    1. Real YouTube research (videos, statistics, insights)
+    2. Deep persona modules (psychographic, buyer journey, behavioral, etc.)
+    3. Multi-LLM optimization (Haiku for simple, Sonnet for complex)
+    
+    Args:
+        persona_id: ID of persona to enrich
+        level: "quick" (3 modules, ~30s) | "strategic" (6 modules, ~2min) | "complete" (8 modules + copy, ~5min)
+        storage: Storage instance
+        existing_modules: Optional existing modules for upgrade flow
+        
+    Returns:
+        UserPersona: Fully enriched persona with all modules
+    """
+    print(f"[DEEP ENRICHMENT] Starting {level.upper()} persona generation...")
+    
+    # Step 1: Get persona
+    persona = await storage.get_user_persona_by_id(persona_id)
+    if not persona:
+        raise ValueError(f"Persona with id '{persona_id}' not found")
+    
+    # Step 2: Execute YouTube research (reuse existing function)
+    print(f"[DEEP ENRICHMENT] Phase 1: YouTube Research...")
+    mode_mapping = {"quick": "quick", "strategic": "strategic", "complete": "complete"}
+    await enrich_persona_with_youtube(persona_id, mode_mapping[level], storage)
+    
+    # Refresh persona to get YouTube data
+    persona = await storage.get_user_persona_by_id(persona_id)
+    
+    # Step 3: Prepare context for PersonaOrchestrator
+    persona_context = {
+        "companyName": persona.companyName,
+        "industry": persona.industry,
+        "companySize": persona.companySize,
+        "targetAudience": persona.targetAudience,
+        "mainProducts": persona.mainProducts,
+        "channels": persona.channels or [],
+        "primaryGoal": persona.primaryGoal,
+        "mainChallenge": persona.mainChallenge,
+        "timeline": persona.timeline
+    }
+    
+    # Extract YouTube videos for context
+    youtube_videos = []
+    if persona.youtubeResearch:
+        for research in persona.youtubeResearch:
+            for video in research.get("videos", []):
+                youtube_videos.append({
+                    "videoId": video.get("videoId"),
+                    "title": video.get("title"),
+                    "channel": video.get("channel"),
+                    "viewCount": video.get("viewCount"),
+                    "likeCount": video.get("likeCount"),
+                    "publishedAt": video.get("publishedAt"),
+                    "url": video.get("url")
+                })
+    
+    # Step 4: Generate deep persona modules using PersonaOrchestrator
+    print(f"[DEEP ENRICHMENT] Phase 2: Generating {level.upper()} modules with 18 experts...")
+    orchestrator = PersonaOrchestrator()
+    
+    if level == "quick":
+        modules = await orchestrator.generate_quick_persona(
+            persona_context,
+            youtube_data=youtube_videos[:10] if youtube_videos else None,
+            reddit_data=None  # TODO: Add Perplexity Reddit research
+        )
+    elif level == "strategic":
+        modules = await orchestrator.generate_strategic_persona(
+            persona_context,
+            youtube_data=youtube_videos[:15] if youtube_videos else None,
+            reddit_data=None,
+            existing_modules=existing_modules
+        )
+    else:  # complete
+        modules = await orchestrator.generate_complete_persona(
+            persona_context,
+            youtube_data=youtube_videos[:20] if youtube_videos else None,
+            reddit_data=None,
+            existing_modules=existing_modules
+        )
+    
+    # Step 5: Save modules to database
+    print(f"[DEEP ENRICHMENT] Phase 3: Saving {level.upper()} modules to database...")
+    update_data = {
+        "psychographicCore": modules.get("psychographicCore"),
+        "buyerJourney": modules.get("buyerJourney"),
+        "behavioralProfile": modules.get("behavioralProfile"),
+        "languageCommunication": modules.get("languageCommunication"),
+        "strategicInsights": modules.get("strategicInsights"),
+        "jobsToBeDone": modules.get("jobsToBeDone"),
+        "decisionProfile": modules.get("decisionProfile"),
+        "copyExamples": modules.get("copyExamples"),
+        "enrichmentLevel": modules.get("enrichmentLevel"),
+        "researchCompleteness": modules.get("researchCompleteness")
+    }
+    
+    # Remove None values
+    update_data = {k: v for k, v in update_data.items() if v is not None}
+    
+    # Update persona in storage
+    updated_persona = await storage.update_user_persona(persona_id, update_data)
+    
+    print(f"[DEEP ENRICHMENT] ✅ {level.upper()} enrichment complete! Completeness: {modules.get('researchCompleteness')}%")
+    
+    return updated_persona

@@ -1196,26 +1196,28 @@ async def get_current_persona():
 @app.post("/api/persona/enrich/youtube", response_model=UserPersona)
 async def enrich_persona_youtube(data: PersonaEnrichmentRequest):
     """
-    Enrich an existing persona with YouTube research data.
+    COMPREHENSIVE PERSONA ENRICHMENT - YouTube + 8-Module Deep Analysis
     
-    This endpoint:
-    1. Takes persona_id and enrichment mode
-    2. Calls YouTube/Perplexity research orchestrator
-    3. Updates persona with video insights, campaign references, and inspiration videos
-    4. Returns updated persona with increased completeness score
+    This endpoint combines:
+    1. Real YouTube research (videos, statistics, insights)
+    2. Deep persona modules via 18 marketing experts
+    3. Multi-LLM optimization (Haiku for simple, Sonnet for complex)
+    
+    Levels:
+    - quick: 3 core modules (~30-45s) - Psychographic + Buyer Journey + Strategic Insights
+    - strategic: 6 modules (~2-3min) - Quick + Behavioral + Language + JTBD
+    - complete: All 8 modules + copy examples (~5-7min)
     """
     try:
-        from persona_enrichment import enrich_persona_with_youtube
+        from persona_enrichment import enrich_persona_with_deep_modules
         
-        result = await enrich_persona_with_youtube(
+        # Use new deep enrichment system
+        persona = await enrich_persona_with_deep_modules(
             persona_id=data.personaId,
-            mode=data.mode,
-            storage=storage
+            level=data.mode,  # "quick" | "strategic" | "complete"
+            storage=storage,
+            existing_modules=None  # Fresh enrichment
         )
-        
-        persona = await storage.get_user_persona_by_id(data.personaId)
-        if not persona:
-            raise HTTPException(status_code=404, detail=f"Persona {data.personaId} not found after enrichment")
         
         return persona
     except ValueError as e:
@@ -1225,6 +1227,71 @@ async def enrich_persona_youtube(data: PersonaEnrichmentRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to enrich persona: {str(e)}")
+
+@app.post("/api/persona/{persona_id}/upgrade", response_model=UserPersona)
+async def upgrade_persona(persona_id: str):
+    """
+    UPGRADE PERSONA TO NEXT LEVEL (Incremental Enrichment)
+    
+    Intelligently upgrades existing persona without regenerating existing modules:
+    - Quick → Strategic: Adds 3 new modules (Behavioral, Language, JTBD)
+    - Strategic → Complete: Adds 2 new modules (Decision Profile, Copy Examples)
+    
+    Cost-effective: Only pays for new modules, preserves existing work.
+    """
+    try:
+        from persona_enrichment import enrich_persona_with_deep_modules
+        
+        # Get current persona
+        persona = await storage.get_user_persona_by_id(persona_id)
+        if not persona:
+            raise HTTPException(status_code=404, detail=f"Persona {persona_id} not found")
+        
+        # Determine current level and next level
+        current_level = persona.enrichmentLevel or "none"
+        
+        if current_level == "none" or not persona.enrichmentLevel:
+            next_level = "quick"
+        elif current_level == "quick":
+            next_level = "strategic"
+        elif current_level == "strategic":
+            next_level = "complete"
+        else:
+            raise HTTPException(status_code=400, detail=f"Persona is already at maximum level: {current_level}")
+        
+        # Collect existing modules to avoid regeneration
+        existing_modules = {
+            "psychographicCore": persona.psychographicCore,
+            "buyerJourney": persona.buyerJourney,
+            "behavioralProfile": persona.behavioralProfile,
+            "languageCommunication": persona.languageCommunication,
+            "strategicInsights": persona.strategicInsights,
+            "jobsToBeDone": persona.jobsToBeDone,
+            "decisionProfile": persona.decisionProfile,
+            "copyExamples": persona.copyExamples
+        }
+        
+        print(f"[UPGRADE] {current_level.upper()} → {next_level.upper()} (reusing {sum(1 for v in existing_modules.values() if v)} existing modules)")
+        
+        # Perform upgrade with existing modules
+        upgraded_persona = await enrich_persona_with_deep_modules(
+            persona_id=persona_id,
+            level=next_level,
+            storage=storage,
+            existing_modules=existing_modules
+        )
+        
+        return upgraded_persona
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error upgrading persona: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to upgrade persona: {str(e)}")
 
 @app.delete("/api/persona/{persona_id}", status_code=204)
 async def delete_user_persona(persona_id: str):
