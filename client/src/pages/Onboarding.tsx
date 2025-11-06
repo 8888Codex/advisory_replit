@@ -137,7 +137,7 @@ export default function Onboarding() {
       queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
       toast({
         title: "Perfil criado com sucesso!",
-        description: "Seu perfil foi salvo. O Conselho de Clones está pronto para ajudar!",
+        description: "Seu perfil foi salvo. O Conselho está pronto para ajudar!",
       });
       navigate("/persona-dashboard");
     },

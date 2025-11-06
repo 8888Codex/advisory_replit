@@ -32,7 +32,7 @@ from llm_router import llm_router, LLMTask
 from analytics import AnalyticsEngine
 from seed_analytics import seed_analytics_data, clear_analytics_data
 
-app = FastAPI(title="AdvisorIA - Marketing Legends API")
+app = FastAPI(title="O Conselho - Marketing Legends API")
 
 # CORS middleware for frontend integration
 app.add_middleware(
@@ -56,7 +56,7 @@ async def startup_event():
 # Health check
 @app.get("/")
 async def root():
-    return {"message": "AdvisorIA Marketing Legends API", "status": "running"}
+    return {"message": "O Conselho Marketing Legends API", "status": "running"}
 
 # Category metadata mapping
 CATEGORY_METADATA = {

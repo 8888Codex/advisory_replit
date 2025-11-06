@@ -104,7 +104,7 @@ export default function Landing() {
       localStorage.setItem("onboarding_complete", "true");
       toast({
         title: "Perfil Salvo com Sucesso!",
-        description: "Sua consultoria personalizada está pronta. Bem-vindo ao AdvisorIA!",
+        description: "Sua consultoria personalizada está pronta. Bem-vindo ao O Conselho!",
       });
       setLocation("/home");
     },

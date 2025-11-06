@@ -1,7 +1,7 @@
-# AdvisorIA - Replit Agent Guide
+# O Conselho - Replit Agent Guide
 
 ## Overview
-AdvisorIA is a premium AI consultancy platform providing expert advice through cognitive clones of 18 specialists across 15 disciplines. It consolidates over 450 years of marketing expertise into an accessible, interactive format. The platform utilizes a 20-point "Framework EXTRACT" with Anthropic's Claude to create ultra-realistic AI personalities, offering specialized multi-category consulting.
+O Conselho is a premium AI consultancy platform providing expert advice through cognitive clones of 18 specialists across 15 disciplines. It consolidates over 450 years of marketing expertise into an accessible, interactive format. The platform utilizes a 20-point "Framework EXTRACT" with Anthropic's Claude to create ultra-realistic AI personalities, offering specialized multi-category consulting.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
