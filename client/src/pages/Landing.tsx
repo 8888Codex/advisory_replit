@@ -891,7 +891,7 @@ export default function Landing() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                   <Button
                     size="lg"
-                    onClick={() => setShowProfileForm(true)}
+                    onClick={() => setLocation("/onboarding")}
                     className="gap-2"
                     data-testid="button-final-cta"
                   >

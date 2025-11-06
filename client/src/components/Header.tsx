@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./ThemeToggle";
 import { MobileNav } from "./MobileNav";
 import logoImage from "@assets/o conselho_1762287383861.png";
 
 export function Header() {
+  const [location] = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const onboardingComplete = localStorage.getItem("onboarding_complete");
     setIsAuthenticated(!!onboardingComplete);
-  }, []);
+  }, [location]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
