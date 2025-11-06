@@ -9,7 +9,7 @@ import asyncio
 import os
 from typing import List, Dict, Any
 from models import UserPersona, PersonaEnrichmentResult
-from tools.youtube_research import youtube_tool
+from tools.youtube_api import YouTubeAPITool
 
 RESEARCH_DEPTH = {
     "quick": 2,      # 2 YouTube queries
@@ -71,53 +71,78 @@ def generate_youtube_queries(persona: UserPersona) -> List[str]:
 
 async def synthesize_video_insights(results: List[dict], persona: UserPersona) -> dict:
     """
-    Extract key insights from YouTube research results using LLM Router.
+    Extract key insights from real YouTube video data using LLM Router.
     
-    Analyzes YouTube research findings and synthesizes them into structured
-    insights, campaign references, and curated video recommendations.
+    Analyzes authentic YouTube videos with real statistics (views, likes, dates)
+    and synthesizes them into structured insights and recommendations.
     
     Args:
-        results: List of YouTube research results from Perplexity API
+        results: List of YouTube API results with real video data
         persona: UserPersona object for context
         
     Returns:
         Dict containing:
             - key_insights: List[str] - Top insights across videos
-            - campaigns: List[dict] - Structured campaign data (videoId, title, url, channel, insights)
-            - top_videos: List[dict] - Top 3-5 curated videos
+            - campaigns: List[dict] - Real videos with statistics (videoId, title, url, channel, views, likes, publishedAt)
+            - top_videos: List[dict] - Top 3-5 curated videos with real metrics
     """
     
-    combined_findings = "\n\n---\n\n".join([
-        f"Query: {r['query']}\n{r['findings']}" 
-        for r in results
-    ])
+    # Format real YouTube data for Claude analysis
+    video_summaries = []
+    for result in results:
+        query = result.get("query", "")
+        videos = result.get("videos", [])
+        
+        if videos:
+            video_list = []
+            for v in videos[:5]:  # Top 5 videos per query
+                video_list.append(
+                    f"  - {v['title']}\n"
+                    f"    Canal: {v['channelTitle']}\n"
+                    f"    Views: {v['statistics']['viewCount']:,}\n"
+                    f"    Likes: {v['statistics']['likeCount']:,}\n"
+                    f"    Publicado: {v['publishedAt'][:10]}\n"
+                    f"    URL: {v['url']}"
+                )
+            
+            video_summaries.append(
+                f"Query: {query}\n"
+                f"Vídeos encontrados ({len(videos)} total):\n" + 
+                "\n\n".join(video_list)
+            )
     
-    synthesis_prompt = f"""Você é um analista de marketing especializado em curadoria de conteúdo de vídeo.
+    combined_data = "\n\n---\n\n".join(video_summaries)
+    
+    synthesis_prompt = f"""Você é um analista de marketing especializado em curadoria de vídeos do YouTube com dados REAIS.
 
-Analise os resultados de pesquisa do YouTube abaixo e extraia insights acionáveis para uma empresa no setor de {persona.industry or 'marketing'}.
+Analise os vídeos REAIS do YouTube abaixo (com estatísticas verificadas) e extraia insights acionáveis para uma empresa no setor de {persona.industry or 'marketing'}.
 
 Contexto do cliente:
 - Público-alvo: {persona.targetAudience or 'geral'}
 - Objetivo principal: {persona.primaryGoal or 'crescimento'}
 - Desafio principal: {persona.mainChallenge or 'aquisição de clientes'}
 
-Resultados da Pesquisa:
-{combined_findings}
+Vídeos Reais do YouTube:
+{combined_data}
 
 Forneça sua análise em formato JSON com a seguinte estrutura:
 {{
     "key_insights": [
-        "Insight 1 - descrição breve e acionável",
-        "Insight 2 - descrição breve e acionável",
+        "Insight baseado em tendências dos vídeos de alta performance",
+        "Insight sobre estratégias que geraram mais engajamento",
+        "Insight sobre padrões de conteúdo bem-sucedido",
         ...
     ],
     "campaigns": [
         {{
-            "videoId": "ID do vídeo (extraído da URL)",
+            "videoId": "ID real extraído da URL",
             "title": "Título do vídeo",
-            "url": "URL completa do YouTube",
+            "url": "URL completa",
             "channel": "Nome do canal",
-            "insights": ["Insight 1 específico deste vídeo", "Insight 2..."]
+            "viewCount": 123456,
+            "likeCount": 5000,
+            "publishedAt": "2024-01-15",
+            "insights": ["Insight específico baseado nas métricas deste vídeo"]
         }}
     ],
     "top_videos": [
@@ -126,18 +151,21 @@ Forneça sua análise em formato JSON com a seguinte estrutura:
             "title": "Título",
             "url": "URL",
             "channel": "Canal",
+            "viewCount": 123456,
+            "likeCount": 5000,
+            "publishedAt": "2024-01-15",
             "relevanceScore": 5,
-            "reason": "Por que este vídeo é relevante"
+            "reason": "Relevância baseada em métricas e alinhamento com objetivos"
         }}
     ]
 }}
 
 IMPORTANTE:
-1. Extraia key_insights gerais que se aplicam ao cliente (5-8 insights)
-2. Identifique campanhas/cases específicos nos vídeos (até 10 campanhas)
-3. Selecione os 3-5 vídeos MAIS relevantes para o cliente
-4. Para videoId, extraia da URL (youtube.com/watch?v=XXXX ou youtu.be/XXXX)
-5. Atribua relevanceScore de 1-5 (5 = altamente relevante)
+1. Use APENAS dados REAIS dos vídeos fornecidos (nunca invente exemplos)
+2. Baseie insights nas métricas reais (views, likes, data de publicação)
+3. Identifique padrões de alta performance (vídeos com mais engajamento)
+4. Selecione 3-5 vídeos MAIS relevantes baseado em métricas + alinhamento com objetivos
+5. Inclua viewCount, likeCount, publishedAt em TODOS os vídeos
 6. RETORNE APENAS O JSON, sem texto adicional."""
 
     from llm_router import llm_router, LLMTask
@@ -210,35 +238,68 @@ async def enrich_persona_with_youtube(
     max_queries = RESEARCH_DEPTH[mode]
     selected_queries = queries[:max_queries]
     
-    print(f"[ENRICHMENT] Executing {len(selected_queries)} YouTube queries in parallel...")
+    print(f"[ENRICHMENT] Executing {len(selected_queries)} REAL YouTube API queries in parallel...")
     
-    tasks = [youtube_tool.run(query) for query in selected_queries]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    # Initialize YouTube API client
+    youtube_api = YouTubeAPITool()
     
-    valid_results = []
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            print(f"[ENRICHMENT] Query {i+1} failed: {result}")
-        else:
-            valid_results.append(result)
-    
-    print(f"[ENRICHMENT] Completed {len(valid_results)}/{len(selected_queries)} queries successfully")
-    
-    if not valid_results:
-        raise ValueError("All YouTube research queries failed. Cannot enrich persona.")
+    try:
+        # Execute parallel YouTube API searches
+        tasks = [
+            youtube_api.search_videos(
+                query=query,
+                max_results=10,
+                order="relevance",
+                published_after="2023-01-01T00:00:00Z"  # Last 2 years
+            )
+            for query in selected_queries
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        valid_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                print(f"[ENRICHMENT] Query {i+1} failed: {result}")
+            elif isinstance(result, dict):
+                if result.get("error"):
+                    print(f"[ENRICHMENT] Query {i+1} error: {result['error']}")
+                elif result.get("videos"):
+                    valid_results.append(result)
+                    print(f"[ENRICHMENT] Query {i+1}: Found {len(result['videos'])} REAL videos")
+                else:
+                    print(f"[ENRICHMENT] Query {i+1}: No videos found")
+        
+        print(f"[ENRICHMENT] Completed {len(valid_results)}/{len(selected_queries)} queries successfully")
+        
+        if not valid_results:
+            raise ValueError("All YouTube API queries failed or returned no videos. Cannot enrich persona.")
+    finally:
+        await youtube_api.close()
     
     print(f"[ENRICHMENT] Synthesizing insights with Claude...")
     synthesis = await synthesize_video_insights(valid_results, persona)
     
     completeness_score = min(100, 50 + (len(valid_results) * 5))
     
+    # Store real YouTube data with statistics
     youtube_data = {
         "youtubeResearch": [
             {
                 "query": r["query"],
-                "findings": r["findings"],
-                "sources": r.get("sources", []),
-                "videoCount": r.get("video_count", 0)
+                "videosFound": len(r.get("videos", [])),
+                "totalResults": r.get("totalResults", 0),
+                "videos": [
+                    {
+                        "videoId": v["videoId"],
+                        "title": v["title"],
+                        "channel": v["channelTitle"],
+                        "url": v["url"],
+                        "viewCount": v["statistics"]["viewCount"],
+                        "likeCount": v["statistics"]["likeCount"],
+                        "publishedAt": v["publishedAt"][:10]
+                    }
+                    for v in r.get("videos", [])[:10]
+                ]
             }
             for r in valid_results
         ],
@@ -248,12 +309,14 @@ async def enrich_persona_with_youtube(
         "researchCompleteness": completeness_score
     }
     
-    print(f"[ENRICHMENT] Updating persona in storage...")
+    print(f"[ENRICHMENT] Updating persona in storage with REAL video data...")
     updated_persona = await storage.enrich_persona_youtube(persona_id, youtube_data)
+    
+    total_videos = sum(len(r.get("videos", [])) for r in valid_results)
     
     return PersonaEnrichmentResult(
         personaId=persona_id,
-        videosFound=sum(r.get("video_count", 0) for r in valid_results),
+        videosFound=total_videos,
         insightsExtracted=len(synthesis.get("key_insights", [])),
         campaignsIdentified=len(synthesis.get("campaigns", [])),
         completenessScore=completeness_score

@@ -368,17 +368,41 @@ export default function PersonaDashboard() {
                     >
                       <CardContent className="p-6 space-y-4">
                         <div className="flex items-start justify-between gap-4">
-                          <h3 className="text-xl font-medium" data-testid={`campaign-name-${idx}`}>
-                            {campaign.name || `Campanha ${idx + 1}`}
-                          </h3>
-                          {campaign.videoUrl && (
+                          <div className="flex-1">
+                            <h3 className="text-xl font-medium mb-2" data-testid={`campaign-name-${idx}`}>
+                              {campaign.title || campaign.name || `Campanha ${idx + 1}`}
+                            </h3>
+                            {campaign.channel && (
+                              <p className="text-sm text-muted-foreground mb-2" data-testid={`campaign-channel-${idx}`}>
+                                Canal: {campaign.channel}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              {campaign.viewCount !== undefined && (
+                                <span data-testid={`campaign-views-${idx}`}>
+                                  {campaign.viewCount.toLocaleString('pt-BR')} visualizações
+                                </span>
+                              )}
+                              {campaign.likeCount !== undefined && (
+                                <span data-testid={`campaign-likes-${idx}`}>
+                                  {campaign.likeCount.toLocaleString('pt-BR')} likes
+                                </span>
+                              )}
+                              {campaign.publishedAt && (
+                                <span data-testid={`campaign-date-${idx}`}>
+                                  {new Date(campaign.publishedAt).toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {(campaign.url || campaign.videoUrl) && (
                             <Button
                               variant="ghost"
                               size="sm"
                               asChild
                               data-testid={`button-campaign-link-${idx}`}
                             >
-                              <a href={campaign.videoUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={campaign.url || campaign.videoUrl} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="w-4 h-4" />
                               </a>
                             </Button>
