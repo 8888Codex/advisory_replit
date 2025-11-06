@@ -511,7 +511,7 @@ export default function Analytics() {
       <OverviewCards data={overview} isLoading={loadingOverview} />
 
       {/* Charts and Rankings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
         {/* Activity Chart - 2 columns */}
         <div className="lg:col-span-2">
           <ActivityChart data={timeline} isLoading={loadingTimeline} />
@@ -524,7 +524,7 @@ export default function Analytics() {
       </div>
 
       {/* Category Distribution and Recommendations Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
         {/* Category Distribution */}
         <CategoryDistribution data={categories} isLoading={loadingCategories} />
 
