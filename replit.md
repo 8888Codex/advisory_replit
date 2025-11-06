@@ -25,6 +25,8 @@ The platform features an Apple-style minimalist design with a professional dark-
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client` (React), `/server` (Express), `/python_backend` (FastAPI), and `/shared` (TypeScript types).
 - **Data Flow**: User interaction flows from React -> TanStack Query -> Express -> FastAPI -> Storage/AI -> React.
+- **Landing Page (Conversion-Focused)**: Route `/` serves `Landing.tsx` - a Steve Jobs-inspired minimalist conversion funnel with "450+ Anos de Expertise em Marketing" core message, compressed Hero section ensuring CTA above-the-fold (320px from top), expert tour carousel with onboarding gate, and touch-friendly mobile interactions.
+- **Onboarding Gate**: localStorage-based temporary authentication using `onboarding_complete` flag. All expert CTAs (`Landing.tsx`, `ExpertShowcase.tsx`) check flag before routing: new users → `/onboarding`, returning users → `/chat/:id`. Prevents unauthorized access to expert chats.
 - **Multi-Category Navigation**: Supports 15 distinct categories with consistent iconography and filtering.
 - **Personalization System**: Includes expert recommendations, contextual AI prompt enrichment, Perplexity-powered suggested questions, business insights, and smart filters.
 - **Research Tools Integration**: Experts can access real-time research capabilities via Perplexity API, including YouTube research, trend analysis, and news monitoring.
