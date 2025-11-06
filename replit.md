@@ -18,7 +18,7 @@ The platform features an Apple-style minimalist design with a professional dark-
 - **AI Integration (Cognitive Cloning)**: Employs a 20-point cognitive fidelity framework (Framework EXTRACT) for creating ultra-realistic specialist personalities. Rich Python classes inherit from `ExpertCloneBase` and are dynamically loaded. The Claude API (`claude-sonnet-4-20250514`) processes dynamic system prompts.
 - **Council Room**: Features real-time SSE streaming for follow-up questions to a council of experts, ensuring full memory retention. Responses are conversational, in Brazilian Portuguese, and experts dialogue with each other. PostgreSQL is used for message persistence.
 - **Multi-LLM Router**: Routes tasks to different LLM tiers for cost optimization. Simple tasks (e.g., expert recommendations, suggested questions) use Claude Haiku (FAST tier), while complex tasks (e.g., 1:1 chat, Council dialogue, synthesis) use Claude Sonnet (STANDARD tier).
-- **Persona Intelligence Hub**: A premium profile system for user persona creation, enriched with deep YouTube and Reddit research. Data is stored in PostgreSQL (`user_personas` table). Features various research modes (Quick, Strategic, Complete) orchestrated using Claude Haiku and Sonnet.
+- **Persona Intelligence Hub**: A premium profile system for user persona creation, enriched with **100% real YouTube data** via YouTube Data API v3 and Reddit insights via Perplexity. Data is stored in PostgreSQL (`user_personas` table). Features various research modes (Quick, Strategic, Complete) orchestrated using Claude Haiku and Sonnet. **Zero mock data** - all video statistics (views, likes, channels, dates) are authentic and verifiable.
 - **Analytics & Insights Dashboard**: Provides comprehensive user activity metrics, expert usage patterns, and AI-generated personalized recommendations. Utilizes PostgreSQL (`user_activity` table) and a Python `AnalyticsEngine`.
 - **Semantic Search**: An AI-powered expert recommendation system on the `/categories` page that analyzes user challenges and suggests relevant specialists across all categories.
 
@@ -32,7 +32,8 @@ The platform features an Apple-style minimalist design with a professional dark-
 ## External Dependencies
 
 - **Anthropic Claude API**: For AI model interactions, cognitive cloning, and conversational AI.
-- **Perplexity API**: For real-time research capabilities and content enrichment (YouTube, Reddit, trends, news).
+- **YouTube Data API v3**: Official Google API for retrieving real video metadata (views, likes, channels, thumbnails). Free tier provides 10,000 queries/day.
+- **Perplexity API**: For real-time research capabilities and content enrichment (Reddit insights, trends, news).
 - **React**: Frontend library.
 - **Vite**: Frontend build tool.
 - **Wouter**: Client-side routing.
