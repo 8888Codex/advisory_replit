@@ -44,6 +44,37 @@ const pythonBackend = startPythonBackend();
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001/api',
   changeOrigin: true,
+  // SSE-specific configuration for streaming endpoints
+  on: {
+    proxyReq: (proxyReq, req, res) => {
+      // Set headers for SSE endpoints
+      if (req.url?.includes('/stream') || req.url?.includes('/analyze-stream')) {
+        proxyReq.setHeader('Accept', 'text/event-stream');
+        proxyReq.setHeader('Connection', 'keep-alive');
+        proxyReq.setHeader('Cache-Control', 'no-cache');
+      }
+    },
+    proxyRes: (proxyRes, req, res) => {
+      // Disable buffering for SSE endpoints
+      if (req.url?.includes('/stream') || req.url?.includes('/analyze-stream')) {
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('Connection', 'keep-alive');
+        
+        // Preserve SSE content-type
+        if (proxyRes.headers['content-type']?.includes('text/event-stream')) {
+          res.setHeader('Content-Type', 'text/event-stream');
+        }
+      }
+    },
+    error: (err, req, res) => {
+      console.error('[SSE Proxy Error]', err);
+      // Only send response if res is not a Socket (WebSocket upgrade)
+      if ('headersSent' in res && !res.headersSent) {
+        (res as Response).status(500).json({ error: 'SSE proxy error' });
+      }
+    }
+  }
 }));
 
 declare module 'http' {
