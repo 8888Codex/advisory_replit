@@ -24,6 +24,7 @@ The platform features an Apple-style minimalist design with a professional dark-
 - **Semantic Search**: AI-powered expert recommendation system.
 - **Expert Card Component**: A unified `ExpertCard` component (`client/src/components/ExpertCard.tsx`) replaces inconsistent implementations, offering "rich" and "compact" variants with smart data hydration and interactive features.
 - **Security Hardening**: Implemented comprehensive route protection for all authenticated routes, environment-based CORS security, mandatory `SESSION_SECRET` in production, and proper handling of Python backend reload.
+- **Background Persona Enrichment**: Non-blocking UX for persona enrichment (30s-7min depending on level). Users can immediately access the platform while enrichment runs in background. Features real-time status polling (`EnrichmentStatusBanner`), toast notifications on completion, and three enrichment tiers (Quick ~30-45s, Strategic ~2-3min, Complete ~5-7min). Status tracking via `enrichment_status` field ("pending" | "processing" | "completed" | "failed") and `enrichment_level` field in `user_personas` table.
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client`, `/server`, `/python_backend`, `/shared`.
