@@ -399,22 +399,22 @@ async def enrich_persona_with_deep_modules(
     if level == "quick":
         modules = await orchestrator.generate_quick_persona(
             persona_context,
-            youtube_data=youtube_videos[:10] if youtube_videos else None,
-            reddit_data=None  # TODO: Add Perplexity Reddit research
+            youtube_data=youtube_videos[:10] if youtube_videos else [],
+            reddit_data={}  # TODO: Add Perplexity Reddit research
         )
     elif level == "strategic":
         modules = await orchestrator.generate_strategic_persona(
             persona_context,
-            youtube_data=youtube_videos[:15] if youtube_videos else None,
-            reddit_data=None,
-            existing_modules=existing_modules
+            youtube_data=youtube_videos[:15] if youtube_videos else [],
+            reddit_data={},
+            existing_modules=existing_modules or {}
         )
     else:  # complete
         modules = await orchestrator.generate_complete_persona(
             persona_context,
-            youtube_data=youtube_videos[:20] if youtube_videos else None,
-            reddit_data=None,
-            existing_modules=existing_modules
+            youtube_data=youtube_videos[:20] if youtube_videos else [],
+            reddit_data={},
+            existing_modules=existing_modules or {}
         )
     
     # Step 5: Save modules to database
