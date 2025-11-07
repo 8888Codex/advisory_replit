@@ -168,6 +168,8 @@ async def get_categories():
     categories.sort(key=lambda x: (-x.expertCount, x.name))
     return categories
 
+# Register specific routes BEFORE generic {expert_id} route to prevent path conflicts
+# Auto-clone-stream route is defined later (~line 1020) but registered here for proper routing precedence
 @app.get("/api/experts/auto-clone-stream")
 async def auto_clone_expert_stream(targetName: str, context: str = ""):
     """
@@ -637,8 +639,6 @@ Retorne APENAS JSON válido."""
     )
 
 
-@app.get("/api/experts/{expert_id}", response_model=Expert)
-async def get_expert(expert_id: str):
     """Get a specific expert by ID"""
     expert = await storage.get_expert(expert_id)
     if not expert:
