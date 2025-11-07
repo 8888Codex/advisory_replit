@@ -166,7 +166,7 @@ export type LoginAudit = typeof loginAudit.$inferSelect;
 // General Audit Logs - Tracks all admin and system actions
 export const auditLogs = pgTable("audit_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(), // Who performed the action
+  userId: varchar("user_id"), // Who performed the action (nullable for login failures)
   action: text("action").notNull(), // e.g., "user_role_changed", "expert_deleted", "feature_flag_toggled"
   resourceType: text("resource_type").notNull(), // "user", "expert", "feature_flag", "invite", etc.
   resourceId: varchar("resource_id"), // ID of the affected resource

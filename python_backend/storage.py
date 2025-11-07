@@ -934,27 +934,6 @@ class PostgresStorage:
             
             return result == "UPDATE 1"
     
-    async def get_user_by_email(self, email: str) -> Optional[dict]:
-        """Get user by email address"""
-        if not self.pool:
-            raise RuntimeError("PostgresStorage not initialized")
-        
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow("""
-                SELECT id, username, email
-                FROM users
-                WHERE email = $1
-            """, email)
-            
-            if not row:
-                return None
-            
-            return {
-                "id": row['id'],
-                "username": row['username'],
-                "email": row['email']
-            }
-    
     async def update_user_password(self, user_id: str, hashed_password: str) -> bool:
         """Update user password"""
         if not self.pool:
@@ -999,11 +978,12 @@ class PostgresStorage:
                 full_metadata['user_agent'] = user_agent
             
             # Insert into audit_logs table (not login_audit)
-            # Pass dict to asyncpg - it handles JSONB natively
+            # Convert metadata dict to JSON string for asyncpg
+            metadata_json = json.dumps(full_metadata)
             await conn.execute("""
                 INSERT INTO audit_logs (id, user_id, action, resource_type, resource_id, metadata, ip_address)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
-            """, log_id, user_id, full_action, "auth", None, full_metadata, ip_address)
+            """, log_id, user_id, full_action, "auth", None, metadata_json, ip_address)
             
             return log_id
     
