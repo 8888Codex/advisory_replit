@@ -132,6 +132,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // ============================================
+// AUDIT LOGGING HELPER
+// ============================================
+
+async function logAuthEvent(
+  action: string,
+  success: boolean,
+  req: Request,
+  userId?: string,
+  metadata?: Record<string, any>
+) {
+  try {
+    await fetch('http://localhost:5001/api/audit/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        success,
+        userId,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        metadata
+      })
+    });
+  } catch (error) {
+    console.error('[Audit] Failed to log event:', error);
+    // Don't throw - logging shouldn't break auth flow
+  }
+}
+
+// ============================================
 // AUTHENTICATION ROUTES
 // ============================================
 // These must be BEFORE the general proxy to intercept auth calls
@@ -147,6 +177,11 @@ app.post('/api/auth/register', registerRateLimit, async (req, res) => {
     const data = await response.json();
     
     if (!response.ok) {
+      // Log failed registration
+      await logAuthEvent('register', false, req, undefined, { 
+        email: req.body.email,
+        error: data.detail 
+      });
       return res.status(response.status).json(data);
     }
 
@@ -159,9 +194,16 @@ app.post('/api/auth/register', registerRateLimit, async (req, res) => {
       availableInvites: data.availableInvites
     };
 
+    // Log successful registration
+    await logAuthEvent('register', true, req, data.id, { 
+      username: data.username,
+      email: data.email 
+    });
+
     res.status(201).json(data);
   } catch (error) {
     console.error('[Auth] Register error:', error);
+    await logAuthEvent('register', false, req, undefined, { error: 'Internal error' });
     res.status(500).json({ detail: 'Erro ao registrar usuário' });
   }
 });
@@ -177,6 +219,11 @@ app.post('/api/auth/login', loginRateLimit, async (req, res) => {
     const data = await response.json();
     
     if (!response.ok) {
+      // Log failed login
+      await logAuthEvent('login', false, req, undefined, { 
+        email: req.body.email,
+        error: data.detail 
+      });
       return res.status(response.status).json(data);
     }
 
@@ -189,20 +236,32 @@ app.post('/api/auth/login', loginRateLimit, async (req, res) => {
       availableInvites: data.availableInvites
     };
 
+    // Log successful login
+    await logAuthEvent('login', true, req, data.id, { 
+      username: data.username,
+      email: data.email 
+    });
+
     res.json(data);
   } catch (error) {
     console.error('[Auth] Login error:', error);
+    await logAuthEvent('login', false, req, undefined, { error: 'Internal error' });
     res.status(500).json({ detail: 'Erro ao fazer login' });
   }
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy((err) => {
+app.post('/api/auth/logout', async (req, res) => {
+  const userId = req.session.userId;
+  
+  req.session.destroy(async (err) => {
     if (err) {
       console.error('[Auth] Logout error:', err);
+      await logAuthEvent('logout', false, req, userId, { error: 'Session destroy failed' });
       return res.status(500).json({ detail: 'Erro ao fazer logout' });
     }
+    
     res.clearCookie('connect.sid');
+    await logAuthEvent('logout', true, req, userId);
     res.json({ message: 'Logout successful' });
   });
 });
@@ -219,12 +278,18 @@ app.post('/api/auth/request-reset', async (req, res) => {
     const data = await response.json();
     
     if (!response.ok) {
+      await logAuthEvent('password_reset_request', false, req, undefined, { 
+        email: req.body.email,
+        error: data.detail 
+      });
       return res.status(response.status).json(data);
     }
 
+    await logAuthEvent('password_reset_request', true, req, undefined, { email: req.body.email });
     res.json(data);
   } catch (error) {
     console.error('[Auth] Request reset error:', error);
+    await logAuthEvent('password_reset_request', false, req, undefined, { error: 'Internal error' });
     res.status(500).json({ detail: 'Erro ao solicitar redefinição de senha' });
   }
 });
@@ -261,12 +326,15 @@ app.post('/api/auth/reset-password', async (req, res) => {
     const data = await response.json();
     
     if (!response.ok) {
+      await logAuthEvent('password_reset_complete', false, req, undefined, { error: data.detail });
       return res.status(response.status).json(data);
     }
 
+    await logAuthEvent('password_reset_complete', true, req, undefined);
     res.json(data);
   } catch (error) {
     console.error('[Auth] Reset password error:', error);
+    await logAuthEvent('password_reset_complete', false, req, undefined, { error: 'Internal error' });
     res.status(500).json({ detail: 'Erro ao redefinir senha' });
   }
 });
@@ -351,6 +419,46 @@ app.get('/api/invites/my-codes', async (req, res) => {
   } catch (error) {
     console.error('[Invites] List error:', error);
     res.status(500).json({ detail: 'Erro ao listar códigos de convite' });
+  }
+});
+
+// ============================================
+// AUDIT LOG ROUTES (Protected)
+// ============================================
+
+app.get('/api/audit/logs', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const { action, success, limit = '50', offset = '0' } = req.query;
+    
+    // Build query params
+    const params = new URLSearchParams({
+      user_id: req.session.userId,
+      limit: limit as string,
+      offset: offset as string
+    });
+    
+    if (action) params.append('action', action as string);
+    if (success !== undefined) params.append('success', success as string);
+    
+    const response = await fetch(`http://localhost:5001/api/audit/logs?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Audit] Get logs error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar logs de auditoria' });
   }
 });
 

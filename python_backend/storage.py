@@ -943,6 +943,100 @@ class PostgresStorage:
             """, hashed_password, user_id)
             
             return result == "UPDATE 1"
+    
+    # ============================================
+    # AUDIT LOGGING OPERATIONS
+    # ============================================
+    
+    async def create_audit_log(
+        self,
+        action: str,
+        success: bool,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        metadata: Optional[dict] = None
+    ) -> str:
+        """Create an audit log entry"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            log_id = str(uuid.uuid4())
+            success_str = "true" if success else "false"
+            
+            # Pass dict directly to asyncpg - it handles JSONB natively
+            await conn.execute("""
+                INSERT INTO login_audit (id, user_id, action, success, ip_address, user_agent, metadata)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+            """, log_id, user_id, action, success_str, ip_address, user_agent, metadata)
+            
+            return log_id
+    
+    async def get_audit_logs(
+        self,
+        user_id: Optional[str] = None,
+        action: Optional[str] = None,
+        success: Optional[bool] = None,
+        limit: int = 50,
+        offset: int = 0
+    ) -> List[dict]:
+        """Get audit logs with optional filters"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        # Build dynamic query with filters
+        conditions = []
+        params = []
+        param_count = 1
+        
+        if user_id:
+            conditions.append(f"user_id = ${param_count}")
+            params.append(user_id)
+            param_count += 1
+        
+        if action:
+            conditions.append(f"action = ${param_count}")
+            params.append(action)
+            param_count += 1
+        
+        if success is not None:
+            success_str = "true" if success else "false"
+            conditions.append(f"success = ${param_count}")
+            params.append(success_str)
+            param_count += 1
+        
+        where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+        
+        # Add limit and offset
+        params.append(limit)
+        params.append(offset)
+        
+        query = f"""
+            SELECT id, user_id as "userId", action, success, ip_address as "ipAddress",
+                   user_agent as "userAgent", metadata, timestamp
+            FROM login_audit
+            {where_clause}
+            ORDER BY timestamp DESC
+            LIMIT ${param_count} OFFSET ${param_count + 1}
+        """
+        
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(query, *params)
+            
+            return [
+                {
+                    "id": row['id'],
+                    "userId": row['userId'],
+                    "action": row['action'],
+                    "success": row['success'] == "true",
+                    "ipAddress": row['ipAddress'],
+                    "userAgent": row['userAgent'],
+                    "metadata": row['metadata'],
+                    "timestamp": row['timestamp']
+                }
+                for row in rows
+            ]
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""

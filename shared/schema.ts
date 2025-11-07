@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, json, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -111,6 +111,47 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
 
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+// ============================================
+// AUDIT LOGGING SYSTEM
+// ============================================
+
+// Auth action types for audit logging
+export const authActionEnum = z.enum([
+  "login",
+  "register",
+  "logout",
+  "password_reset_request",
+  "password_reset_complete",
+]);
+
+export type AuthAction = z.infer<typeof authActionEnum>;
+
+// Login Audit - Tracks all authentication events for security monitoring
+export const loginAudit = pgTable("login_audit", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id"), // Nullable - failed attempts may not have valid user
+  action: text("action").notNull(), // login, register, logout, password_reset_request, etc.
+  success: text("success").notNull(), // "true" or "false" as text for consistency
+  ipAddress: varchar("ip_address", { length: 45 }), // IPv6 max length
+  userAgent: text("user_agent"),
+  metadata: json("metadata").$type<Record<string, any>>(), // Additional context (email attempted, error message, etc.)
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+}, (table) => ({
+  // Indexes for optimized queries
+  userIdIdx: index("login_audit_user_id_idx").on(table.userId),
+  actionIdx: index("login_audit_action_idx").on(table.action),
+  successIdx: index("login_audit_success_idx").on(table.success),
+  timestampIdx: index("login_audit_timestamp_idx").on(table.timestamp),
+}));
+
+export const insertLoginAuditSchema = createInsertSchema(loginAudit).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertLoginAudit = z.infer<typeof insertLoginAuditSchema>;
+export type LoginAudit = typeof loginAudit.$inferSelect;
 
 // Category type for expert specializations
 export const categoryTypeEnum = z.enum([

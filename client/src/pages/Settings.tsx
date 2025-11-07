@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Ticket, Copy, Check, Plus, User, Calendar } from 'lucide-react';
+import { Ticket, Copy, Check, Plus, User, Calendar, Shield, CheckCircle2, XCircle } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface InviteCode {
@@ -16,6 +16,17 @@ interface InviteCode {
   usedAt: string | null;
 }
 
+interface AuditLog {
+  id: string;
+  userId: string | null;
+  action: string;
+  success: boolean;
+  ipAddress: string | null;
+  userAgent: string | null;
+  metadata: Record<string, any> | null;
+  timestamp: string;
+}
+
 function SettingsContent() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
@@ -23,6 +34,10 @@ function SettingsContent() {
 
   const { data: inviteCodes = [], isLoading } = useQuery<InviteCode[]>({
     queryKey: ['/api/invites/my-codes'],
+  });
+
+  const { data: auditLogs = [], isLoading: logsLoading } = useQuery<AuditLog[]>({
+    queryKey: ['/api/audit/logs'],
   });
 
   const generateMutation = useMutation({
@@ -194,6 +209,100 @@ function SettingsContent() {
                   </div>
                 ))}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-accent" />
+              Histórico de Segurança
+            </CardTitle>
+            <CardDescription>
+              Atividades recentes de autenticação na sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {logsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Nenhuma atividade registrada ainda</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {auditLogs.slice(0, 10).map((log) => {
+                  const actionLabels: Record<string, string> = {
+                    login: 'Login',
+                    register: 'Registro',
+                    logout: 'Logout',
+                    password_reset_request: 'Solicitação de Reset',
+                    password_reset_complete: 'Senha Redefinida'
+                  };
+                  
+                  return (
+                    <div
+                      key={log.id}
+                      className="flex items-start gap-4 p-4 rounded-xl border bg-card/50"
+                      data-testid={`audit-log-${log.id}`}
+                    >
+                      <div className="shrink-0 mt-0.5">
+                        {log.success ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-red-500" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium">
+                            {actionLabels[log.action] || log.action}
+                          </span>
+                          <Badge variant={log.success ? "default" : "destructive"} className="text-xs">
+                            {log.success ? 'Sucesso' : 'Falha'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(log.timestamp)}
+                          </div>
+                          
+                          {log.ipAddress && (
+                            <div className="truncate">
+                              IP: {log.ipAddress}
+                            </div>
+                          )}
+                          
+                          {log.metadata?.email && (
+                            <div className="truncate">
+                              Email: {log.metadata.email}
+                            </div>
+                          )}
+                          
+                          {!log.success && log.metadata?.error && (
+                            <div className="text-red-500 text-xs mt-1">
+                              {log.metadata.error}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {auditLogs.length > 10 && (
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                Mostrando as 10 atividades mais recentes
+              </p>
             )}
           </CardContent>
         </Card>

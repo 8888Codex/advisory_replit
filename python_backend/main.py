@@ -337,6 +337,49 @@ async def reset_password(data: ResetPasswordRequest):
     return {"message": "Senha redefinida com sucesso"}
 
 # ============================================
+# AUDIT LOGGING
+# ============================================
+
+class AuditLogRequest(BaseModel):
+    action: str
+    success: bool
+    userId: Optional[str] = None
+    ipAddress: Optional[str] = None
+    userAgent: Optional[str] = None
+    metadata: Optional[dict] = None
+
+@app.post("/api/audit/log")
+async def create_audit_log(data: AuditLogRequest):
+    """Create an audit log entry (called by Express middleware)"""
+    log_id = await storage.create_audit_log(
+        action=data.action,
+        success=data.success,
+        user_id=data.userId,
+        ip_address=data.ipAddress,
+        user_agent=data.userAgent,
+        metadata=data.metadata
+    )
+    return {"id": log_id}
+
+@app.get("/api/audit/logs")
+async def get_audit_logs(
+    user_id: str,
+    action: Optional[str] = None,
+    success: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """Get audit logs for current user"""
+    logs = await storage.get_audit_logs(
+        user_id=user_id,
+        action=action,
+        success=success,
+        limit=limit,
+        offset=offset
+    )
+    return logs
+
+# ============================================
 # INVITE CODE MANAGEMENT
 # ============================================
 
