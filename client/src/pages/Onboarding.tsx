@@ -506,7 +506,7 @@ export default function Onboarding() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
                               {ENRICHMENT_LEVELS.map((level) => {
                                 const Icon = level.icon;
                                 const isSelected = field.value === level.id;
@@ -516,7 +516,7 @@ export default function Onboarding() {
                                     key={level.id}
                                     type="button"
                                     onClick={() => field.onChange(level.id)}
-                                    className={`relative rounded-2xl p-6 text-left transition-all duration-200 hover-elevate ${
+                                    className={`relative rounded-2xl p-5 md:p-6 text-left transition-all duration-200 hover-elevate ${
                                       isSelected
                                         ? "border-2 border-accent bg-accent/5"
                                         : "border border-border/50"
@@ -524,36 +524,38 @@ export default function Onboarding() {
                                     data-testid={`card-enrichment-level-${level.id}`}
                                   >
                                     {level.recommended && (
-                                      <Badge className="absolute top-3 right-3 bg-accent text-white text-xs">
+                                      <Badge className="absolute top-4 right-4 bg-accent text-white text-xs px-2.5 py-0.5">
                                         Recomendado
                                       </Badge>
                                     )}
                                     
-                                    <div className="flex items-center gap-3 mb-3">
-                                      <div className={`p-2 rounded-lg ${isSelected ? "bg-accent/10" : "bg-muted"}`}>
+                                    <div className="flex items-start gap-3 mb-4">
+                                      <div className={`p-2.5 rounded-lg flex-shrink-0 ${isSelected ? "bg-accent/10" : "bg-muted"}`}>
                                         <Icon className={`w-5 h-5 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
                                       </div>
-                                      <div>
-                                        <h4 className="font-medium">{level.name}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                          <Clock className="w-3 h-3" />
-                                          <span>{level.duration}</span>
-                                          <Badge variant="outline" className="ml-1 text-xs">
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="font-semibold text-base mb-1">{level.name}</h4>
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                          <div className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            <span>{level.duration}</span>
+                                          </div>
+                                          <Badge variant="outline" className="text-xs px-1.5 py-0">
                                             {level.modules} módulos
                                           </Badge>
                                         </div>
                                       </div>
                                     </div>
 
-                                    <p className="text-sm text-muted-foreground mb-4">
+                                    <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                                       {level.description}
                                     </p>
 
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-2.5">
                                       {level.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-sm">
+                                        <li key={idx} className="flex items-start gap-2.5 text-sm">
                                           <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isSelected ? "text-accent" : "text-muted-foreground"}`} />
-                                          <span className="text-muted-foreground">{feature}</span>
+                                          <span className="text-muted-foreground leading-snug">{feature}</span>
                                         </li>
                                       ))}
                                     </ul>
