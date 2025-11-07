@@ -28,6 +28,7 @@ class ExpertCloneBase(ABC):
         self.title: str = ""
         self.expertise: List[str] = []
         self.bio: str = ""
+        self.avatar: str = ""  # Avatar path (e.g., /avatars/philip-kotler.png)
         
         # Temporal Context
         self.active_years: str = ""

@@ -57,11 +57,11 @@ async def startup_event():
     await storage.initialize()
     print("[Startup] PostgreSQL storage initialized successfully")
     
-    # Seed marketing legends
-    print("[Startup] Seeding marketing legends...")
-    await seed_legends(storage)
-    experts_count = len(await storage.get_experts())
-    print(f"[Startup] Seeded {experts_count} marketing legends successfully.")
+    # NOTE: Seed experts are now served from CloneRegistry (18 HIGH_FIDELITY experts with avatars)
+    # PostgreSQL only stores CUSTOM experts created by users via /api/experts/auto-clone
+    # Seeding disabled to prevent duplicates
+    # await seed_legends(storage)
+    print("[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.")
 
 @app.on_event("shutdown")
 async def shutdown_event():

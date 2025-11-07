@@ -14,6 +14,29 @@ from pathlib import Path
 from .base import ExpertCloneBase
 
 
+# Avatar mapping for seed marketing legends
+SEED_EXPERT_AVATARS = {
+    "Philip Kotler": "/avatars/philip-kotler.png",
+    "David Ogilvy": "/avatars/david-ogilvy.png",
+    "Claude Hopkins": "/avatars/claude-hopkins.png",
+    "David Aaker": "/avatars/david-aaker.png",
+    "Jay Levinson": "/avatars/jay-levinson.png",
+    "Al Ries": "/avatars/al-ries.png",
+    "Simon Sinek": "/avatars/simon-sinek.png",
+    "Donald Miller": "/avatars/donald-miller.png",
+    "Dan Kennedy": "/avatars/dan-kennedy.png",
+    "Eugene Schwartz": "/avatars/eugene-schwartz.png",
+    "Drayton Bird": "/avatars/drayton-bird.png",
+    "Robert Cialdini": "/avatars/robert-cialdini.png",
+    "Daniel Kahneman": "/avatars/daniel-kahneman.png",
+    "Seth Godin": "/avatars/seth-godin.png",
+    "Ann Handley": "/avatars/ann-handley.png",
+    "Neil Patel": "/avatars/neil-patel.png",
+    "Gary Vaynerchuk": "/avatars/gary-vaynerchuk.jpg",
+    "Jay Abraham": "/avatars/jay-abraham.png",
+}
+
+
 class CloneRegistry:
     """
     Singleton registry for all expert cognitive clones.
@@ -81,6 +104,10 @@ class CloneRegistry:
                         try:
                             clone_instance = obj()
                             clone_name = clone_instance.name
+                            
+                            # Apply avatar for seed experts
+                            if clone_name in SEED_EXPERT_AVATARS:
+                                clone_instance.avatar = SEED_EXPERT_AVATARS[clone_name]
                             
                             # Validate clone
                             is_valid, errors = clone_instance.validate()

@@ -6,6 +6,20 @@ O Conselho is a premium AI consultancy platform offering expert advice through c
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (November 7, 2025)
+
+### Avatar Integration Completed
+- **Fixed duplicate seeding**: Disabled redundant `seed_legends()` call in Python backend startup to prevent 36 duplicate experts (18 from CloneRegistry + 18 from PostgreSQL).
+- **Centralized avatar mapping**: Created `SEED_EXPERT_AVATARS` dictionary in `python_backend/clones/registry.py` mapping all 18 seed experts to their avatar paths (e.g., `/avatars/philip-kotler.png`).
+- **Automatic avatar assignment**: CloneRegistry now automatically applies avatars to seed experts during instantiation via `clone_instance.avatar = SEED_EXPERT_AVATARS[clone_name]`.
+- **Fixed name mismatches**: Corrected expert names in avatar mapping ("Al Ries & Jack Trout" → "Al Ries", "Claude C. Hopkins" → "Claude Hopkins").
+- **Verified integration**: All 18 seed experts now have valid avatar paths. Landing page displays 19 avatar images with zero 404 errors. End-to-end test confirmed successful loading.
+
+### Architecture Clarification
+- **CloneRegistry**: 18 seed HIGH_FIDELITY experts with avatars (in-memory Python classes).
+- **PostgreSQL**: Only stores CUSTOM user-created experts from `/api/experts/auto-clone`.
+- **API `/api/experts`**: Combines CloneRegistry seed experts + PostgreSQL custom experts for complete expert list.
+
 ## System Architecture
 
 ### UI/UX Decisions
