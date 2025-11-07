@@ -53,7 +53,12 @@ declare module 'express-session' {
 // Start Python backend automatically
 function startPythonBackend() {
   log("Starting Python backend on port 5001...");
-  const pythonProcess = spawn('python3', ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '5001', '--reload'], {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '5001'];
+  if (isDevelopment) {
+    uvicornArgs.push('--reload');
+  }
+  const pythonProcess = spawn('python3', uvicornArgs, {
     cwd: 'python_backend',
     stdio: ['ignore', 'pipe', 'pipe']
   });
