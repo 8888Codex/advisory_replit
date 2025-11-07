@@ -1275,16 +1275,108 @@ Retorne APENAS JSON válido."""
             
             expert_data = json.loads(json_match.group(0))
             
-            # Add metadata
-            expert_data["categories"] = []
-            expert_data["type"] = "CUSTOM"
-            expert_data["stories"] = []
-            expert_data["avatar"] = None
-            
             yield send_event("step-complete", {
                 "step": "synthesizing",
                 "message": "✅ Clone cognitivo sintetizado com sucesso!"
             })
+            
+            # Disney Effect #3: Auto-generate professional avatar
+            yield send_event("step-start", {
+                "step": "avatar-generation",
+                "message": "🎨 Gerando avatar profissional..."
+            })
+            
+            avatar_path = None
+            try:
+                # Search for professional headshot/portrait
+                search_query = f"{targetName} professional headshot portrait"
+                
+                yield send_event("step-progress", {
+                    "step": "avatar-generation",
+                    "message": f"Buscando foto profissional de {targetName}..."
+                })
+                
+                # Use httpx to search Unsplash API for professional images
+                unsplash_access_key = "oRHXEqW-2Oa-w6BjcKZZy3RH_80svgXRbIJlJRAL_5k"  # Public demo key
+                
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    unsplash_response = await client.get(
+                        "https://api.unsplash.com/search/photos",
+                        params={
+                            "query": search_query,
+                            "per_page": 1,
+                            "orientation": "squarish"
+                        },
+                        headers={
+                            "Authorization": f"Client-ID {unsplash_access_key}"
+                        }
+                    )
+                    
+                    if unsplash_response.status_code == 200:
+                        unsplash_data = unsplash_response.json()
+                        
+                        if unsplash_data.get("results") and len(unsplash_data["results"]) > 0:
+                            image_url = unsplash_data["results"][0]["urls"]["regular"]
+                            
+                            # Download image
+                            yield send_event("step-progress", {
+                                "step": "avatar-generation",
+                                "message": "Baixando e otimizando avatar..."
+                            })
+                            
+                            image_response = await client.get(image_url)
+                            
+                            if image_response.status_code == 200:
+                                # Save to attached_assets/custom_experts/
+                                custom_experts_dir = Path("attached_assets/custom_experts")
+                                custom_experts_dir.mkdir(parents=True, exist_ok=True)
+                                
+                                # Sanitize filename
+                                safe_name = "".join(c for c in targetName if c.isalnum() or c in (' ', '-', '_')).strip()
+                                avatar_filename = f"{safe_name}.jpg"
+                                avatar_full_path = custom_experts_dir / avatar_filename
+                                
+                                # Resize and optimize with PIL
+                                img = Image.open(io.BytesIO(image_response.content))
+                                
+                                # Resize to 400x400 for optimal avatar size
+                                img = img.resize((400, 400), Image.Resampling.LANCZOS)
+                                
+                                # Convert to RGB if needed
+                                if img.mode != "RGB":
+                                    img = img.convert("RGB")
+                                
+                                # Save as JPEG
+                                img.save(avatar_full_path, "JPEG", quality=85, optimize=True)
+                                
+                                # Set relative path for frontend
+                                avatar_path = f"custom_experts/{avatar_filename}"
+                                
+                                print(f"[AUTO-CLONE-STREAM] ✅ Avatar saved: {avatar_full_path}")
+                
+                if avatar_path:
+                    yield send_event("step-complete", {
+                        "step": "avatar-generation",
+                        "message": "✅ Avatar profissional gerado!"
+                    })
+                else:
+                    yield send_event("step-complete", {
+                        "step": "avatar-generation",
+                        "message": "⚠️ Avatar não encontrado, usando placeholder"
+                    })
+            
+            except Exception as e:
+                print(f"[AUTO-CLONE-STREAM] Avatar generation error: {str(e)}")
+                yield send_event("step-complete", {
+                    "step": "avatar-generation",
+                    "message": "⚠️ Erro ao gerar avatar, usando placeholder"
+                })
+            
+            # Add metadata
+            expert_data["categories"] = []
+            expert_data["type"] = "CUSTOM"
+            expert_data["stories"] = []
+            expert_data["avatar"] = avatar_path  # Set avatar path
             
             # Final expert data
             yield send_event("expert-complete", {

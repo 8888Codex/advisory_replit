@@ -8,14 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedPage } from "@/components/AnimatedPage";
-import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send } from "lucide-react";
+import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Expert } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
-type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "generating-samples" | "complete";
+type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "avatar-generation" | "generating-samples" | "complete";
 
 interface TestMessage {
   role: "user" | "assistant";
@@ -251,6 +251,8 @@ export default function Create() {
         return <Brain className="h-4 w-4" />;
       case "synthesizing":
         return <Wand2 className="h-4 w-4" />;
+      case "avatar-generation":
+        return <Image className="h-4 w-4" />;
       case "generating-samples":
         return <MessageSquare className="h-4 w-4" />;
       case "complete":
@@ -268,6 +270,8 @@ export default function Create() {
         return "Analisando padrões cognitivos e expertise...";
       case "synthesizing":
         return "Sintetizando clone de alta fidelidade...";
+      case "avatar-generation":
+        return "🎨 Gerando avatar profissional...";
       case "generating-samples":
         return "✨ Gerando amostras de conversa para preview...";
       case "complete":
@@ -277,7 +281,7 @@ export default function Create() {
     }
   };
 
-  const isProcessing = ["researching", "analyzing", "synthesizing", "generating-samples"].includes(cloneStep);
+  const isProcessing = ["researching", "analyzing", "synthesizing", "avatar-generation", "generating-samples"].includes(cloneStep);
 
   return (
     <AnimatedPage>
@@ -365,10 +369,11 @@ export default function Create() {
                                 className="bg-accent h-2 rounded-full"
                                 initial={{ width: "0%" }}
                                 animate={{
-                                  width: cloneStep === "researching" ? "25%" :
-                                         cloneStep === "analyzing" ? "50%" :
-                                         cloneStep === "synthesizing" ? "75%" :
-                                         cloneStep === "generating-samples" ? "90%" : "0%"
+                                  width: cloneStep === "researching" ? "20%" :
+                                         cloneStep === "analyzing" ? "40%" :
+                                         cloneStep === "synthesizing" ? "60%" :
+                                         cloneStep === "avatar-generation" ? "80%" :
+                                         cloneStep === "generating-samples" ? "95%" : "0%"
                                 }}
                                 transition={{ duration: 0.5, ease: "easeOut" }}
                               />
@@ -377,14 +382,15 @@ export default function Create() {
                         </div>
                         
                         {/* Individual step indicators */}
-                        <div className="grid grid-cols-4 gap-2 mt-4">
-                          {["researching", "analyzing", "synthesizing", "generating-samples"].map((step, index) => {
+                        <div className="grid grid-cols-5 gap-2 mt-4">
+                          {["researching", "analyzing", "synthesizing", "avatar-generation", "generating-samples"].map((step, index) => {
                             const stepNumber = index + 1;
                             const isActive = cloneStep === step;
                             const isComplete = 
-                              (step === "researching" && ["analyzing", "synthesizing", "generating-samples", "complete"].includes(cloneStep)) ||
-                              (step === "analyzing" && ["synthesizing", "generating-samples", "complete"].includes(cloneStep)) ||
-                              (step === "synthesizing" && ["generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "researching" && ["analyzing", "synthesizing", "avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "analyzing" && ["synthesizing", "avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "synthesizing" && ["avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "avatar-generation" && ["generating-samples", "complete"].includes(cloneStep)) ||
                               (step === "generating-samples" && cloneStep === "complete");
                             
                             return (
@@ -402,6 +408,7 @@ export default function Create() {
                                 {step === "researching" && "🔍 Pesquisa"}
                                 {step === "analyzing" && "🧠 Análise"}
                                 {step === "synthesizing" && "✨ Síntese"}
+                                {step === "avatar-generation" && "🎨 Avatar"}
                                 {step === "generating-samples" && "💬 Amostras"}
                               </motion.div>
                             );
@@ -446,6 +453,13 @@ export default function Create() {
                 <div className="space-y-6">
                   <div className="flex items-start gap-6">
                     <Avatar className="h-24 w-24 ring-1 ring-border/50">
+                      {generatedExpert.avatar && (
+                        <AvatarImage 
+                          src={`/attached_assets/${generatedExpert.avatar}`} 
+                          alt={generatedExpert.name}
+                          className="object-cover"
+                        />
+                      )}
                       <AvatarFallback className="text-xl font-medium">{initials}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
