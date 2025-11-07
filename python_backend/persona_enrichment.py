@@ -9,7 +9,7 @@ UPDATED: Now integrates 8-Module Deep Persona System (Quick/Strategic/Complete)
 
 import asyncio
 import os
-from typing import List, Dict, Any, Literal
+from typing import List, Dict, Any, Literal, Optional
 from models import UserPersona, PersonaEnrichmentResult
 from tools.youtube_api import YouTubeAPITool
 from persona_generator import PersonaOrchestrator
@@ -330,7 +330,7 @@ async def enrich_persona_with_deep_modules(
     persona_id: str,
     level: Literal["quick", "strategic", "complete"],
     storage,
-    existing_modules: Dict[str, Any] = None
+    existing_modules: Optional[Dict[str, Any]] = None
 ) -> UserPersona:
     """
     COMPREHENSIVE PERSONA ENRICHMENT - YouTube + 8-Module Deep Analysis

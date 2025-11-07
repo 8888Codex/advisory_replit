@@ -188,12 +188,18 @@ async def create_expert(data: ExpertCreate):
 @app.post("/api/experts/auto-clone", response_model=ExpertCreate, status_code=200)
 async def auto_clone_expert(data: AutoCloneRequest):
     """
-    Auto-clone a cognitive expert from minimal input.
+    Auto-clone a cognitive expert from minimal input using multi-source research.
     
     Process:
-    1. Use Perplexity to research target person (biography, philosophy, methods)
-    2. Use Claude to synthesize research into EXTRACT system prompt
-    3. Return ExpertCreate data (NOT persisted yet - user must explicitly save)
+    1. Perplexity API: Research biography, philosophy, methods, frameworks
+    2. YouTube API: Search for videos, lectures, interviews (top 10 most relevant)
+    3. Claude Synthesis: Create EXTRACT system prompt (20 points) from combined research
+    4. Return ExpertCreate data (NOT persisted yet - user must explicitly save)
+    
+    YouTube integration provides:
+    - Video titles, channels, view counts, likes, publish dates
+    - Insights into communication style and public appearances
+    - Verification of authenticity through real content
     """
     try:
         import httpx
@@ -257,13 +263,69 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
         if not research_findings:
             raise ValueError("Nenhum resultado de pesquisa foi encontrado")
         
-        # Step 2: Claude synthesis into EXTRACT system prompt
+        # Step 2: YouTube research (videos, lectures, interviews)
+        youtube_data_str = ""
+        youtube_api_key = os.getenv("YOUTUBE_API_KEY")
+        
+        if youtube_api_key:
+            try:
+                from tools.youtube_api import YouTubeAPITool
+                
+                print(f"[AUTO-CLONE] Searching YouTube for videos of {data.targetName}...")
+                youtube_api = YouTubeAPITool()
+                
+                # Generate search queries for the target person
+                queries = [
+                    f"{data.targetName} palestra",
+                    f"{data.targetName} entrevista",
+                    f"{data.targetName} talk",
+                    f"{data.targetName} keynote"
+                ]
+                
+                # Search YouTube for each query (max 5 videos per query)
+                youtube_results = []
+                for query in queries[:2]:  # Limit to 2 queries to avoid rate limits
+                    result = await youtube_api.search_videos(
+                        query=query,
+                        max_results=5,
+                        order="relevance",
+                        region_code="BR"
+                    )
+                    
+                    if result.get("videos"):
+                        youtube_results.extend(result["videos"])
+                        print(f"[AUTO-CLONE] Query '{query}': Found {len(result['videos'])} videos")
+                
+                await youtube_api.close()
+                
+                # Format YouTube data for synthesis
+                if youtube_results:
+                    youtube_data_str = "\n\nVÍDEOS E PALESTRAS ENCONTRADOS NO YOUTUBE:\n"
+                    for i, video in enumerate(youtube_results[:10], 1):  # Top 10 videos
+                        youtube_data_str += f"\n{i}. **{video['title']}**\n"
+                        youtube_data_str += f"   - Canal: {video['channelTitle']}\n"
+                        youtube_data_str += f"   - Visualizações: {video['statistics']['viewCount']:,}\n"
+                        youtube_data_str += f"   - Likes: {video['statistics']['likeCount']:,}\n"
+                        youtube_data_str += f"   - Data: {video['publishedAt'][:10]}\n"
+                        youtube_data_str += f"   - URL: {video['url']}\n"
+                    
+                    print(f"[AUTO-CLONE] Total YouTube videos found: {len(youtube_results)}")
+                else:
+                    print(f"[AUTO-CLONE] No YouTube videos found for {data.targetName}")
+            
+            except Exception as e:
+                print(f"[AUTO-CLONE] YouTube API error (non-critical): {str(e)}")
+                # Continue without YouTube data - it's supplementary, not critical
+        else:
+            print("[AUTO-CLONE] YouTube API key not configured - skipping video research")
+        
+        # Step 3: Claude synthesis into EXTRACT system prompt
         anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         
         synthesis_prompt = f"""Você é um especialista em clonagem cognitiva usando o Framework EXTRACT de 20 pontos.
 
 PESQUISA SOBRE {data.targetName}:
-{research_findings}
+{research_findings}{youtube_data_str}
 
 TAREFA: Sintetize essas informações em um system prompt EXTRACT COMPLETO (20 pontos) de MÁXIMA FIDELIDADE COGNITIVA (19-20/20).
 
