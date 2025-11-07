@@ -2,11 +2,46 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { spawn } from 'child_process';
 import path from 'path';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedExperts } from "./seed";
 
 const app = express();
+
+// Session configuration with PostgreSQL store
+const PgSession = connectPgSimple(session);
+
+app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session',
+    createTableIfMissing: true
+  }),
+  secret: process.env.SESSION_SECRET || 'o-conselho-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
+}));
+
+// Extend session type
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    user?: {
+      id: string;
+      username: string;
+      email: string;
+      availableInvites: number;
+    };
+  }
+}
 
 // Start Python backend automatically
 function startPythonBackend() {
@@ -39,13 +74,162 @@ function startPythonBackend() {
 
 const pythonBackend = startPythonBackend();
 
-// Proxy all /api requests to Python backend BEFORE any other middleware
+// Parse JSON and URL-encoded bodies BEFORE auth routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// ============================================
+// AUTHENTICATION ROUTES
+// ============================================
+// These must be BEFORE the general proxy to intercept auth calls
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    // Create session on successful registration
+    req.session.userId = data.id;
+    req.session.user = {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      availableInvites: data.availableInvites
+    };
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('[Auth] Register error:', error);
+    res.status(500).json({ detail: 'Erro ao registrar usuário' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    // Create session on successful login
+    req.session.userId = data.id;
+    req.session.user = {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      availableInvites: data.availableInvites
+    };
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Auth] Login error:', error);
+    res.status(500).json({ detail: 'Erro ao fazer login' });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('[Auth] Logout error:', err);
+      return res.status(500).json({ detail: 'Erro ao fazer logout' });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logout successful' });
+  });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  if (!req.session.userId || !req.session.user) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  res.json(req.session.user);
+});
+
+// ============================================
+// INVITE CODE MANAGEMENT ROUTES (Protected)
+// ============================================
+// These must be authenticated and forward only session userId to Python
+
+app.post('/api/invites/generate', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Call Python with authenticated user ID only
+    const response = await fetch(`http://localhost:5001/api/invites/generate?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('[Invites] Generate error:', error);
+    res.status(500).json({ detail: 'Erro ao gerar código de convite' });
+  }
+});
+
+app.get('/api/invites/my-codes', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Call Python with authenticated user ID only
+    const response = await fetch(`http://localhost:5001/api/invites/my-codes?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Invites] List error:', error);
+    res.status(500).json({ detail: 'Erro ao listar códigos de convite' });
+  }
+});
+
+// Proxy all OTHER /api requests to Python backend (EXCEPT auth and invites handled above)
 // This ensures the request body is not consumed by express.json()
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001',
   pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
+  // Exclude auth and invite endpoints (handled by Express middleware above)
+  // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
+  filter: (pathname, req) => {
+    // Block /auth/* and /invites/* from being proxied
+    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites');
+  },
   // SSE-specific configuration for streaming endpoints
   on: {
     proxyReq: (proxyReq, req, res) => {
@@ -78,18 +262,6 @@ app.use('/api', createProxyMiddleware({
     }
   }
 }));
-
-declare module 'http' {
-  interface IncomingMessage {
-    rawBody: unknown
-  }
-}
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();

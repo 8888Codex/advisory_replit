@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.71.0",
     "asyncpg>=0.30.0",
+    "bcrypt>=5.0.0",
     "crewai>=1.1.0",
     "crewai-tools>=1.1.0",
     "fastapi>=0.119.1",

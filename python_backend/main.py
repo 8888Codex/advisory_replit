@@ -32,6 +32,8 @@ from llm_router import llm_router, LLMTask
 from analytics import AnalyticsEngine
 from seed_analytics import seed_analytics_data, clear_analytics_data
 from clones.registry import CloneRegistry
+import bcrypt
+import secrets
 
 app = FastAPI(title="O Conselho - Marketing Legends API")
 
@@ -72,6 +74,145 @@ async def shutdown_event():
 @app.get("/")
 async def root():
     return {"message": "O Conselho Marketing Legends API", "status": "running"}
+
+# ============================================
+# AUTHENTICATION MODELS
+# ============================================
+
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    inviteCode: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    username: str
+    email: str
+    availableInvites: int
+    createdAt: datetime
+
+# ============================================
+# AUTHENTICATION ENDPOINTS
+# ============================================
+
+@app.post("/api/auth/register", response_model=UserResponse, status_code=201)
+async def register_user(data: RegisterRequest):
+    """Register new user with invite code"""
+    
+    # Validate invite code
+    invite = await storage.get_invite(data.inviteCode)
+    if not invite:
+        raise HTTPException(status_code=400, detail="Código de convite inválido")
+    
+    if invite["usedBy"]:
+        raise HTTPException(status_code=400, detail="Este código de convite já foi utilizado")
+    
+    # Check if email already exists
+    existing_user = await storage.get_user_by_email(data.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+    
+    # Hash password
+    password_hash = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Create user
+    user = await storage.create_user(data.username, data.email, password_hash)
+    
+    # Mark invite as used
+    await storage.use_invite(data.inviteCode, user["id"])
+    
+    # Decrement creator's available invites
+    creator = await storage.get_user_by_id(invite["creatorId"])
+    if creator and creator["availableInvites"] > 0:
+        await storage.update_user_invites(invite["creatorId"], creator["availableInvites"] - 1)
+    
+    return UserResponse(**user)
+
+@app.post("/api/auth/login", response_model=UserResponse)
+async def login_user(data: LoginRequest):
+    """Login user with email and password"""
+    
+    # Get user by email
+    user = await storage.get_user_by_email(data.email)
+    if not user:
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+    
+    # Verify password
+    if not bcrypt.checkpw(data.password.encode('utf-8'), user["password"].encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+    
+    # Return user without password
+    return UserResponse(
+        id=user["id"],
+        username=user["username"],
+        email=user["email"],
+        availableInvites=user["availableInvites"],
+        createdAt=user["createdAt"]
+    )
+
+@app.post("/api/auth/logout")
+async def logout_user():
+    """Logout user (session management handled by Express)"""
+    return {"message": "Logout successful"}
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user(user_id: str):
+    """Get current authenticated user (user_id passed from Express session)"""
+    user = await storage.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+    
+    return UserResponse(
+        id=user["id"],
+        username=user["username"],
+        email=user["email"],
+        availableInvites=user["availableInvites"],
+        createdAt=user["createdAt"]
+    )
+
+# ============================================
+# INVITE CODE MANAGEMENT
+# ============================================
+
+class InviteCodeResponse(BaseModel):
+    id: str
+    code: str
+    creatorId: str
+    usedBy: Optional[str]
+    usedAt: Optional[datetime]
+    createdAt: datetime
+
+@app.post("/api/invites/generate", response_model=InviteCodeResponse, status_code=201)
+async def generate_invite(user_id: str):
+    """Generate new invite code for user (max 5 total)"""
+    
+    # Get user
+    user = await storage.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Check if user has available invites
+    if user["availableInvites"] <= 0:
+        raise HTTPException(status_code=400, detail="Você atingiu o limite de 5 convites")
+    
+    # Generate random code
+    code = secrets.token_urlsafe(12)[:16].upper().replace("-", "").replace("_", "")
+    
+    # Create invite
+    invite = await storage.create_invite(code, user_id)
+    
+    return InviteCodeResponse(**invite)
+
+@app.get("/api/invites/my-codes", response_model=List[InviteCodeResponse])
+async def get_my_invites(user_id: str):
+    """Get all invite codes created by current user"""
+    invites = await storage.get_user_invites(user_id)
+    return [InviteCodeResponse(**invite) for invite in invites]
 
 # Category metadata mapping
 CATEGORY_METADATA = {

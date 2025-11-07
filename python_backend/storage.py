@@ -548,6 +548,187 @@ class PostgresStorage:
             """, persona_id)
             
             return result == "DELETE 1"
+    
+    # ============================================
+    # USER AUTHENTICATION METHODS
+    # ============================================
+    
+    async def create_user(self, username: str, email: str, password_hash: str) -> dict:
+        """Create a new user with username, email, and hashed password"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            user_id = str(uuid.uuid4())
+            
+            row = await conn.fetchrow("""
+                INSERT INTO users (id, username, email, password, available_invites)
+                VALUES ($1, $2, $3, $4, 5)
+                RETURNING id, username, email, available_invites as "availableInvites", created_at as "createdAt"
+            """, user_id, username, email, password_hash)
+            
+            return {
+                "id": row['id'],
+                "username": row['username'],
+                "email": row['email'],
+                "availableInvites": row['availableInvites'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def get_user_by_email(self, email: str) -> Optional[dict]:
+        """Get user by email address"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, username, email, password, available_invites as "availableInvites", created_at as "createdAt"
+                FROM users
+                WHERE email = $1
+            """, email)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "username": row['username'],
+                "email": row['email'],
+                "password": row['password'],
+                "availableInvites": row['availableInvites'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def get_user_by_id(self, user_id: str) -> Optional[dict]:
+        """Get user by ID"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, username, email, password, available_invites as "availableInvites", created_at as "createdAt"
+                FROM users
+                WHERE id = $1
+            """, user_id)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "username": row['username'],
+                "email": row['email'],
+                "password": row['password'],
+                "availableInvites": row['availableInvites'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def update_user_invites(self, user_id: str, new_count: int) -> bool:
+        """Update user's available invite count"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                UPDATE users
+                SET available_invites = $1
+                WHERE id = $2
+            """, new_count, user_id)
+            
+            return result == "UPDATE 1"
+    
+    # ============================================
+    # INVITE CODE METHODS
+    # ============================================
+    
+    async def create_invite(self, code: str, creator_id: str) -> dict:
+        """Create a new invite code"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            invite_id = str(uuid.uuid4())
+            
+            row = await conn.fetchrow("""
+                INSERT INTO invite_codes (id, code, creator_id)
+                VALUES ($1, $2, $3)
+                RETURNING id, code, creator_id as "creatorId", used_by as "usedBy", 
+                          used_at as "usedAt", created_at as "createdAt"
+            """, invite_id, code, creator_id)
+            
+            return {
+                "id": row['id'],
+                "code": row['code'],
+                "creatorId": row['creatorId'],
+                "usedBy": row['usedBy'],
+                "usedAt": row['usedAt'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def get_invite(self, code: str) -> Optional[dict]:
+        """Get invite code by code string"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, code, creator_id as "creatorId", used_by as "usedBy",
+                       used_at as "usedAt", created_at as "createdAt"
+                FROM invite_codes
+                WHERE code = $1
+            """, code)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "code": row['code'],
+                "creatorId": row['creatorId'],
+                "usedBy": row['usedBy'],
+                "usedAt": row['usedAt'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def use_invite(self, code: str, used_by: str) -> bool:
+        """Mark invite code as used"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                UPDATE invite_codes
+                SET used_by = $1, used_at = NOW()
+                WHERE code = $2 AND used_by IS NULL
+            """, used_by, code)
+            
+            return result == "UPDATE 1"
+    
+    async def get_user_invites(self, creator_id: str) -> List[dict]:
+        """Get all invite codes created by a user"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT id, code, creator_id as "creatorId", used_by as "usedBy",
+                       used_at as "usedAt", created_at as "createdAt"
+                FROM invite_codes
+                WHERE creator_id = $1
+                ORDER BY created_at DESC
+            """, creator_id)
+            
+            return [
+                {
+                    "id": row['id'],
+                    "code": row['code'],
+                    "creatorId": row['creatorId'],
+                    "usedBy": row['usedBy'],
+                    "usedAt": row['usedAt'],
+                    "createdAt": row['createdAt']
+                }
+                for row in rows
+            ]
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""
