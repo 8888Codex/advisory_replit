@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
@@ -20,6 +21,9 @@ import Personas from "@/pages/Personas";
 import CouncilRoom from "@/pages/CouncilRoom";
 import PersonaDashboard from "@/pages/PersonaDashboard";
 import Analytics from "@/pages/Analytics";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Settings from "@/pages/Settings";
 
 function Redirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -34,6 +38,9 @@ function Router() {
     <AnimatePresence mode="wait">
       <Switch location={location} key={location}>
         <Route path="/" component={Landing} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/settings" component={Settings} />
         <Route path="/home" component={Home} />
         <Route path="/welcome">
           <Redirect to="/" />
@@ -62,13 +69,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <Header />
-            <Router />
-          </div>
-          <Toaster />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <div className="min-h-screen bg-background text-foreground">
+              <Header />
+              <Router />
+            </div>
+            <Toaster />
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
