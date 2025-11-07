@@ -11,6 +11,15 @@ Preferred communication style: Simple, everyday language.
 ### UI/UX Decisions
 The platform features an Apple-style minimalist design with a professional dark-mode aesthetic, utilizing a neutral color palette and a coral accent color. UI components are built with `shadcn/ui` on `Radix UI` and styled with `Tailwind CSS`. Headings use `font-semibold` and corners are `rounded-2xl`.
 
+**Visual Standardization (November 2025)**:
+- **Spacing Standard**: `gap-4` (1rem/16px) applied consistently across all major pages for harmonious visual rhythm
+- **Icon Color System** (Home Quick Actions):
+  - Users: `text-purple-500` with `bg-purple-50 dark:bg-purple-950`
+  - Sparkles: `text-amber-500` with `bg-amber-50 dark:bg-amber-950`
+  - TrendingUp: `text-blue-500` with `bg-blue-50 dark:bg-blue-950`
+- **Pages Standardized**: Home, Categories, Landing, Analytics, Personas, TestCouncil all use consistent gap-4 spacing
+- **Design Reference**: Analytics page serves as the aesthetic standard for spacing and layout patterns
+
 ### Technical Implementations
 - **Frontend**: Developed with React 18, TypeScript, Vite, Wouter for routing, and TanStack Query v5 for server state. State management uses TanStack Query for server state and React Context for themes. Forms are handled with `react-hook-form` and Zod.
 - **Backend (Hybrid)**: An Express.js proxy server forwards API requests to a Python/FastAPI backend, handles automatic Python backend startup, and serves the static frontend.
