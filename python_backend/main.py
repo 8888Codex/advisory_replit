@@ -605,6 +605,80 @@ Retorne APENAS JSON válido."""
                     "message": "⚠️ Score estimado: 15/20 pontos"
                 })
             
+            # STEP 7: Infer best category using Claude Haiku
+            yield send_event("step-start", {
+                "step": "category-inference",
+                "message": "Classificando especialização..."
+            })
+            
+            try:
+                category_prompt = f"""Baseado no seguinte especialista, identifique a MELHOR categoria de especialização.
+
+ESPECIALISTA: {targetName}
+TÍTULO: {expert_data.get('title', '')}
+BIO: {expert_data.get('bio', '')[:300]}
+CONTEXTO: {context}
+
+CATEGORIAS DISPONÍVEIS:
+- marketing: Marketing tradicional, estratégia clássica, brand building
+- positioning: Posicionamento estratégico, diferenciação, nicho
+- creative: Publicidade criativa, storytelling visual
+- direct_response: Marketing de resposta direta, funis, copywriting
+- content: Content marketing, blogging, inbound
+- seo: SEO, marketing digital, analytics
+- social: Social media marketing, influencer, redes sociais
+- growth: Growth hacking, loops virais, product-market fit, sistemas de crescimento
+- viral: Marketing viral, word-of-mouth, buzz marketing
+- product: Psicologia do produto, hábitos, UX
+
+Responda APENAS com o ID da categoria (ex: "growth"), nada mais."""
+
+                response = await anthropic_client.messages.create(
+                    model="claude-haiku-4-20250514",
+                    max_tokens=20,
+                    system="Você é um classificador expert. Responda apenas com o ID da categoria.",
+                    messages=[{
+                        "role": "user",
+                        "content": category_prompt
+                    }]
+                )
+                
+                inferred_category = "marketing"  # Default fallback
+                for block in response.content:
+                    if block.type == "text":
+                        inferred_category = block.text.strip().lower()
+                        break
+                
+                # Validate category and convert to CategoryType enum
+                category_map = {
+                    "marketing": CategoryType.MARKETING,
+                    "positioning": CategoryType.POSITIONING,
+                    "creative": CategoryType.CREATIVE,
+                    "direct_response": CategoryType.DIRECT_RESPONSE,
+                    "content": CategoryType.CONTENT,
+                    "seo": CategoryType.SEO,
+                    "social": CategoryType.SOCIAL,
+                    "growth": CategoryType.GROWTH,
+                    "viral": CategoryType.VIRAL,
+                    "product": CategoryType.PRODUCT
+                }
+                
+                inferred_category_enum = category_map.get(inferred_category.lower(), CategoryType.MARKETING)
+                
+                print(f"[AUTO-CLONE-STREAM] Inferred category: {inferred_category} -> {inferred_category_enum.value}")
+                yield send_event("step-complete", {
+                    "step": "category-inference",
+                    "message": f"✅ Categoria: {inferred_category_enum.value}"
+                })
+            
+            except Exception as e:
+                print(f"[AUTO-CLONE-STREAM] Category inference error: {str(e)}")
+                inferred_category_enum = CategoryType.MARKETING
+                yield send_event("step-complete", {
+                    "step": "category-inference",
+                    "message": "⚠️ Categoria padrão: marketing"
+                })
+            
             # Add metadata
             expert_data["categories"] = []
             expert_data["type"] = "CUSTOM"
@@ -612,6 +686,7 @@ Retorne APENAS JSON válido."""
             expert_data["avatar"] = avatar_path  # Set avatar path
             expert_data["cognitiveScore"] = cognitive_score
             expert_data["scoreBreakdown"] = score_breakdown
+            expert_data["category"] = inferred_category_enum.value  # AI-inferred category as string value
             
             # Final expert data
             yield send_event("expert-complete", {
