@@ -1017,6 +1017,298 @@ async def generate_sample_conversations(data: dict):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to generate samples: {str(e)}")
 
+@app.post("/api/experts/auto-clone-stream")
+async def auto_clone_expert_stream(data: AutoCloneRequest):
+    """
+    Stream real-time progress during expert auto-clone process.
+    Disney Effect #2: User sees every step happening live.
+    
+    Events sent:
+    - step-start: When a new step begins (researching, analyzing, synthesizing)
+    - step-progress: Detailed progress within a step
+    - step-complete: When a step finishes
+    - expert-complete: Final expert data
+    - error: If something goes wrong
+    """
+    async def event_generator():
+        try:
+            import httpx
+            from anthropic import AsyncAnthropic
+            
+            def send_event(event_type: str, data: dict):
+                """Format SSE event"""
+                return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+            
+            # STEP 1: Perplexity Research
+            yield send_event("step-start", {
+                "step": "researching",
+                "message": "Pesquisando biografia, filosofia e métodos..."
+            })
+            
+            perplexity_api_key = os.getenv("PERPLEXITY_API_KEY")
+            if not perplexity_api_key:
+                yield send_event("error", {
+                    "message": "Serviço de pesquisa indisponível. Configure PERPLEXITY_API_KEY."
+                })
+                return
+            
+            context_suffix = f" Foco: {data.context}" if data.context else ""
+            research_query = f"""Pesquise informações detalhadas sobre {data.targetName}{context_suffix}.
+
+Forneça:
+1. Biografia completa e trajetória profissional
+2. Filosofia de trabalho e princípios fundamentais
+3. Métodos, frameworks e técnicas específicas
+4. Frases icônicas e terminologia única
+5. Áreas de expertise e contextos de especialidade
+6. Limitações reconhecidas ou fronteiras de atuação
+
+Inclua dados específicos, citações, livros publicados, e exemplos concretos."""
+
+            yield send_event("step-progress", {
+                "step": "researching",
+                "message": f"Consultando base de conhecimento sobre {data.targetName}..."
+            })
+
+            async with httpx.AsyncClient(timeout=90.0) as client:
+                perplexity_response = await client.post(
+                    "https://api.perplexity.ai/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {perplexity_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "sonar-pro",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "Você é um pesquisador especializado em biografias profissionais e análise de personalidades. Forneça informações factuais, detalhadas e específicas."
+                            },
+                            {
+                                "role": "user",
+                                "content": research_query
+                            }
+                        ],
+                        "temperature": 0.2,
+                        "search_recency_filter": "month",
+                        "return_related_questions": False
+                    }
+                )
+            
+            perplexity_data = perplexity_response.json()
+            research_findings = ""
+            if "choices" in perplexity_data and len(perplexity_data["choices"]) > 0:
+                research_findings = perplexity_data["choices"][0]["message"]["content"]
+            
+            if not research_findings:
+                yield send_event("error", {
+                    "message": "Nenhum resultado de pesquisa foi encontrado"
+                })
+                return
+            
+            yield send_event("step-complete", {
+                "step": "researching",
+                "message": f"✅ Pesquisa sobre {data.targetName} concluída"
+            })
+
+            # STEP 2: YouTube Research
+            yield send_event("step-start", {
+                "step": "analyzing",
+                "message": "Analisando vídeos e palestras no YouTube..."
+            })
+            
+            youtube_data_str = ""
+            youtube_api_key = os.getenv("YOUTUBE_API_KEY")
+            
+            if youtube_api_key:
+                try:
+                    from tools.youtube_api import YouTubeAPITool
+                    
+                    yield send_event("step-progress", {
+                        "step": "analyzing",
+                        "message": f"Buscando vídeos e palestras de {data.targetName}..."
+                    })
+                    
+                    youtube_api = YouTubeAPITool()
+                    queries = [
+                        f"{data.targetName} palestra",
+                        f"{data.targetName} entrevista",
+                        f"{data.targetName} talk",
+                        f"{data.targetName} keynote"
+                    ]
+                    
+                    youtube_results = []
+                    for query in queries[:2]:
+                        result = await youtube_api.search_videos(
+                            query=query,
+                            max_results=5,
+                            order="relevance",
+                            region_code="BR"
+                        )
+                        
+                        if result.get("videos"):
+                            youtube_results.extend(result["videos"])
+                    
+                    await youtube_api.close()
+                    
+                    # Extract transcripts
+                    if youtube_results:
+                        yield send_event("step-progress", {
+                            "step": "analyzing",
+                            "message": f"Extraindo transcrições de {len(youtube_results[:5])} vídeos..."
+                        })
+                        
+                        from tools.youtube_transcript import YouTubeTranscriptTool
+                        transcript_tool = YouTubeTranscriptTool()
+                        
+                        transcripts_str = ""
+                        for i, video in enumerate(youtube_results[:5], 1):
+                            video_id = video.get('videoId')
+                            if not video_id:
+                                continue
+                            
+                            transcript = transcript_tool.get_transcript(video_id)
+                            
+                            if transcript:
+                                max_chars = 5000
+                                transcript_preview = transcript[:max_chars]
+                                if len(transcript) > max_chars:
+                                    transcript_preview += "\n... [TRANSCRIÇÃO TRUNCADA]"
+                                
+                                transcripts_str += f"\n\n### TRANSCRIÇÃO {i}: {video['title']}\n{transcript_preview}"
+                        
+                        # Build YouTube summary
+                        if youtube_results[:10]:
+                            youtube_summary_parts = [f"\n\n### VÍDEOS E PALESTRAS ENCONTRADOS (YouTube Data API v3):\n"]
+                            
+                            for i, video in enumerate(youtube_results[:10], 1):
+                                youtube_summary_parts.append(f"""
+{i}. **{video['title']}**
+   - Canal: {video['channelTitle']}
+   - Views: {video['viewCount']:,}
+   - Likes: {video['likeCount']:,}
+   - Publicado: {video['publishedAt']}
+   - Link: https://www.youtube.com/watch?v={video['videoId']}
+""")
+                            
+                            youtube_data_str = "".join(youtube_summary_parts)
+                            
+                            if transcripts_str:
+                                youtube_data_str += f"\n\n### TRANSCRIÇÕES COMPLETAS (YouTube Transcript API):{transcripts_str}"
+                
+                except Exception as e:
+                    print(f"[AUTO-CLONE-STREAM] YouTube error: {str(e)}")
+            
+            yield send_event("step-complete", {
+                "step": "analyzing",
+                "message": "✅ Análise de conteúdo concluída"
+            })
+
+            # STEP 3: Claude Synthesis
+            yield send_event("step-start", {
+                "step": "synthesizing",
+                "message": "Sintetizando clone cognitivo de alta fidelidade..."
+            })
+            
+            yield send_event("step-progress", {
+                "step": "synthesizing",
+                "message": "Aplicando Framework EXTRACT (20 pontos)..."
+            })
+            
+            # Use the exact same synthesis logic as the original endpoint
+            synthesis_prompt = f"""Você é um especialista em clonagem cognitiva. Crie um especialista cognitivo de alta fidelidade para: {data.targetName}
+
+DADOS DE PESQUISA:
+{research_findings}
+
+ANÁLISE DE VÍDEOS E PALESTRAS (YouTube):
+{youtube_data_str if youtube_data_str else "Nenhum dado de vídeo disponível"}
+
+INSTRUÇÕES:
+Crie um clone cognitivo seguindo Framework EXTRACT (20 pontos). Retorne JSON:
+
+{{
+  "name": "Nome Completo",
+  "title": "Título profissional em 1 linha",
+  "expertise": ["skill1", "skill2", "skill3"],
+  "bio": "Bio de 2-3 frases",
+  "systemPrompt": "System prompt de 350+ linhas implementando todos os 20 pontos do Framework EXTRACT"
+}}
+
+O systemPrompt DEVE incluir:
+1. ESSÊNCIA (personalidade, valores, filosofia)
+2. EXPERTISE (conhecimentos, frameworks, métodos)
+3. STORYTELLING (histórias, casos, exemplos)
+4. TERMINOLOGIA (jargões, frases icônicas)
+5. RACIOCÍNIO (lógica, padrões de pensamento)
+6. ADAPTAÇÃO (contextos, fronteiras)
+7. CONVERSAÇÃO (tom, estilo, cadência)
+8. TRANSFORMAÇÃO (impacto, metodologia)
+
+Retorne APENAS JSON válido."""
+
+            anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            
+            synthesis_response = await anthropic_client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=16000,
+                temperature=0.7,
+                messages=[{
+                    "role": "user",
+                    "content": synthesis_prompt
+                }]
+            )
+            
+            synthesis_text = ""
+            for block in synthesis_response.content:
+                if block.type == "text":
+                    synthesis_text += block.text
+            
+            # Extract JSON
+            import re
+            json_match = re.search(r'\{.*\}', synthesis_text, re.DOTALL)
+            if not json_match:
+                yield send_event("error", {
+                    "message": "Falha ao extrair dados estruturados da síntese"
+                })
+                return
+            
+            expert_data = json.loads(json_match.group(0))
+            
+            # Add metadata
+            expert_data["categories"] = []
+            expert_data["type"] = "CUSTOM"
+            expert_data["stories"] = []
+            expert_data["avatar"] = None
+            
+            yield send_event("step-complete", {
+                "step": "synthesizing",
+                "message": "✅ Clone cognitivo sintetizado com sucesso!"
+            })
+            
+            # Final expert data
+            yield send_event("expert-complete", {
+                "expert": expert_data
+            })
+            
+        except Exception as e:
+            print(f"[AUTO-CLONE-STREAM] Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            yield send_event("error", {
+                "message": f"Erro durante clonagem: {str(e)}"
+            })
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @app.post("/api/recommend-experts", response_model=RecommendExpertsResponse)
 async def recommend_experts(request: RecommendExpertsRequest):
     """
