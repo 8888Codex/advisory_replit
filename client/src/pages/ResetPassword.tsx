@@ -42,14 +42,22 @@ export default function ResetPassword() {
     setIsVerifying(true);
 
     try {
-      const response: { valid: boolean; email?: string } = await apiRequest('/api/auth/verify-reset-token', {
+      const response = await fetch('/api/auth/verify-reset-token', {
         method: 'POST',
-        data: { token: tokenToVerify }
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token: tokenToVerify })
       });
 
-      if (response.valid) {
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const data: { valid: boolean; email?: string } = await response.json();
+
+      if (data.valid) {
         setTokenValid(true);
-        setEmail(response.email || '');
+        setEmail(data.email || '');
       }
     } catch (error) {
       toast({
@@ -89,10 +97,11 @@ export default function ResetPassword() {
     try {
       await apiRequest('/api/auth/reset-password', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           token,
           newPassword: password
-        }
+        })
       });
 
       setResetComplete(true);

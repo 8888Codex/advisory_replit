@@ -30,7 +30,8 @@ export default function ForgotPassword() {
     try {
       await apiRequest('/api/auth/request-reset', {
         method: 'POST',
-        data: { email }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
       });
 
       setEmailSent(true);
