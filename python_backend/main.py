@@ -1031,13 +1031,13 @@ async def auto_clone_expert_stream(targetName: str, context: str = ""):
     - error: If something goes wrong
     """
     async def event_generator():
+        def send_event(event_type: str, data: dict):
+            """Format SSE event"""
+            return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+        
         try:
             import httpx
             from anthropic import AsyncAnthropic
-            
-            def send_event(event_type: str, data: dict):
-                """Format SSE event"""
-                return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
             
             # STEP 1: Perplexity Research
             yield send_event("step-start", {
@@ -1067,7 +1067,7 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
 
             yield send_event("step-progress", {
                 "step": "researching",
-                "message": f"Consultando base de conhecimento sobre {data.targetName}..."
+                "message": f"Consultando base de conhecimento sobre {targetName}..."
             })
 
             async with httpx.AsyncClient(timeout=90.0) as client:
