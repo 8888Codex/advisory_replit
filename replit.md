@@ -20,6 +20,14 @@ Preferred communication style: Simple, everyday language.
 - **PostgreSQL**: Only stores CUSTOM user-created experts from `/api/experts/auto-clone`.
 - **API `/api/experts`**: Combines CloneRegistry seed experts + PostgreSQL custom experts for complete expert list.
 
+### Production Security Hardening (November 7, 2025)
+- **CORS Security**: Replaced wildcard `allow_origins=["*"]` with environment-based origins. Development allows `localhost`, production requires `REPL_SLUG` and `REPL_OWNER` environment variables or throws `ValueError` (no unsafe fallback).
+- **SESSION_SECRET Enforcement**: Made `SESSION_SECRET` mandatory in production environments. Throws error if not set in production, uses safe fallback only in development (`NODE_ENV !== 'production'`).
+- **Python Backend Configuration**: Fixed `--reload` flag to only run in development mode. Production uses stable server without auto-reload.
+- **TypeScript LSP Cleanup**: Fixed proxy middleware type errors in `server/index.ts` using `// @ts-ignore` for filter option (exists in runtime but not in type definitions).
+- **Code Cleanup**: Deleted 4 backup files (`main.py.new`, `main.py.new2`, `main.py.broken`, `main.py.original`) to reduce technical debt.
+- **Production Readiness**: All E2E tests passed. Zero LSP errors. Application verified ready for Replit Autoscale deployment.
+
 ## System Architecture
 
 ### UI/UX Decisions
