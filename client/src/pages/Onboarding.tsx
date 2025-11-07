@@ -187,15 +187,19 @@ export default function Onboarding() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      return await apiRequest("/api/persona/create", {
+      console.log("[ONBOARDING] saveMutation.mutationFn called, posting to /api/persona/create");
+      const result = await apiRequest("/api/persona/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
+      console.log("[ONBOARDING] Persona created successfully:", result);
+      return result;
     },
     onSuccess: async (persona: any, data: OnboardingFormData) => {
+      console.log("[ONBOARDING] saveMutation.onSuccess called, persona:", persona);
       // Mark onboarding as completed in database
       await completeOnboardingMutation.mutateAsync();
       
@@ -220,9 +224,11 @@ export default function Onboarding() {
         title: "Perfil criado com sucesso!",
         description: "Estamos enriquecendo sua persona em segundo plano. Você já pode usar a plataforma!",
       });
+      console.log("[ONBOARDING] Navigating to /home");
       navigate("/home");
     },
     onError: (error: Error) => {
+      console.error("[ONBOARDING] saveMutation.onError:", error);
       toast({
         title: "Erro ao salvar perfil",
         description: error.message,
@@ -232,26 +238,38 @@ export default function Onboarding() {
   });
 
   const onSubmit = async (data: OnboardingFormData) => {
-    await saveMutation.mutateAsync(data);
+    console.log("[ONBOARDING] onSubmit called with data:", data);
+    try {
+      await saveMutation.mutateAsync(data);
+    } catch (error) {
+      console.error("[ONBOARDING] onSubmit failed:", error);
+    }
   };
 
   const handleNext = async () => {
     const fieldsToValidate = getStepFields(step);
+    console.log("[ONBOARDING] handleNext called, step:", step, "fields to validate:", fieldsToValidate);
     const isValid = await form.trigger(fieldsToValidate);
+    console.log("[ONBOARDING] Validation result:", isValid, "errors:", form.formState.errors);
     
     if (isValid) {
       // Save progress before moving to next step
       const formData = form.getValues();
+      console.log("[ONBOARDING] Form data:", formData);
       await saveProgressMutation.mutateAsync({
         ...formData,
         currentStep: step,
       });
       
       if (step < 4) {
+        console.log("[ONBOARDING] Moving to next step");
         setStep(step + 1);
       } else {
+        console.log("[ONBOARDING] Final step - calling onSubmit to create persona");
         form.handleSubmit(onSubmit)();
       }
+    } else {
+      console.log("[ONBOARDING] Validation failed!");
     }
   };
 

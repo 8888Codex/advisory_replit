@@ -320,6 +320,7 @@ class UserPersonaCreate(BaseModel):
     
     # Research Configuration
     researchMode: Literal["quick", "strategic", "complete"] = "strategic"
+    enrichmentLevel: Optional[Literal["quick", "strategic", "complete"]] = None
     additionalContext: Optional[str] = None
 
 class PersonaEnrichmentRequest(BaseModel):

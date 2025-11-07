@@ -1482,12 +1482,12 @@ class MemStorage:
                     demographics, psychographics, pain_points, goals, values,
                     communities, behavioral_patterns, content_preferences,
                     youtube_research, video_insights, campaign_references, inspiration_videos,
-                    research_mode, research_completeness, last_enriched_at,
+                    research_mode, enrichment_level, enrichment_status, research_completeness, last_enriched_at,
                     created_at, updated_at
                 ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
                     $13, $14, $15, $16, $17, $18, $19, $20,
-                    $21, $22, $23, $24, $25, $26, $27, $28, $29
+                    $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
                 )
                 ON CONFLICT (user_id) DO UPDATE SET
                     company_name = EXCLUDED.company_name,
@@ -1501,6 +1501,8 @@ class MemStorage:
                     main_challenge = EXCLUDED.main_challenge,
                     timeline = EXCLUDED.timeline,
                     research_mode = EXCLUDED.research_mode,
+                    enrichment_level = EXCLUDED.enrichment_level,
+                    enrichment_status = EXCLUDED.enrichment_status,
                     updated_at = EXCLUDED.updated_at
                 RETURNING *
                 """,
@@ -1511,7 +1513,7 @@ class MemStorage:
                 json.dumps({}), json.dumps({}), [], [], [],
                 [], json.dumps({}), json.dumps({}),
                 json.dumps([]), [], json.dumps([]), json.dumps([]),
-                data.researchMode, 0, None,
+                data.researchMode, data.enrichmentLevel or data.researchMode, "pending", 0, None,
                 now, now
             )
             
