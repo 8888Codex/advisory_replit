@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (November 7, 2025)
 
+### Landing Page Simplification (November 7, 2025)
+- **Single Expert Showcase**: Removed redundant "CONHEÇA AS 18 LENDAS" grid section from landing page, maintaining only the interactive carousel (Tour Interativo) as the primary method to discover specialists.
+- **Reduced Redundancy**: Eliminated duplicate display of all 18 experts in grid format, which created unnecessary repetition below the carousel.
+- **Streamlined UX**: Landing page now flows directly from carousel to "Perguntas Concretas" section with examples of expert consultations.
+- **Maintained Functionality**: Carousel remains fully interactive with navigation controls (Anterior/Próximo), progress bar, and smooth Framer Motion transitions.
+- **Verification**: E2E tested carousel navigation (1→2→1), confirmed removed section absent, zero LSP errors, architect-reviewed with no layout or functionality regressions.
+
 ### Complete Route Protection System (November 7, 2025)
 - **Comprehensive Security**: Implemented `ProtectedRoute` component wrapping all 14 authenticated routes across the application.
 - **Protected Routes**: Dashboard (/home), Settings, Onboarding, Experts (/experts, /categories, /admin/experts), Chat (/chat/:id - dynamic), Expert Creation (/create), Council (/test-council, /council-room/:sessionId - dynamic), Personas (/personas, /persona-dashboard), Analytics (/analytics).
