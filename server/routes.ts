@@ -5,6 +5,8 @@ import { insertExpertSchema, insertConversationSchema, insertMessageSchema } fro
 import { chat } from "./anthropic";
 import { z } from "zod";
 
+const pythonExpertRoutes = new Set(['auto-clone', 'auto-clone-stream', 'auto-clone-status', 'test-chat']);
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all experts
   app.get("/api/experts", async (req, res) => {
@@ -18,7 +20,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get single expert
-  app.get("/api/experts/:id", async (req, res) => {
+  app.get("/api/experts/:id", async (req, res, next) => {
+    if (pythonExpertRoutes.has(req.params.id)) {
+      return next();
+    }
     try {
       const expert = await storage.getExpert(req.params.id);
       if (!expert) {
