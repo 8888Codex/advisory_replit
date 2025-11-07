@@ -207,6 +207,70 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
+// Password reset endpoints - public (no session required)
+app.post('/api/auth/request-reset', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/request-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Auth] Request reset error:', error);
+    res.status(500).json({ detail: 'Erro ao solicitar redefinição de senha' });
+  }
+});
+
+app.post('/api/auth/verify-reset-token', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/verify-reset-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Auth] Verify token error:', error);
+    res.status(500).json({ detail: 'Erro ao verificar token' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Auth] Reset password error:', error);
+    res.status(500).json({ detail: 'Erro ao redefinir senha' });
+  }
+});
+
 app.get('/api/auth/me', async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({ detail: 'Não autenticado' });

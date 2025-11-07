@@ -176,6 +176,167 @@ async def get_current_user(user_id: str):
     )
 
 # ============================================
+# PASSWORD RESET ENDPOINTS
+# ============================================
+
+class RequestPasswordResetRequest(BaseModel):
+    email: str
+
+class VerifyResetTokenRequest(BaseModel):
+    token: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    newPassword: str
+
+@app.post("/api/auth/request-reset")
+async def request_password_reset(data: RequestPasswordResetRequest):
+    """Request password reset - generates token and sends email"""
+    import hashlib
+    from datetime import timedelta
+    import resend
+    
+    # Get user by email
+    user = await storage.get_user_by_email(data.email)
+    if not user:
+        # Security: Don't reveal if email exists or not
+        return {"message": "Se o email existir, você receberá instruções para redefinir sua senha"}
+    
+    # Generate secure random token (32 bytes = 64 hex chars)
+    token = secrets.token_urlsafe(32)
+    
+    # Hash token for database storage (SHA-256)
+    hashed_token = hashlib.sha256(token.encode()).hexdigest()
+    
+    # Token expires in 1 hour
+    expires_at = datetime.utcnow() + timedelta(hours=1)
+    
+    # Store hashed token in database
+    await storage.create_password_reset_token(user["id"], hashed_token, expires_at)
+    
+    # Send email with reset link
+    resend_api_key = os.getenv("RESEND_API_KEY")
+    from_email = os.getenv("RESEND_FROM_EMAIL")
+    
+    if not resend_api_key or not from_email:
+        raise HTTPException(status_code=500, detail="Serviço de email não configurado")
+    
+    resend.api_key = resend_api_key
+    
+    # Create reset URL (token will be sent as query param)
+    reset_url = f"{os.getenv('REPLIT_DOMAINS', 'http://localhost:5000').split(',')[0]}/reset-password?token={token}"
+    
+    try:
+        resend.Emails.send({
+            "from": from_email,
+            "to": data.email,
+            "subject": "O Conselho - Redefinir Senha",
+            "html": f"""
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <h1 style="color: #1a1a1a; font-size: 32px; font-weight: 600; margin: 0;">O Conselho</h1>
+                        <p style="color: #666; font-size: 16px; margin-top: 8px;">Redefinição de Senha</p>
+                    </div>
+                    
+                    <div style="background: #f9f9f9; border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+                        <p style="color: #1a1a1a; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
+                            Olá, <strong>{user["username"]}</strong>!
+                        </p>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+                            Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para criar uma nova senha:
+                        </p>
+                        <div style="text-align: center; margin: 32px 0;">
+                            <a href="{reset_url}" style="display: inline-block; background: #FF6B6B; color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 600; font-size: 16px;">
+                                Redefinir Senha
+                            </a>
+                        </div>
+                        <p style="color: #999; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
+                            Este link expira em 1 hora. Se você não solicitou esta redefinição, ignore este email.
+                        </p>
+                    </div>
+                    
+                    <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+                        © 2025 O Conselho. Todos os direitos reservados.
+                    </p>
+                </div>
+            """
+        })
+    except Exception as e:
+        print(f"[Email Error] Failed to send reset email: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao enviar email")
+    
+    return {"message": "Se o email existir, você receberá instruções para redefinir sua senha"}
+
+@app.post("/api/auth/verify-reset-token")
+async def verify_reset_token(data: VerifyResetTokenRequest):
+    """Verify if reset token is valid and not expired"""
+    import hashlib
+    
+    # Hash the provided token
+    hashed_token = hashlib.sha256(data.token.encode()).hexdigest()
+    
+    # Get token from database
+    token_data = await storage.get_password_reset_token(hashed_token)
+    
+    if not token_data:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    
+    # Check if token was already used
+    if token_data["usedAt"]:
+        raise HTTPException(status_code=400, detail="Este link já foi utilizado")
+    
+    # Check if token is expired
+    if token_data["expiresAt"] < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Este link expirou. Solicite um novo")
+    
+    # Get user info for display
+    user = await storage.get_user_by_id(token_data["userId"])
+    
+    return {
+        "valid": True,
+        "email": user["email"] if user else None
+    }
+
+@app.post("/api/auth/reset-password")
+async def reset_password(data: ResetPasswordRequest):
+    """Reset password using valid token"""
+    import hashlib
+    
+    # Validate new password
+    if len(data.newPassword) < 6:
+        raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 6 caracteres")
+    
+    # Hash the provided token
+    hashed_token = hashlib.sha256(data.token.encode()).hexdigest()
+    
+    # Get token from database
+    token_data = await storage.get_password_reset_token(hashed_token)
+    
+    if not token_data:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    
+    # Check if token was already used
+    if token_data["usedAt"]:
+        raise HTTPException(status_code=400, detail="Este link já foi utilizado")
+    
+    # Check if token is expired
+    if token_data["expiresAt"] < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Este link expirou. Solicite um novo")
+    
+    # Hash new password
+    password_hash = bcrypt.hashpw(data.newPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Update user password
+    success = await storage.update_user_password(token_data["userId"], password_hash)
+    if not success:
+        raise HTTPException(status_code=500, detail="Erro ao atualizar senha")
+    
+    # Mark token as used
+    await storage.mark_token_as_used(hashed_token)
+    
+    return {"message": "Senha redefinida com sucesso"}
+
+# ============================================
 # INVITE CODE MANAGEMENT
 # ============================================
 

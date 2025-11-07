@@ -24,6 +24,8 @@ import Analytics from "@/pages/Analytics";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 function Redirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -40,6 +42,8 @@ function Router() {
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/settings" component={Settings} />
         <Route path="/home" component={Home} />
         <Route path="/welcome">

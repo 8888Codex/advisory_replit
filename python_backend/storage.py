@@ -850,6 +850,99 @@ class PostgresStorage:
             """, user_id)
             
             return result == "UPDATE 1"
+    
+    # ============================================
+    # PASSWORD RESET OPERATIONS
+    # ============================================
+    
+    async def create_password_reset_token(self, user_id: str, hashed_token: str, expires_at: datetime) -> str:
+        """Create a password reset token"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            token_id = str(uuid.uuid4())
+            
+            await conn.execute("""
+                INSERT INTO password_reset_tokens (id, user_id, hashed_token, expires_at)
+                VALUES ($1, $2, $3, $4)
+            """, token_id, user_id, hashed_token, expires_at)
+            
+            return token_id
+    
+    async def get_password_reset_token(self, hashed_token: str) -> Optional[dict]:
+        """Get password reset token by hashed token"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, user_id as "userId", hashed_token as "hashedToken",
+                       expires_at as "expiresAt", used_at as "usedAt", created_at as "createdAt"
+                FROM password_reset_tokens
+                WHERE hashed_token = $1
+            """, hashed_token)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "userId": row['userId'],
+                "hashedToken": row['hashedToken'],
+                "expiresAt": row['expiresAt'],
+                "usedAt": row['usedAt'],
+                "createdAt": row['createdAt']
+            }
+    
+    async def mark_token_as_used(self, hashed_token: str) -> bool:
+        """Mark a password reset token as used"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                UPDATE password_reset_tokens
+                SET used_at = NOW()
+                WHERE hashed_token = $1 AND used_at IS NULL
+            """, hashed_token)
+            
+            return result == "UPDATE 1"
+    
+    async def get_user_by_email(self, email: str) -> Optional[dict]:
+        """Get user by email address"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, username, email
+                FROM users
+                WHERE email = $1
+            """, email)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "username": row['username'],
+                "email": row['email']
+            }
+    
+    async def update_user_password(self, user_id: str, hashed_password: str) -> bool:
+        """Update user password"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                UPDATE users
+                SET password = $1
+                WHERE id = $2
+            """, hashed_password, user_id)
+            
+            return result == "UPDATE 1"
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""

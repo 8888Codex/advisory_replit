@@ -90,6 +90,28 @@ export type InsertOnboardingStatus = z.infer<typeof insertOnboardingStatusSchema
 export type UpdateOnboardingStatus = z.infer<typeof updateOnboardingStatusSchema>;
 export type OnboardingStatus = typeof onboardingStatus.$inferSelect;
 
+// ============================================
+// PASSWORD RESET SYSTEM
+// ============================================
+
+// Password Reset Tokens - Stores secure tokens for password recovery
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  hashedToken: varchar("hashed_token", { length: 64 }).notNull().unique(), // SHA-256 hash
+  expiresAt: timestamp("expires_at").notNull(), // Tokens expire after 1 hour
+  usedAt: timestamp("used_at"), // null = not used yet, timestamp = already used
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
 // Category type for expert specializations
 export const categoryTypeEnum = z.enum([
   "marketing",        // Traditional marketing strategy
