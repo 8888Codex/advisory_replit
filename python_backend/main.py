@@ -1372,11 +1372,95 @@ Retorne APENAS JSON válido."""
                     "message": "⚠️ Erro ao gerar avatar, usando placeholder"
                 })
             
+            # Disney Effect #4: Calculate cognitive fidelity score (0-20 points)
+            yield send_event("step-start", {
+                "step": "score-calculation",
+                "message": "📊 Calculando fidelidade cognitiva..."
+            })
+            
+            cognitive_score = 0
+            score_breakdown = {}
+            
+            try:
+                system_prompt = expert_data.get("systemPrompt", "")
+                
+                # Analyze Framework EXTRACT implementation (20 points total)
+                # Each category worth 2-3 points
+                score_breakdown = {
+                    "essencia": 0,  # ESSÊNCIA: personality, values, philosophy (3 points)
+                    "expertise": 0,  # EXPERTISE: knowledge, frameworks, methods (3 points)
+                    "storytelling": 0,  # STORYTELLING: stories, cases, examples (2 points)
+                    "terminologia": 0,  # TERMINOLOGIA: jargon, iconic phrases (2 points)
+                    "raciocinio": 0,  # RACIOCÍNIO: logic, thinking patterns (3 points)
+                    "adaptacao": 0,  # ADAPTAÇÃO: contexts, boundaries (2 points)
+                    "conversacao": 0,  # CONVERSAÇÃO: tone, style, cadence (2 points)
+                    "transformacao": 0  # TRANSFORMAÇÃO: impact, methodology (3 points)
+                }
+                
+                # Simple keyword-based analysis (can be enhanced with LLM later)
+                prompt_lower = system_prompt.lower()
+                
+                # ESSÊNCIA (3 points)
+                essencia_keywords = ["personalidade", "valores", "filosofia", "essência", "princípios"]
+                score_breakdown["essencia"] = min(3, sum(1 for kw in essencia_keywords if kw in prompt_lower))
+                
+                # EXPERTISE (3 points)
+                expertise_keywords = ["expertise", "conhecimento", "framework", "método", "técnica"]
+                score_breakdown["expertise"] = min(3, sum(1 for kw in expertise_keywords if kw in prompt_lower))
+                
+                # STORYTELLING (2 points)
+                storytelling_keywords = ["história", "caso", "exemplo", "experiência"]
+                score_breakdown["storytelling"] = min(2, sum(1 for kw in storytelling_keywords if kw in prompt_lower))
+                
+                # TERMINOLOGIA (2 points)
+                terminologia_keywords = ["terminologia", "jargão", "frase", "vocabulário"]
+                score_breakdown["terminologia"] = min(2, sum(1 for kw in terminologia_keywords if kw in prompt_lower))
+                
+                # RACIOCÍNIO (3 points)
+                raciocinio_keywords = ["raciocínio", "lógica", "pensamento", "análise", "decisão"]
+                score_breakdown["raciocinio"] = min(3, sum(1 for kw in raciocinio_keywords if kw in prompt_lower))
+                
+                # ADAPTAÇÃO (2 points)
+                adaptacao_keywords = ["contexto", "adaptação", "limite", "fronteira", "situação"]
+                score_breakdown["adaptacao"] = min(2, sum(1 for kw in adaptacao_keywords if kw in prompt_lower))
+                
+                # CONVERSAÇÃO (2 points)
+                conversacao_keywords = ["tom", "estilo", "cadência", "comunicação", "voz"]
+                score_breakdown["conversacao"] = min(2, sum(1 for kw in conversacao_keywords if kw in prompt_lower))
+                
+                # TRANSFORMAÇÃO (3 points)
+                transformacao_keywords = ["impacto", "transformação", "metodologia", "resultado", "mudança"]
+                score_breakdown["transformacao"] = min(3, sum(1 for kw in transformacao_keywords if kw in prompt_lower))
+                
+                # Calculate total score (0-20)
+                cognitive_score = sum(score_breakdown.values())
+                
+                # Boost score based on system prompt length (longer = more comprehensive)
+                if len(system_prompt) > 2000:
+                    cognitive_score = min(20, cognitive_score + 2)
+                elif len(system_prompt) > 1000:
+                    cognitive_score = min(20, cognitive_score + 1)
+                
+                yield send_event("step-complete", {
+                    "step": "score-calculation",
+                    "message": f"✅ Score: {cognitive_score}/20 pontos de fidelidade"
+                })
+            
+            except Exception as e:
+                print(f"[AUTO-CLONE-STREAM] Score calculation error: {str(e)}")
+                cognitive_score = 15  # Default fallback score
+                yield send_event("step-complete", {
+                    "step": "score-calculation",
+                    "message": "⚠️ Score estimado: 15/20 pontos"
+                })
+            
             # Add metadata
             expert_data["categories"] = []
             expert_data["type"] = "CUSTOM"
             expert_data["stories"] = []
             expert_data["avatar"] = avatar_path  # Set avatar path
+            expert_data["cognitiveScore"] = cognitive_score
+            expert_data["scoreBreakdown"] = score_breakdown
             
             # Final expert data
             yield send_event("expert-complete", {

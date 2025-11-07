@@ -10,12 +10,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedPage } from "@/components/AnimatedPage";
-import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send, Image } from "lucide-react";
+import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send, Image, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Expert } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
-type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "avatar-generation" | "generating-samples" | "complete";
+type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "avatar-generation" | "score-calculation" | "generating-samples" | "complete";
 
 interface TestMessage {
   role: "user" | "assistant";
@@ -253,6 +253,8 @@ export default function Create() {
         return <Wand2 className="h-4 w-4" />;
       case "avatar-generation":
         return <Image className="h-4 w-4" />;
+      case "score-calculation":
+        return <BarChart className="h-4 w-4" />;
       case "generating-samples":
         return <MessageSquare className="h-4 w-4" />;
       case "complete":
@@ -272,6 +274,8 @@ export default function Create() {
         return "Sintetizando clone de alta fidelidade...";
       case "avatar-generation":
         return "🎨 Gerando avatar profissional...";
+      case "score-calculation":
+        return "📊 Calculando fidelidade cognitiva...";
       case "generating-samples":
         return "✨ Gerando amostras de conversa para preview...";
       case "complete":
@@ -281,7 +285,7 @@ export default function Create() {
     }
   };
 
-  const isProcessing = ["researching", "analyzing", "synthesizing", "avatar-generation", "generating-samples"].includes(cloneStep);
+  const isProcessing = ["researching", "analyzing", "synthesizing", "avatar-generation", "score-calculation", "generating-samples"].includes(cloneStep);
 
   return (
     <AnimatedPage>
@@ -369,10 +373,11 @@ export default function Create() {
                                 className="bg-accent h-2 rounded-full"
                                 initial={{ width: "0%" }}
                                 animate={{
-                                  width: cloneStep === "researching" ? "20%" :
-                                         cloneStep === "analyzing" ? "40%" :
-                                         cloneStep === "synthesizing" ? "60%" :
-                                         cloneStep === "avatar-generation" ? "80%" :
+                                  width: cloneStep === "researching" ? "16%" :
+                                         cloneStep === "analyzing" ? "33%" :
+                                         cloneStep === "synthesizing" ? "50%" :
+                                         cloneStep === "avatar-generation" ? "66%" :
+                                         cloneStep === "score-calculation" ? "83%" :
                                          cloneStep === "generating-samples" ? "95%" : "0%"
                                 }}
                                 transition={{ duration: 0.5, ease: "easeOut" }}
@@ -382,15 +387,16 @@ export default function Create() {
                         </div>
                         
                         {/* Individual step indicators */}
-                        <div className="grid grid-cols-5 gap-2 mt-4">
-                          {["researching", "analyzing", "synthesizing", "avatar-generation", "generating-samples"].map((step, index) => {
+                        <div className="grid grid-cols-6 gap-2 mt-4">
+                          {["researching", "analyzing", "synthesizing", "avatar-generation", "score-calculation", "generating-samples"].map((step, index) => {
                             const stepNumber = index + 1;
                             const isActive = cloneStep === step;
                             const isComplete = 
-                              (step === "researching" && ["analyzing", "synthesizing", "avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
-                              (step === "analyzing" && ["synthesizing", "avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
-                              (step === "synthesizing" && ["avatar-generation", "generating-samples", "complete"].includes(cloneStep)) ||
-                              (step === "avatar-generation" && ["generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "researching" && ["analyzing", "synthesizing", "avatar-generation", "score-calculation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "analyzing" && ["synthesizing", "avatar-generation", "score-calculation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "synthesizing" && ["avatar-generation", "score-calculation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "avatar-generation" && ["score-calculation", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "score-calculation" && ["generating-samples", "complete"].includes(cloneStep)) ||
                               (step === "generating-samples" && cloneStep === "complete");
                             
                             return (
@@ -409,6 +415,7 @@ export default function Create() {
                                 {step === "analyzing" && "🧠 Análise"}
                                 {step === "synthesizing" && "✨ Síntese"}
                                 {step === "avatar-generation" && "🎨 Avatar"}
+                                {step === "score-calculation" && "📊 Score"}
                                 {step === "generating-samples" && "💬 Amostras"}
                               </motion.div>
                             );
@@ -481,6 +488,80 @@ export default function Create() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {generatedExpert.bio}
                   </p>
+
+                  {/* Disney Effect #4: Cognitive Score Badge */}
+                  {generatedExpert.cognitiveScore !== undefined && (
+                    <Card className="p-6 rounded-2xl bg-gradient-to-br from-accent/5 via-background to-background border-accent/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <BarChart className="h-5 w-5 text-accent" />
+                          <h4 className="text-sm font-semibold">Fidelidade Cognitiva</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-accent">{generatedExpert.cognitiveScore}</span>
+                          <span className="text-sm text-muted-foreground">/20</span>
+                        </div>
+                      </div>
+                      
+                      {/* Progress bar */}
+                      <div className="w-full bg-background rounded-full h-3 overflow-hidden mb-4">
+                        <motion.div
+                          className="bg-accent h-3 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(generatedExpert.cognitiveScore / 20) * 100}%` }}
+                          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                        />
+                      </div>
+
+                      {/* Score breakdown */}
+                      {generatedExpert.scoreBreakdown && (
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {Object.entries(generatedExpert.scoreBreakdown).map(([category, score]: [string, any], index) => {
+                            const categoryNames: Record<string, string> = {
+                              essencia: "Essência",
+                              expertise: "Expertise",
+                              storytelling: "Storytelling",
+                              terminologia: "Terminologia",
+                              raciocinio: "Raciocínio",
+                              adaptacao: "Adaptação",
+                              conversacao: "Conversação",
+                              transformacao: "Transformação"
+                            };
+                            
+                            const maxScores: Record<string, number> = {
+                              essencia: 3,
+                              expertise: 3,
+                              storytelling: 2,
+                              terminologia: 2,
+                              raciocinio: 3,
+                              adaptacao: 2,
+                              conversacao: 2,
+                              transformacao: 3
+                            };
+                            
+                            return (
+                              <motion.div
+                                key={category}
+                                className="flex items-center justify-between p-2 rounded-lg bg-muted/30"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 + index * 0.05 }}
+                              >
+                                <span className="text-muted-foreground">{categoryNames[category]}</span>
+                                <span className="font-semibold">
+                                  {score}/{maxScores[category]}
+                                </span>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                        ✨ Framework EXTRACT analisa 8 dimensões cognitivas para garantir máxima autenticidade
+                      </p>
+                    </Card>
+                  )}
 
                   <details className="group">
                     <summary className="cursor-pointer text-sm font-medium text-foreground hover-elevate active-elevate-2 p-4 rounded-xl transition-all duration-200">
