@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Select,
   SelectContent,
@@ -56,6 +57,7 @@ interface ProfileFormData {
 export default function Landing() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { isComplete, isLoading: isLoadingOnboarding } = useOnboardingComplete();
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
@@ -71,6 +73,12 @@ export default function Landing() {
     mainChallenge: "",
     timeline: "",
   });
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      setLocation("/home");
+    }
+  }, [user, isAuthLoading, setLocation]);
 
   const handleConsult = (expertId: string) => {
     // Guard against race condition: don't navigate while onboarding status is loading
