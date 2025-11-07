@@ -551,17 +551,54 @@ CATEGORY_METADATA = {
 async def get_experts(category: Optional[str] = None):
     """
     Get all marketing legend experts, optionally filtered by category.
+    Combines HIGH_FIDELITY seed experts from CloneRegistry + CUSTOM experts from PostgreSQL.
     
     Query params:
     - category: Filter by category ID (e.g., "growth", "marketing", "content")
     """
-    experts = await storage.get_experts()
+    # Get seed experts from CloneRegistry (HIGH_FIDELITY)
+    clone_registry = CloneRegistry()
+    all_clones = clone_registry.get_all_clones()
+    
+    # Convert CloneRegistry clones to Expert objects
+    seed_experts = []
+    for clone_name, clone_instance in all_clones.items():
+        # Generate unique ID for seed expert (stable across restarts)
+        expert_id = f"seed-{clone_name.lower().replace(' ', '-')}"
+        
+        # Infer category from expert (default to marketing if not specified)
+        expert_category = CategoryType.MARKETING
+        if hasattr(clone_instance, 'category'):
+            expert_category = clone_instance.category
+        
+        # Get avatar path if exists
+        avatar_path = getattr(clone_instance, 'avatar', None)
+        
+        seed_expert = Expert(
+            id=expert_id,
+            name=clone_instance.name,
+            title=clone_instance.title,
+            expertise=clone_instance.expertise,
+            bio=clone_instance.bio,
+            avatar=avatar_path,
+            systemPrompt=clone_instance.get_system_prompt(),
+            expertType=ExpertType.HIGH_FIDELITY,
+            category=expert_category,
+            createdAt=clone_instance.created_at if hasattr(clone_instance, 'created_at') else datetime.now()
+        )
+        seed_experts.append(seed_expert)
+    
+    # Get custom experts from PostgreSQL (CUSTOM)
+    custom_experts = await storage.get_experts()
+    
+    # Combine both sources
+    all_experts = seed_experts + custom_experts
     
     # Filter by category if provided
     if category:
-        experts = [e for e in experts if e.category.value == category]
+        all_experts = [e for e in all_experts if e.category.value == category]
     
-    return experts
+    return all_experts
 
 @app.get("/api/categories", response_model=List[CategoryInfo])
 async def get_categories():
