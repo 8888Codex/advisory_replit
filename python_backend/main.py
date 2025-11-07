@@ -2653,12 +2653,16 @@ async def create_user_persona(data: UserPersonaCreate):
     - Psychographic data (from Reddit research - optional)
     - Initial research mode configuration
     """
+    print(f"[PERSONA CREATE] Endpoint called with data: {data}")
     user_id = "default_user"
+    print(f"[PERSONA CREATE] Using user_id: {user_id}")
     try:
+        print(f"[PERSONA CREATE] Calling storage.create_user_persona...")
         persona = await storage.create_user_persona(user_id, data)
+        print(f"[PERSONA CREATE] Persona created successfully: {persona.id}")
         return persona
     except Exception as e:
-        print(f"Error creating persona: {str(e)}")
+        print(f"[PERSONA CREATE] Error creating persona: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
