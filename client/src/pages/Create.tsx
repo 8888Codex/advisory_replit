@@ -14,11 +14,17 @@ import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send } f
 import { useToast } from "@/hooks/use-toast";
 import type { Expert } from "@shared/schema";
 
-type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "complete";
+type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "generating-samples" | "complete";
 
 interface TestMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+interface SampleConversation {
+  question: string;
+  answer: string;
+  wordCount: number;
 }
 
 export default function Create() {
@@ -31,6 +37,10 @@ export default function Create() {
   const [context, setContext] = useState("");
   const [cloneStep, setCloneStep] = useState<CloneStep>("idle");
   const [generatedExpert, setGeneratedExpert] = useState<any | null>(null); // ExpertCreate data, not persisted yet
+  
+  // Sample conversations state (Disney Effect #1)
+  const [sampleConversations, setSampleConversations] = useState<SampleConversation[]>([]);
+  const [generatingSamples, setGeneratingSamples] = useState(false);
   
   // Test chat state
   const [showTestChat, setShowTestChat] = useState(false);
@@ -54,14 +64,42 @@ export default function Create() {
         body: JSON.stringify(data),
       });
     },
-    onSuccess: (expertData) => {
-      setCloneStep("complete");
+    onSuccess: async (expertData) => {
       setGeneratedExpert(expertData);
       
-      toast({
-        title: "Clone Cognitivo Criado",
-        description: `${expertData.name} foi sintetizado com sucesso.`,
-      });
+      // Disney Effect #1: Generate sample conversations automatically
+      setCloneStep("generating-samples");
+      setGeneratingSamples(true);
+      
+      try {
+        const samplesData = await apiRequestJson<{ samples: SampleConversation[] }>("/api/experts/generate-samples", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemPrompt: expertData.systemPrompt,
+            expertName: expertData.name,
+            userChallenge: context.trim() || ""
+          }),
+        });
+        
+        setSampleConversations(samplesData.samples);
+        setCloneStep("complete");
+        
+        toast({
+          title: "Clone Cognitivo Completo",
+          description: `${expertData.name} está pronto! Veja os exemplos de conversa abaixo.`,
+        });
+      } catch (error) {
+        console.error("Error generating samples:", error);
+        setCloneStep("complete");
+        
+        toast({
+          title: "Clone Criado",
+          description: `${expertData.name} foi criado, mas não foi possível gerar amostras.`,
+        });
+      } finally {
+        setGeneratingSamples(false);
+      }
     },
     onError: (error: any) => {
       setCloneStep("idle");
@@ -118,6 +156,7 @@ export default function Create() {
   const handleRegenerate = () => {
     setGeneratedExpert(null);
     setCloneStep("idle");
+    setSampleConversations([]);
     setShowTestChat(false);
     setTestMessages([]);
     autoCloneMutation.reset();
@@ -183,6 +222,8 @@ export default function Create() {
         return <Brain className="h-4 w-4" />;
       case "synthesizing":
         return <Wand2 className="h-4 w-4" />;
+      case "generating-samples":
+        return <MessageSquare className="h-4 w-4" />;
       case "complete":
         return <Check className="h-4 w-4" />;
       default:
@@ -198,6 +239,8 @@ export default function Create() {
         return "Analisando padrões cognitivos e expertise...";
       case "synthesizing":
         return "Sintetizando clone de alta fidelidade...";
+      case "generating-samples":
+        return "✨ Gerando amostras de conversa para preview...";
       case "complete":
         return "Clone cognitivo pronto!";
       default:
@@ -205,7 +248,7 @@ export default function Create() {
     }
   };
 
-  const isProcessing = ["researching", "analyzing", "synthesizing"].includes(cloneStep);
+  const isProcessing = ["researching", "analyzing", "synthesizing", "generating-samples"].includes(cloneStep);
 
   return (
     <AnimatedPage>
@@ -352,6 +395,56 @@ export default function Create() {
                   </details>
                 </div>
               </Card>
+
+              {/* Disney Effect #1: Sample Conversations */}
+              {sampleConversations.length > 0 && (
+                <Card className="p-8 rounded-2xl bg-gradient-to-br from-accent/5 via-background to-background">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Sparkles className="h-5 w-5 text-accent" />
+                    <h3 className="text-lg font-semibold">Veja {generatedExpert.name} em Ação</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                    Exemplos reais de como este especialista pensa e se comunica:
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {sampleConversations.map((sample, index) => (
+                      <div 
+                        key={index} 
+                        className="rounded-2xl border border-border/50 overflow-hidden hover-elevate transition-all duration-200"
+                        data-testid={`sample-conversation-${index}`}
+                      >
+                        <div className="bg-muted/50 px-4 py-3 border-b border-border/50">
+                          <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                            {sample.question}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-background">
+                          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                            {sample.answer}
+                          </p>
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                            <Badge variant="secondary" className="text-xs font-normal">
+                              {sample.wordCount} palavras
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs font-normal">
+                              Amostra {index + 1}/3
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-6 p-4 rounded-xl bg-accent/10 border border-accent/20">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      ✨ <strong className="text-foreground">Efeito Disney:</strong> Estas respostas foram geradas automaticamente 
+                      usando o sistema cognitivo do especialista. Você está vendo a autenticidade em tempo real!
+                    </p>
+                  </div>
+                </Card>
+              )}
 
               <Card className="p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
