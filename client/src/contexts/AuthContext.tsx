@@ -6,6 +6,7 @@ interface User {
   username: string;
   email: string;
   availableInvites: number;
+  role: 'user' | 'admin' | 'superadmin';
 }
 
 interface AuthContextType {

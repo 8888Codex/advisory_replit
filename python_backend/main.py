@@ -117,6 +117,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     availableInvites: int
+    role: str
     createdAt: datetime
 
 # ============================================
@@ -154,7 +155,15 @@ async def register_user(data: RegisterRequest):
     if creator and creator["availableInvites"] > 0:
         await storage.update_user_invites(invite["creatorId"], creator["availableInvites"] - 1)
     
-    return UserResponse(**user)
+    # Return user with default role (backward compatibility)
+    return UserResponse(
+        id=user["id"],
+        username=user["username"],
+        email=user["email"],
+        availableInvites=user["availableInvites"],
+        role=user.get("role", "user"),
+        createdAt=user["createdAt"]
+    )
 
 @app.post("/api/auth/login", response_model=UserResponse)
 async def login_user(data: LoginRequest):
@@ -175,6 +184,7 @@ async def login_user(data: LoginRequest):
         username=user["username"],
         email=user["email"],
         availableInvites=user["availableInvites"],
+        role=user.get("role", "user"),  # Default to 'user' for backward compatibility
         createdAt=user["createdAt"]
     )
 
@@ -195,6 +205,7 @@ async def get_current_user(user_id: str):
         username=user["username"],
         email=user["email"],
         availableInvites=user["availableInvites"],
+        role=user.get("role", "user"),  # Default to 'user' for backward compatibility
         createdAt=user["createdAt"]
     )
 
