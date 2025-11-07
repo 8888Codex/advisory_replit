@@ -9,7 +9,7 @@ import { LogIn } from 'lucide-react';
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { login } = useAuth();
+  const { login, isRateLimited } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -62,7 +62,7 @@ export default function Login() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-email"
             />
@@ -77,7 +77,7 @@ export default function Login() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-password"
             />
@@ -86,10 +86,10 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full rounded-xl"
-            disabled={isLoading}
+            disabled={isLoading || isRateLimited}
             data-testid="button-login"
           >
-            {isLoading ? 'Entrando...' : 'Entrar'}
+            {isLoading ? 'Entrando...' : isRateLimited ? 'Aguarde...' : 'Entrar'}
           </Button>
         </form>
 

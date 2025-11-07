@@ -4,11 +4,18 @@ import { spawn } from 'child_process';
 import path from 'path';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
+import { RateLimiterPostgres } from 'rate-limiter-flexible';
+import pg from 'pg';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedExperts } from "./seed";
 
+const { Pool } = pg;
+
 const app = express();
+
+// Trust proxy for correct IP detection behind Replit/production proxies
+app.set('trust proxy', 1);
 
 // Session configuration with PostgreSQL store
 const PgSession = connectPgSimple(session);
@@ -74,6 +81,52 @@ function startPythonBackend() {
 
 const pythonBackend = startPythonBackend();
 
+// ============================================
+// RATE LIMITING CONFIGURATION
+// ============================================
+// PostgreSQL pool for rate limiters
+const rateLimitPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// PostgreSQL-backed rate limiters for authentication endpoints
+// Note: Tables will be auto-created by the library
+const loginRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_login',
+  points: 5, // 5 attempts
+  duration: 15 * 60, // Per 15 minutes
+  blockDuration: 15 * 60 // Block for 15 minutes after limit
+});
+
+const registerRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_register',
+  points: 3, // 3 registrations
+  duration: 60 * 60, // Per 1 hour
+  blockDuration: 60 * 60 // Block for 1 hour after limit
+});
+
+// Rate limiting middleware factory
+const createRateLimiter = (limiter: any, action: string) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const key = req.ip || 'unknown';
+    try {
+      await limiter.consume(key);
+      next();
+    } catch (rateLimiterRes: any) {
+      const remainingTime = Math.ceil(rateLimiterRes.msBeforeNext / 1000 / 60); // minutes
+      res.status(429).json({
+        detail: `Muitas tentativas. Aguarde ${remainingTime} minuto${remainingTime > 1 ? 's' : ''}.`,
+        retryAfter: remainingTime
+      });
+    }
+  };
+};
+
+const loginRateLimit = createRateLimiter(loginRateLimiter, 'login');
+const registerRateLimit = createRateLimiter(registerRateLimiter, 'register');
+
 // Parse JSON and URL-encoded bodies BEFORE auth routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -83,7 +136,7 @@ app.use(express.urlencoded({ extended: false }));
 // ============================================
 // These must be BEFORE the general proxy to intercept auth calls
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', registerRateLimit, async (req, res) => {
   try {
     const response = await fetch('http://localhost:5001/api/auth/register', {
       method: 'POST',
@@ -113,7 +166,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginRateLimit, async (req, res) => {
   try {
     const response = await fetch('http://localhost:5001/api/auth/login', {
       method: 'POST',

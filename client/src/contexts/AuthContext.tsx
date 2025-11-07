@@ -11,6 +11,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isRateLimited: boolean;
+  rateLimitExpiry: Date | null;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, inviteCode: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -22,6 +24,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [rateLimitExpiry, setRateLimitExpiry] = useState<Date | null>(null);
 
   const refreshUser = async () => {
     try {
@@ -57,6 +61,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
+      // Enhanced error message for rate limiting (429)
+      if (response.status === 429) {
+        const retryAfter = error.retryAfter || 15;
+        const expiryTime = new Date(Date.now() + retryAfter * 60 * 1000);
+        setIsRateLimited(true);
+        setRateLimitExpiry(expiryTime);
+        // Auto-clear rate limit after expiry
+        setTimeout(() => {
+          setIsRateLimited(false);
+          setRateLimitExpiry(null);
+        }, retryAfter * 60 * 1000);
+        throw new Error(`Muitas tentativas. Aguarde ${retryAfter} minuto${retryAfter > 1 ? 's' : ''}.`);
+      }
       throw new Error(error.detail || 'Login failed');
     }
 
@@ -74,6 +91,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
+      // Enhanced error message for rate limiting (429)
+      if (response.status === 429) {
+        const retryAfter = error.retryAfter || 60;
+        const expiryTime = new Date(Date.now() + retryAfter * 60 * 1000);
+        setIsRateLimited(true);
+        setRateLimitExpiry(expiryTime);
+        // Auto-clear rate limit after expiry
+        setTimeout(() => {
+          setIsRateLimited(false);
+          setRateLimitExpiry(null);
+        }, retryAfter * 60 * 1000);
+        throw new Error(`Muitas tentativas. Aguarde ${retryAfter} minuto${retryAfter > 1 ? 's' : ''}.`);
+      }
       throw new Error(error.detail || 'Registration failed');
     }
 
@@ -91,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, isRateLimited, rateLimitExpiry, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

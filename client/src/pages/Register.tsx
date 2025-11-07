@@ -9,7 +9,7 @@ import { UserPlus, Info } from 'lucide-react';
 
 export default function Register() {
   const [, setLocation] = useLocation();
-  const { register } = useAuth();
+  const { register, isRateLimited } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -96,7 +96,7 @@ export default function Register() {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-username"
             />
@@ -111,7 +111,7 @@ export default function Register() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-email"
             />
@@ -126,7 +126,7 @@ export default function Register() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-password"
             />
@@ -141,7 +141,7 @@ export default function Register() {
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl"
               data-testid="input-confirm-password"
             />
@@ -156,7 +156,7 @@ export default function Register() {
               value={formData.inviteCode}
               onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase() })}
               required
-              disabled={isLoading}
+              disabled={isLoading || isRateLimited}
               className="rounded-xl font-mono tracking-wider"
               data-testid="input-invite-code"
             />
@@ -165,10 +165,10 @@ export default function Register() {
           <Button
             type="submit"
             className="w-full rounded-xl"
-            disabled={isLoading}
+            disabled={isLoading || isRateLimited}
             data-testid="button-register"
           >
-            {isLoading ? 'Criando conta...' : 'Criar conta'}
+            {isLoading ? 'Criando conta...' : isRateLimited ? 'Aguarde...' : 'Criar conta'}
           </Button>
         </form>
 
