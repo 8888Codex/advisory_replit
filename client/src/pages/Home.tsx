@@ -42,7 +42,7 @@ export default function Home() {
     name: expert.name,
     title: expert.title,
     expertise: expert.expertise,
-    bio: expert.title, // Use title as bio for display
+    bio: "", // Bio will be hidden if empty (handled by ExpertCard)
     avatar: expert.avatar || null,
     category: expert.category,
   });

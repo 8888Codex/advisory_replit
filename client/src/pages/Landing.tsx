@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Expert } from "@shared/schema";
+import { ExpertCard, type Expert as ExpertCardType } from "@/components/ExpertCard";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -724,36 +724,24 @@ export default function Landing() {
               </motion.p>
             </div>
 
-            {/* Grid de Experts */}
+            {/* Grid de Experts - Using Unified ExpertCard */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-7xl mx-auto">
               {marketingLegends.map((expert, idx) => (
-                <motion.div
+                <ExpertCard
                   key={expert.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="p-4 sm:p-5 md:p-6 h-full hover-elevate cursor-pointer" onClick={() => handleConsult(expert.id)}>
-                    <div className="flex items-start gap-3 sm:gap-4">
-                      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0 border-2 border-accent/20">
-                        <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
-                        <AvatarFallback className="text-sm sm:text-base md:text-lg font-semibold bg-accent/10">
-                          {expert.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold mb-1 truncate">{expert.name}</h3>
-                        <p className="text-xs sm:text-sm text-accent font-medium mb-1 sm:mb-2">{expert.title}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{expert.bio}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
+                  expert={{
+                    id: String(expert.id),
+                    name: expert.name,
+                    title: expert.title,
+                    expertise: expert.expertise,
+                    bio: expert.bio,
+                    avatar: expert.avatar || null,
+                    category: expert.category,
+                  }}
+                  variant="rich"
+                  index={idx}
+                  onChat={() => handleConsult(expert.id)}
+                />
               ))}
             </div>
 

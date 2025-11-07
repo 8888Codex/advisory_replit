@@ -8,6 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (November 7, 2025)
 
+### Unified Expert Card Component (November 7, 2025)
+- **Design Unification**: Created single `ExpertCard` component (`client/src/components/ExpertCard.tsx`) replacing inconsistent card implementations across Landing, Categories, and Home pages.
+- **Two Variants**: 
+  - `variant="rich"` - Premium showcase with centered large avatar, expertise badges, bio, ideal for hero grids (Landing Tour, Home featured experts)
+  - `variant="compact"` - Horizontal condensed layout with lateral avatar, optimized for dense lists (Categories semantic recommendations)
+- **Smart Data Hydration**: Categories page fetches full expert dataset via `/api/experts`, uses memoized Map lookup to enrich semantic recommendations with complete metadata (title, expertise, bio), graceful fallback for missing data
+- **Interactive Features**: Optional props for `onChat`, `onAddToCouncil`, `councilAdded` state, `showStars`, star ratings, recommendation scores, AI justifications
+- **Type Safety**: Consistent `Expert` interface across all pages, automatic conversion in Home (id: number → string)
+- **Mobile-First**: Both variants fully responsive with consistent breakpoints, touch-friendly targets (h-12 minimum), proper spacing
+- **Performance**: Framer Motion animations, hover-elevate effects, zero performance impact
+- **Verification**: Zero LSP errors, architect-reviewed, navigation tested and confirmed working
+
 ### Avatar Integration Completed
 - **Fixed duplicate seeding**: Disabled redundant `seed_legends()` call in Python backend startup to prevent 36 duplicate experts (18 from CloneRegistry + 18 from PostgreSQL).
 - **Centralized avatar mapping**: Created `SEED_EXPERT_AVATARS` dictionary in `python_backend/clones/registry.py` mapping all 18 seed experts to their avatar paths (e.g., `/avatars/philip-kotler.png`).

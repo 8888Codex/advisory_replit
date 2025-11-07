@@ -86,9 +86,9 @@ export function ExpertCard({
           
           <CardContent className="p-4 sm:p-5 md:p-6">
             <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 ring-2 ring-border shrink-0">
-                <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
-                <AvatarFallback className="bg-accent/10 text-accent font-semibold text-sm sm:text-base">
+              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 ring-2 ring-border shrink-0 rounded-full">
+                <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
+                <AvatarFallback className="bg-accent/10 text-accent font-semibold text-sm sm:text-base rounded-full">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -189,9 +189,9 @@ export function ExpertCard({
         
         <CardContent className="p-4 sm:p-6 md:p-8">
           <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 md:space-y-6">
-            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-3 sm:border-4 border-accent/20 ring-2 ring-offset-2 ring-accent/10">
-              <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
-              <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10 text-accent">
+            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-3 sm:border-4 border-accent/20 ring-2 ring-offset-2 ring-accent/10 rounded-full">
+              <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
+              <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10 text-accent rounded-full">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -214,7 +214,7 @@ export function ExpertCard({
               ))}
             </div>
 
-            {expert.bio && (
+            {expert.bio && expert.bio.trim() && (
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-3">
                 {expert.bio}
               </p>
