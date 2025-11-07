@@ -159,89 +159,103 @@ export default function Landing() {
 
   const impactStats = [
     {
-      icon: Users,
-      value: "18",
-      label: "Lendas do Marketing",
-      description: "De Philip Kotler a Gary Vaynerchuk",
+      icon: DollarSign,
+      value: "Bilhões",
+      label: "Faturados Pelas Lendas",
+      description: "Eugene Schwartz: U$1 BI só em copy",
     },
     {
       icon: Calendar,
       value: `${totalYearsExperience}+`,
-      label: "Anos de Expertise",
-      description: "Consultas respondidas em português",
+      label: "Anos de Expertise Real",
+      description: "Estratégias testadas desde 1967",
     },
     {
-      icon: Award,
-      value: "95%",
-      label: "Fidelidade Autêntica",
-      description: "Testado por usuários reais em comparação cega",
+      icon: Users,
+      value: "18",
+      label: "Mentes Lendárias",
+      description: "Não são influencers. São os inventores.",
     },
   ];
 
   return (
     <AnimatedPage>
       <div className="min-h-screen">
-        {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-28 bg-gradient-to-b from-muted/30 to-background">
+        {/* Hero Section - MATADOR */}
+        <section className="relative w-full py-20 md:py-32 bg-gradient-to-b from-destructive/5 via-background to-background">
           <div className="container mx-auto px-4">
-            <div className="max-w-5xl mx-auto text-center space-y-8">
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted border border-border/50"
-              >
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-muted-foreground">
-                  18 Lendas do Marketing Mundial
-                </span>
-              </motion.div>
-
+            <div className="max-w-6xl mx-auto text-center space-y-10">
+              
+              {/* Headline Killer */}
               <motion.h1
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.05 }}
-                className="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-tight"
+                transition={{ duration: 0.4 }}
+                className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight leading-[1.1]"
               >
-                <span className="text-accent">450+ Anos de Expertise</span> em Marketing.
+                <span className="text-destructive">Você Está Queimando Dinheiro</span>
                 <br />
-                Agora em Uma Conversa.
+                em Marketing.
+                <br />
+                <span className="text-foreground">Eles Sabem Exatamente Onde.</span>
               </motion.h1>
+
+              {/* Subheadline Agressivo */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-medium"
+              >
+                18 mentes que faturaram <span className="text-accent font-semibold">BILHÕES</span> ensinando estratégias que funcionaram em 1967, 1983, 2005 e{" "}
+                <span className="text-accent font-semibold">CONTINUAM funcionando hoje</span>.
+              </motion.p>
+
+              {/* Nomes das Lendas */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto"
+              >
+                {["Philip Kotler", "David Ogilvy", "Seth Godin", "Gary Vaynerchuk", "Eugene Schwartz", "Dan Kennedy"].map((name, idx) => (
+                  <Badge key={idx} variant="outline" className="px-4 py-2 text-base font-medium">
+                    {name}
+                  </Badge>
+                ))}
+                <Badge variant="outline" className="px-4 py-2 text-base font-medium text-accent">
+                  +12 Lendas
+                </Badge>
+              </motion.div>
 
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="text-lg md:text-xl text-muted-foreground"
               >
-                De Philip Kotler a Gary Vaynerchuk. Consulte as maiores mentes do marketing como se estivessem vivos na sua frente.
+                Respondendo <span className="text-accent font-semibold">SUAS perguntas</span>. Em português. Agora.
               </motion.p>
 
+              {/* CTA Principal */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.15 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="pt-6"
               >
                 <Button
                   size="lg"
-                  className="gap-2"
-                  onClick={() => {
-                    document.getElementById("tour-section")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  data-testid="button-explore-experts"
+                  className="gap-2 h-16 px-12 text-xl font-semibold"
+                  onClick={() => setLocation("/onboarding")}
+                  data-testid="button-start-now"
                 >
-                  Explorar Especialistas
-                  <ChevronRight className="h-5 w-5" />
+                  Parar de Adivinhar. Começar Agora
+                  <ChevronRight className="h-6 w-6" />
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => setLocation("/create")}
-                  data-testid="button-create-expert"
-                >
-                  Criar Seu Especialista
-                </Button>
+                <p className="text-sm text-muted-foreground mt-3">
+                  ✓ Grátis ✓ Sem cartão ✓ Respostas em 30 segundos
+                </p>
               </motion.div>
             </div>
           </div>
@@ -268,6 +282,154 @@ export default function Landing() {
                   </Card>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Problem-Agitate Section - DOR DO CLIENTE */}
+        <section className="w-full py-20 bg-destructive/5">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl md:text-5xl font-semibold text-center mb-12"
+              >
+                VOCÊ JÁ TENTOU:
+              </motion.h2>
+
+              <div className="grid md:grid-cols-2 gap-8 mb-16">
+                {/* LADO ESQUERDO - Problemas */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="space-y-6"
+                >
+                  <Card className="p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-4">
+                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Curso de R$ 3.997 que não funcionou</h3>
+                        <p className="text-muted-foreground">Você gastou uma grana, assistiu tudo, testou... e nada mudou.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-4">
+                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Agência que prometeu "resultados garantidos"</h3>
+                        <p className="text-muted-foreground">3 meses de contrato, orçamento queimado, apenas "relatórios bonitos".</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-4">
+                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Guru do Instagram vendendo fórmula mágica</h3>
+                        <p className="text-muted-foreground">"Faça isso e fature 6 dígitos". Spoiler: não funcionou.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-4">
+                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Copiar o que a concorrência faz</h3>
+                        <p className="text-muted-foreground">Você tenta replicar, mas nunca alcança os mesmos resultados.</p>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+
+                {/* LADO DIREITO - Solução */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-6"
+                >
+                  <Card className="p-6 border-accent/50 bg-accent/5">
+                    <div className="flex items-start gap-4">
+                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Philip Kotler analisa SEU posicionamento</h3>
+                        <p className="text-muted-foreground">O pai do marketing moderno respondendo VOCÊ diretamente.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-accent/50 bg-accent/5">
+                    <div className="flex items-start gap-4">
+                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Eugene Schwartz valida sua copy</h3>
+                        <p className="text-muted-foreground">O homem que vendeu U$1 BI com palavras corrigindo SEU texto.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-accent/50 bg-accent/5">
+                    <div className="flex items-start gap-4">
+                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Seth Godin testa sua ideia de campanha</h3>
+                        <p className="text-muted-foreground">21 best-sellers. Purple Cow. Tribos. Ele sabe se vai funcionar.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 border-accent/50 bg-accent/5">
+                    <div className="flex items-start gap-4">
+                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Gary Vaynerchuk revisa seu social media</h3>
+                        <p className="text-muted-foreground">De $3M → $60M com conteúdo. Ele sabe o que viraliza.</p>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              </div>
+
+              {/* Texto de Impacto */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-center space-y-6"
+              >
+                <p className="text-2xl md:text-3xl font-semibold">
+                  <span className="text-destructive">RESULTADO?</span> Frustração. Dinheiro jogado fora. Nada muda.
+                </p>
+
+                <div className="max-w-3xl mx-auto space-y-4 text-lg md:text-xl text-muted-foreground">
+                  <p className="font-semibold text-foreground">O PROBLEMA NÃO É VOCÊ.</p>
+                  <p>É que você está pedindo conselho pra quem NUNCA fez funcionar de verdade.</p>
+                  <p className="text-accent font-semibold text-2xl">
+                    E se você pudesse perguntar diretamente pro cara que INVENTOU o posicionamento? 
+                    Pro cara que vendeu U$ 1 bilhão com uma carta de vendas? 
+                    Pro cara que criou o conceito de tribo?
+                  </p>
+                  <p className="text-3xl font-bold text-foreground pt-4">
+                    ELES ESTÃO AQUI. AGORA.
+                  </p>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="gap-2 h-14 px-10 text-lg mt-8"
+                  onClick={() => setLocation("/onboarding")}
+                  data-testid="button-stop-guessing"
+                >
+                  Parar de Queimar Dinheiro
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -631,8 +793,106 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ROSTER DAS LENDAS - Grid Completo */}
+        <section className="w-full py-24 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-6"
+              >
+                CONHEÇA AS <span className="text-accent">18 LENDAS</span>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto"
+              >
+                Não são influencers. Não são "especialistas auto-proclamados". São os inventores. Os que faturaram bilhões. Os que escreveram os livros que todo mundo copia.
+              </motion.p>
+            </div>
+
+            {/* Grid de Experts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+              {marketingLegends.map((expert, idx) => (
+                <motion.div
+                  key={expert.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Card className="p-6 h-full hover-elevate cursor-pointer" onClick={() => handleConsult(expert.id)}>
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-16 w-16 flex-shrink-0 border-2 border-accent/20">
+                        <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
+                        <AvatarFallback className="text-lg font-semibold bg-accent/10">
+                          {expert.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold mb-1 truncate">{expert.name}</h3>
+                        <p className="text-sm text-accent font-medium mb-2">{expert.title}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{expert.bio}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Stats de Impacto */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-16 text-center space-y-8"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="space-y-2">
+                  <div className="text-5xl font-bold text-accent">{totalYearsExperience}+</div>
+                  <p className="text-lg text-muted-foreground">Anos de Expertise Real</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-5xl font-bold text-accent">Bilhões</div>
+                  <p className="text-lg text-muted-foreground">Faturados Combinados</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-5xl font-bold text-accent">18</div>
+                  <p className="text-lg text-muted-foreground">Mentes Que Mudaram o Marketing</p>
+                </div>
+              </div>
+
+              <div className="max-w-3xl mx-auto">
+                <p className="text-xl md:text-2xl text-foreground font-semibold mb-4">
+                  Eles INVENTARAM as estratégias que os gurus de hoje COPIAM.
+                </p>
+                <p className="text-lg text-muted-foreground">
+                  Philip Kotler criou os 4Ps. Eugene Schwartz vendeu U$1 BI com copy. Seth Godin inventou o conceito de tribo. Gary Vaynerchuk dominou social media antes de virar moda.
+                </p>
+              </div>
+
+              <Button
+                size="lg"
+                className="gap-2 h-16 px-12 text-xl font-semibold mt-8"
+                onClick={() => setLocation("/onboarding")}
+                data-testid="button-meet-legends"
+              >
+                Consultar as Lendas Agora
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Perguntas Concretas */}
-        <section className="w-full py-20 bg-background">
+        <section className="w-full py-20 bg-muted/20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-4xl md:text-5xl font-semibold mb-4">
@@ -891,36 +1151,134 @@ export default function Landing() {
           </section>
         )}
 
-        {/* Final CTA */}
+        {/* CTA FINAL GIGANTE - IMPOSSÍVEL DE IGNORAR */}
         {!showProfileForm && (
-          <section className="w-full py-20 bg-background">
-            <div className="container mx-auto px-4">
-              <div className="max-w-3xl mx-auto text-center space-y-6">
-                <h2 className="text-4xl md:text-5xl font-semibold">
-                  Sua Próxima Decisão de Marketing Vale Milhões. Consulte Quem Domina Isso.
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Grátis para começar. 30 segundos para primeiras respostas. 18 lendas disponíveis agora.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                  <Button
-                    size="lg"
-                    onClick={() => setLocation("/onboarding")}
-                    className="gap-2"
-                    data-testid="button-final-cta"
-                  >
-                    Começar Consultoria Grátis
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => setLocation("/create")}
-                    data-testid="button-final-create"
-                  >
-                    Criar Meu Especialista
-                  </Button>
-                </div>
+          <section className="relative w-full py-32 md:py-40 bg-gradient-to-b from-background via-accent/5 to-destructive/10 overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent to-destructive" />
+            </div>
+
+            <div className="container mx-auto px-4 relative z-10">
+              <div className="max-w-5xl mx-auto text-center space-y-12">
+                
+                {/* Urgência Máxima */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-6"
+                >
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-destructive/10 border border-destructive/20">
+                    <Zap className="h-5 w-5 text-destructive" />
+                    <span className="text-sm font-semibold text-destructive uppercase tracking-wide">
+                      CADA MINUTO PERDIDO = DINHEIRO NA MESA
+                    </span>
+                  </div>
+
+                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                    <span className="text-foreground">Se Você Não Testar Isso,</span>
+                    <br />
+                    <span className="text-destructive">Você É Louco.</span>
+                  </h2>
+
+                  <div className="max-w-3xl mx-auto space-y-6">
+                    <p className="text-2xl md:text-3xl font-semibold text-foreground">
+                      ZERO RISCO. 100% GRÁTIS. 30 SEGUNDOS PARA COMEÇAR.
+                    </p>
+
+                    <div className="grid md:grid-cols-3 gap-4 text-left">
+                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
+                          <h3 className="font-semibold">Sem Cartão</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Nem pedimos. Comece agora mesmo.</p>
+                      </Card>
+
+                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
+                          <h3 className="font-semibold">100% Grátis</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Primeira consulta. Zero custo. Zero pegadinha.</p>
+                      </Card>
+
+                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
+                          <h3 className="font-semibold">30 Segundos</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Respostas rápidas. Insights imediatos.</p>
+                      </Card>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* The Big Ask */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="space-y-8 pt-8"
+                >
+                  <div className="max-w-3xl mx-auto space-y-4 text-lg md:text-xl text-muted-foreground">
+                    <p className="font-semibold text-foreground text-2xl">
+                      Você já desperdiçou dinheiro com curso que não funcionou.
+                    </p>
+                    <p className="font-semibold text-foreground text-2xl">
+                      Você já pagou agência que não entregou.
+                    </p>
+                    <p className="font-semibold text-foreground text-2xl">
+                      Você já seguiu guru que só queria vender.
+                    </p>
+                    <p className="text-3xl font-bold text-accent pt-6">
+                      E SE... você pudesse perguntar diretamente pro cara que INVENTOU o que você precisa?
+                    </p>
+                  </div>
+
+                  {/* CTA Gigante */}
+                  <div className="space-y-4">
+                    <Button
+                      size="lg"
+                      onClick={() => setLocation("/onboarding")}
+                      className="gap-3 h-20 px-16 text-2xl font-bold shadow-2xl hover:shadow-accent/20 transition-all duration-300"
+                      data-testid="button-final-cta-giant"
+                    >
+                      COMEÇAR AGORA (100% GRÁTIS)
+                      <ChevronRight className="h-8 w-8" />
+                    </Button>
+
+                    <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-accent" />
+                        <span>Sem cartão de crédito</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-accent" />
+                        <span>Primeira consulta grátis</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-accent" />
+                        <span>18 lendas disponíveis</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-accent" />
+                        <span>Respostas em 30s</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Final Blow */}
+                  <div className="pt-8 max-w-2xl mx-auto">
+                    <p className="text-xl md:text-2xl text-foreground italic font-medium">
+                      "O maior erro não é tentar e falhar. É não tentar quando não custa nada."
+                    </p>
+                    <p className="text-lg text-muted-foreground mt-4">
+                      — Philip Kotler (provavelmente diria algo assim)
+                    </p>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </section>
