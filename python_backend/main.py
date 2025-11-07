@@ -246,7 +246,27 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
                     }
                 )
             
-            perplexity_data = perplexity_response.json()
+            # Check response status before parsing JSON
+            if perplexity_response.status_code != 200:
+                error_msg = f"Perplexity API error: {perplexity_response.status_code}"
+                print(f"[AUTO-CLONE-STREAM] {error_msg}")
+                print(f"[AUTO-CLONE-STREAM] Response text: {perplexity_response.text[:500]}")
+                yield send_event("error", {
+                    "message": f"Erro na pesquisa (código {perplexity_response.status_code})"
+                })
+                return
+            
+            try:
+                perplexity_data = perplexity_response.json()
+            except Exception as e:
+                error_msg = f"Failed to parse Perplexity response: {str(e)}"
+                print(f"[AUTO-CLONE-STREAM] {error_msg}")
+                print(f"[AUTO-CLONE-STREAM] Response text: {perplexity_response.text[:500]}")
+                yield send_event("error", {
+                    "message": "Erro ao processar resposta da pesquisa"
+                })
+                return
+            
             research_findings = ""
             if "choices" in perplexity_data and len(perplexity_data["choices"]) > 0:
                 research_findings = perplexity_data["choices"][0]["message"]["content"]
@@ -634,7 +654,7 @@ CATEGORIAS DISPONÍVEIS:
 Responda APENAS com o ID da categoria (ex: "growth"), nada mais."""
 
                 response = await anthropic_client.messages.create(
-                    model="claude-haiku-4-20250514",
+                    model="claude-3-5-haiku-20241022",
                     max_tokens=20,
                     system="Você é um classificador expert. Responda apenas com o ID da categoria.",
                     messages=[{
@@ -724,9 +744,14 @@ async def get_expert(expert_id: str):
 async def create_expert(data: ExpertCreate):
     """Create a new custom expert (cognitive clone)"""
     try:
+        print(f"[CREATE-EXPERT] Received expert: {data.name}, category: {data.category.value if hasattr(data.category, 'value') else data.category}")
         expert = await storage.create_expert(data)
+        print(f"[CREATE-EXPERT] Saved expert with ID: {expert.id}, category: {expert.category.value}")
         return expert
     except Exception as e:
+        print(f"[CREATE-EXPERT] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create expert: {str(e)}")
 
 @app.post("/api/experts/auto-clone", response_model=ExpertCreate, status_code=200)
@@ -1528,7 +1553,7 @@ async def generate_sample_conversations(data: dict):
             print(f"[SAMPLES] Generating sample {i+1}/3 for {expert_name}...")
             
             response = await anthropic_client.messages.create(
-                model="claude-haiku-4-20250514",  # Use Haiku for speed
+                model="claude-3-5-haiku-20241022",  # Use Haiku for speed
                 max_tokens=800,
                 system=system_prompt,
                 messages=[{
