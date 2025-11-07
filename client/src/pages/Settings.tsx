@@ -29,6 +29,9 @@ function SettingsContent() {
     mutationFn: async () => {
       const response = await apiRequest('/api/invites/generate', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) {
         const error = await response.json();
@@ -37,7 +40,11 @@ function SettingsContent() {
       return response.json();
     },
     onSuccess: async (data) => {
+      // Invalidate invite codes list
       queryClient.invalidateQueries({ queryKey: ['/api/invites/my-codes'] });
+      
+      // Wait a brief moment for DB commit, then refresh user
+      await new Promise(resolve => setTimeout(resolve, 100));
       await refreshUser();
       
       // Copy código automaticamente

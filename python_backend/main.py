@@ -206,6 +206,9 @@ async def generate_invite(user_id: str):
     # Create invite
     invite = await storage.create_invite(code, user_id)
     
+    # Decrement user's available invites
+    await storage.update_user_invites(user_id, user["availableInvites"] - 1)
+    
     return InviteCodeResponse(**invite)
 
 @app.get("/api/invites/my-codes", response_model=List[InviteCodeResponse])

@@ -49,6 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const response = await apiRequest('/api/auth/login', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ email, password }),
     });
 
@@ -63,7 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (username: string, email: string, password: string, inviteCode: string) => {
     const response = await apiRequest('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password, invite_code: inviteCode }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password, inviteCode }),
     });
 
     if (!response.ok) {
@@ -77,6 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await apiRequest('/api/auth/logout', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     setUser(null);
   };

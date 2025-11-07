@@ -154,12 +154,32 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-app.get('/api/auth/me', (req, res) => {
-  if (!req.session.userId || !req.session.user) {
+app.get('/api/auth/me', async (req, res) => {
+  if (!req.session.userId) {
     return res.status(401).json({ detail: 'Não autenticado' });
   }
 
-  res.json(req.session.user);
+  try {
+    // Fetch fresh user data from Python/database
+    const response = await fetch(`http://localhost:5001/api/auth/me?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json(await response.json());
+    }
+
+    const userData = await response.json();
+    
+    // Update session with fresh data
+    req.session.user = userData;
+    
+    res.json(userData);
+  } catch (error) {
+    console.error('[Auth] Me error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar dados do usuário' });
+  }
 });
 
 // ============================================
