@@ -648,7 +648,6 @@ export default function Landing() {
 
                           <Button
                             onClick={() => handleConsult(currentExpert.id)}
-                            disabled={isLoadingOnboarding}
                             className="gap-2"
                             data-testid={`button-chat-${currentExpert.id}`}
                           >
