@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Header } from "@/components/Header";
 import { AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
@@ -39,30 +40,89 @@ function Router() {
   return (
     <AnimatePresence mode="wait">
       <Switch location={location} key={location}>
+        {/* Public Routes */}
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/reset-password" component={ResetPassword} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/home" component={Home} />
+        
+        {/* Legacy Redirects */}
         <Route path="/welcome">
           <Redirect to="/" />
         </Route>
         <Route path="/marketing">
           <Redirect to="/" />
         </Route>
-        <Route path="/onboarding" component={Onboarding} />
-        <Route path="/persona-dashboard" component={PersonaDashboard} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/experts" component={Experts} />
-        <Route path="/categories" component={Categories} />
-        <Route path="/chat/:id" component={Chat} />
-        <Route path="/create" component={Create} />
-        <Route path="/admin/experts" component={AdminExperts} />
-        <Route path="/test-council" component={TestCouncil} />
-        <Route path="/personas" component={Personas} />
-        <Route path="/council-room/:sessionId" component={CouncilRoom} />
+        
+        {/* Protected Routes */}
+        <Route path="/settings">
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/home">
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/onboarding">
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/persona-dashboard">
+          <ProtectedRoute>
+            <PersonaDashboard />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/analytics">
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/experts">
+          <ProtectedRoute>
+            <Experts />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/categories">
+          <ProtectedRoute>
+            <Categories />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/chat/:id">
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/create">
+          <ProtectedRoute>
+            <Create />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/experts">
+          <ProtectedRoute>
+            <AdminExperts />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/test-council">
+          <ProtectedRoute>
+            <TestCouncil />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/personas">
+          <ProtectedRoute>
+            <Personas />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/council-room/:sessionId">
+          <ProtectedRoute>
+            <CouncilRoom />
+          </ProtectedRoute>
+        </Route>
+        
+        {/* 404 Catch-all */}
         <Route component={NotFound} />
       </Switch>
     </AnimatePresence>
