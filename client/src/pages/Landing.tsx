@@ -98,7 +98,8 @@ export default function Landing() {
     queryKey: ["/api/experts"],
   });
 
-  const marketingLegends = experts.filter((e) => e.expertise && e.expertise.length > 0);
+  // Filter only seed experts (18 main legends with HIGH_FIDELITY type)
+  const marketingLegends = experts.filter((e) => e.expertType === "high_fidelity");
   const totalYearsExperience = marketingLegends.length * 25;
   const currentExpert = marketingLegends[tourIndex];
 

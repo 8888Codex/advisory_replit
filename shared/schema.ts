@@ -169,6 +169,10 @@ export const categoryTypeEnum = z.enum([
 
 export type CategoryType = z.infer<typeof categoryTypeEnum>;
 
+// Expert type enum for distinguishing seed vs custom experts
+export const expertTypeEnum = z.enum(["high_fidelity", "custom"]);
+export type ExpertTypeEnum = z.infer<typeof expertTypeEnum>;
+
 export const experts = pgTable("experts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -186,10 +190,15 @@ export const insertExpertSchema = createInsertSchema(experts).omit({
   createdAt: true,
 }).extend({
   category: categoryTypeEnum.default("marketing"),
+  expertType: expertTypeEnum.optional(), // Optional for backward compat
 });
 
 export type InsertExpert = z.infer<typeof insertExpertSchema>;
-export type Expert = typeof experts.$inferSelect;
+
+// Expert type with expertType field from API (not in DB)
+export type Expert = typeof experts.$inferSelect & {
+  expertType?: ExpertTypeEnum;
+};
 
 export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
