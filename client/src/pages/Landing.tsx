@@ -237,7 +237,7 @@ export default function Landing() {
         {/* Impact Stats */}
         <section className="w-full py-16 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
               {impactStats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -363,7 +363,7 @@ export default function Landing() {
             </div>
 
             {/* 3 Steps */}
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
+            <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto mb-16">
               {[
                 {
                   step: "1",
@@ -406,7 +406,7 @@ export default function Landing() {
             </div>
 
             {/* IA Genérica vs Clone Perfeito */}
-            <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto">
               <Card className="p-6 rounded-2xl bg-background border-border">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
@@ -630,7 +630,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-4 max-w-6xl mx-auto">
               {[
                 {
                   expert: "Philip Kotler",
@@ -752,7 +752,7 @@ export default function Landing() {
 
                 <Card className="p-8 rounded-2xl">
                   <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="companyName">Nome da Empresa</Label>
                         <Input

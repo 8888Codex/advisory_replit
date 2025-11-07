@@ -221,7 +221,7 @@ function CategoryCard({ category, index }: { category: Category; index: number }
 
 function CategoryGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {[...Array(6)].map((_, i) => (
         <div key={i} className="rounded-2xl p-8 bg-card border border-border/50">
           <Skeleton className="w-14 h-14 rounded-full mb-6" />
@@ -468,7 +468,7 @@ export default function Categories() {
           {isLoading ? (
             <CategoryGridSkeleton />
           ) : categories && categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8" data-testid="grid-categories">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="grid-categories">
               {categories.map((category, index) => (
                 <CategoryCard key={category.id} category={category} index={index} />
               ))}

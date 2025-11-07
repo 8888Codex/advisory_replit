@@ -56,7 +56,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-12">
             {/* Quick Actions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -66,8 +66,8 @@ export default function Home() {
               <Card className="rounded-2xl hover-elevate cursor-pointer" onClick={() => setLocation("/categories")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-accent/10">
-                      <Users className="w-6 h-6 text-accent" />
+                    <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950">
+                      <Users className="w-6 h-6 text-purple-500" />
                     </div>
                     <div>
                       <CardTitle className="text-xl">Explorar Categorias</CardTitle>
@@ -95,8 +95,8 @@ export default function Home() {
               <Card className="rounded-2xl hover-elevate cursor-pointer" onClick={() => setLocation("/test-council")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-accent/10">
-                      <Sparkles className="w-6 h-6 text-accent" />
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950">
+                      <Sparkles className="w-6 h-6 text-amber-500" />
                     </div>
                     <div>
                       <CardTitle className="text-xl">Conselho Estratégico</CardTitle>
@@ -124,8 +124,8 @@ export default function Home() {
               <Card className="rounded-2xl hover-elevate cursor-pointer" onClick={() => setLocation("/personas")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-accent/10">
-                      <TrendingUp className="w-6 h-6 text-accent" />
+                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950">
+                      <TrendingUp className="w-6 h-6 text-blue-500" />
                     </div>
                     <div>
                       <CardTitle className="text-xl">Persona Builder</CardTitle>
