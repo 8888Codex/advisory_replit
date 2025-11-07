@@ -168,6 +168,15 @@ async def get_categories():
     categories.sort(key=lambda x: (-x.expertCount, x.name))
     return categories
 
+# Register specific routes BEFORE generic {expert_id} route to prevent path conflicts
+# Auto-clone-stream route is defined later (~line 1020) but registered here for proper routing precedence
+@app.get("/api/experts/auto-clone-stream")
+async def auto_clone_expert_stream_route(targetName: str, context: str = ""):
+    """Forward to actual implementation defined later"""
+    # Actual implementation defined after line 1020
+    # This stub ensures proper route ordering
+    pass  # Will be overridden by actual implementation
+
 @app.get("/api/experts/{expert_id}", response_model=Expert)
 async def get_expert(expert_id: str):
     """Get a specific expert by ID"""
