@@ -217,6 +217,67 @@ async def get_my_invites(user_id: str):
     invites = await storage.get_user_invites(user_id)
     return [InviteCodeResponse(**invite) for invite in invites]
 
+# ============================================
+# ONBOARDING SYSTEM
+# ============================================
+
+class OnboardingSaveRequest(BaseModel):
+    currentStep: Optional[int] = None
+    companyName: Optional[str] = None
+    industry: Optional[str] = None
+    companySize: Optional[str] = None
+    targetAudience: Optional[str] = None
+    goals: Optional[List[str]] = None
+    mainChallenge: Optional[str] = None
+    enrichmentLevel: Optional[str] = None
+
+class OnboardingStatusResponse(BaseModel):
+    id: str
+    userId: str
+    currentStep: int
+    companyName: Optional[str]
+    industry: Optional[str]
+    companySize: Optional[str]
+    targetAudience: Optional[str]
+    goals: Optional[List[str]]
+    mainChallenge: Optional[str]
+    enrichmentLevel: Optional[str]
+    completedAt: Optional[datetime]
+    createdAt: datetime
+    updatedAt: datetime
+
+@app.post("/api/onboarding/save", response_model=OnboardingStatusResponse)
+async def save_onboarding(data: OnboardingSaveRequest, user_id: str):
+    """Save onboarding progress for authenticated user"""
+    
+    # Convert Pydantic model to dict
+    onboarding_data = data.model_dump(exclude_unset=True)
+    
+    # Save to database
+    result = await storage.save_onboarding_progress(user_id, onboarding_data)
+    
+    return OnboardingStatusResponse(**result)
+
+@app.get("/api/onboarding/status", response_model=Optional[OnboardingStatusResponse])
+async def get_onboarding_status(user_id: str):
+    """Get onboarding status for authenticated user"""
+    result = await storage.get_onboarding_status(user_id)
+    
+    if not result:
+        return None
+    
+    return OnboardingStatusResponse(**result)
+
+@app.post("/api/onboarding/complete")
+async def complete_onboarding(user_id: str):
+    """Mark onboarding as completed for authenticated user"""
+    success = await storage.complete_onboarding(user_id)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Onboarding já foi completado ou não existe")
+    
+    return {"message": "Onboarding completado com sucesso"}
+
 # Category metadata mapping
 CATEGORY_METADATA = {
     CategoryType.MARKETING: {

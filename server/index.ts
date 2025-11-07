@@ -237,18 +237,99 @@ app.get('/api/invites/my-codes', async (req, res) => {
   }
 });
 
-// Proxy all OTHER /api requests to Python backend (EXCEPT auth and invites handled above)
+// ============================================
+// ONBOARDING ROUTES (Protected)
+// ============================================
+// These must be authenticated and forward only session userId to Python
+
+app.post('/api/onboarding/save', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Call Python with authenticated user ID and onboarding data
+    const response = await fetch(`http://localhost:5001/api/onboarding/save?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Onboarding] Save error:', error);
+    res.status(500).json({ detail: 'Erro ao salvar progresso do onboarding' });
+  }
+});
+
+app.get('/api/onboarding/status', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Call Python with authenticated user ID only
+    const response = await fetch(`http://localhost:5001/api/onboarding/status?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Onboarding] Status error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar status do onboarding' });
+  }
+});
+
+app.post('/api/onboarding/complete', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Call Python with authenticated user ID only
+    const response = await fetch(`http://localhost:5001/api/onboarding/complete?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Onboarding] Complete error:', error);
+    res.status(500).json({ detail: 'Erro ao completar onboarding' });
+  }
+});
+
+// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, and onboarding handled above)
 // This ensures the request body is not consumed by express.json()
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001',
   pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
-  // Exclude auth and invite endpoints (handled by Express middleware above)
+  // Exclude auth, invite, and onboarding endpoints (handled by Express middleware above)
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
   filter: (pathname, req) => {
-    // Block /auth/* and /invites/* from being proxied
-    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites');
+    // Block /auth/*, /invites/*, and /onboarding/* from being proxied
+    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites') && !pathname.startsWith('/onboarding');
   },
   // SSE-specific configuration for streaming endpoints
   on: {

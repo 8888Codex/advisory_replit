@@ -42,6 +42,54 @@ export const insertInviteCodeSchema = createInsertSchema(inviteCodes).omit({
 export type InsertInviteCode = z.infer<typeof insertInviteCodeSchema>;
 export type InviteCode = typeof inviteCodes.$inferSelect;
 
+// ============================================
+// ONBOARDING SYSTEM
+// ============================================
+
+// Onboarding Status - Tracks user onboarding progress in PostgreSQL (replacing localStorage)
+export const onboardingStatus = pgTable("onboarding_status", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(), // One onboarding record per user
+  currentStep: integer("current_step").notNull().default(0), // 0=business, 1=audience, 2=goals, 3=enrichment
+  
+  // Step 1: Business Context
+  companyName: text("company_name"),
+  industry: text("industry"),
+  companySize: text("company_size"), // "1-10", "11-50", "51-200", "200+"
+  
+  // Step 2: Target Audience
+  targetAudience: text("target_audience"),
+  
+  // Step 3: Goals & Challenges
+  goals: text("goals").array(), // ["growth", "positioning", "retention"]
+  mainChallenge: text("main_challenge"),
+  
+  // Step 4: Enrichment Level
+  enrichmentLevel: text("enrichment_level"), // "quick" | "strategic" | "complete"
+  
+  // Completion tracking
+  completedAt: timestamp("completed_at"), // null = incomplete, timestamp = completed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertOnboardingStatusSchema = createInsertSchema(onboardingStatus).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateOnboardingStatusSchema = createInsertSchema(onboardingStatus).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial();
+
+export type InsertOnboardingStatus = z.infer<typeof insertOnboardingStatusSchema>;
+export type UpdateOnboardingStatus = z.infer<typeof updateOnboardingStatusSchema>;
+export type OnboardingStatus = typeof onboardingStatus.$inferSelect;
+
 // Category type for expert specializations
 export const categoryTypeEnum = z.enum([
   "marketing",        // Traditional marketing strategy

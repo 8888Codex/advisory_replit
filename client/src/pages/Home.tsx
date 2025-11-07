@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, TrendingUp, Users, MessageSquare, ArrowRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 
 interface Expert {
   id: number;
@@ -20,15 +21,14 @@ interface Expert {
 
 export default function Home() {
   const [, setLocation] = useLocation();
+  const { isComplete, isLoading: isLoadingOnboarding } = useOnboardingComplete();
 
-  // Check if user has completed onboarding
+  // Check if user has completed onboarding (now from PostgreSQL)
   useEffect(() => {
-    const onboardingComplete = localStorage.getItem("onboarding_complete");
-    
-    if (!onboardingComplete) {
+    if (!isLoadingOnboarding && !isComplete) {
       setLocation("/onboarding");
     }
-  }, [setLocation]);
+  }, [isComplete, isLoadingOnboarding, setLocation]);
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],

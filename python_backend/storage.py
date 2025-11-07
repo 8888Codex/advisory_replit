@@ -729,6 +729,127 @@ class PostgresStorage:
                 }
                 for row in rows
             ]
+    
+    # ============================================
+    # ONBOARDING METHODS
+    # ============================================
+    
+    async def save_onboarding_progress(self, user_id: str, data: dict) -> dict:
+        """Save or update onboarding progress for a user"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            # Check if onboarding record exists
+            existing = await conn.fetchrow("""
+                SELECT id FROM onboarding_status WHERE user_id = $1
+            """, user_id)
+            
+            if existing:
+                # Update existing record
+                row = await conn.fetchrow("""
+                    UPDATE onboarding_status
+                    SET current_step = COALESCE($2, current_step),
+                        company_name = COALESCE($3, company_name),
+                        industry = COALESCE($4, industry),
+                        company_size = COALESCE($5, company_size),
+                        target_audience = COALESCE($6, target_audience),
+                        goals = COALESCE($7, goals),
+                        main_challenge = COALESCE($8, main_challenge),
+                        enrichment_level = COALESCE($9, enrichment_level),
+                        updated_at = NOW()
+                    WHERE user_id = $1
+                    RETURNING id, user_id as "userId", current_step as "currentStep",
+                              company_name as "companyName", industry, company_size as "companySize",
+                              target_audience as "targetAudience", goals, main_challenge as "mainChallenge",
+                              enrichment_level as "enrichmentLevel", completed_at as "completedAt",
+                              created_at as "createdAt", updated_at as "updatedAt"
+                """, user_id, data.get('currentStep'), data.get('companyName'), 
+                     data.get('industry'), data.get('companySize'), data.get('targetAudience'),
+                     data.get('goals'), data.get('mainChallenge'), data.get('enrichmentLevel'))
+            else:
+                # Create new record
+                onboarding_id = str(uuid.uuid4())
+                row = await conn.fetchrow("""
+                    INSERT INTO onboarding_status (
+                        id, user_id, current_step, company_name, industry, company_size,
+                        target_audience, goals, main_challenge, enrichment_level
+                    )
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    RETURNING id, user_id as "userId", current_step as "currentStep",
+                              company_name as "companyName", industry, company_size as "companySize",
+                              target_audience as "targetAudience", goals, main_challenge as "mainChallenge",
+                              enrichment_level as "enrichmentLevel", completed_at as "completedAt",
+                              created_at as "createdAt", updated_at as "updatedAt"
+                """, onboarding_id, user_id, data.get('currentStep', 0), 
+                     data.get('companyName'), data.get('industry'), data.get('companySize'),
+                     data.get('targetAudience'), data.get('goals'), data.get('mainChallenge'),
+                     data.get('enrichmentLevel'))
+            
+            return {
+                "id": row['id'],
+                "userId": row['userId'],
+                "currentStep": row['currentStep'],
+                "companyName": row['companyName'],
+                "industry": row['industry'],
+                "companySize": row['companySize'],
+                "targetAudience": row['targetAudience'],
+                "goals": row['goals'],
+                "mainChallenge": row['mainChallenge'],
+                "enrichmentLevel": row['enrichmentLevel'],
+                "completedAt": row['completedAt'],
+                "createdAt": row['createdAt'],
+                "updatedAt": row['updatedAt']
+            }
+    
+    async def get_onboarding_status(self, user_id: str) -> Optional[dict]:
+        """Get onboarding status for a user"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, user_id as "userId", current_step as "currentStep",
+                       company_name as "companyName", industry, company_size as "companySize",
+                       target_audience as "targetAudience", goals, main_challenge as "mainChallenge",
+                       enrichment_level as "enrichmentLevel", completed_at as "completedAt",
+                       created_at as "createdAt", updated_at as "updatedAt"
+                FROM onboarding_status
+                WHERE user_id = $1
+            """, user_id)
+            
+            if not row:
+                return None
+            
+            return {
+                "id": row['id'],
+                "userId": row['userId'],
+                "currentStep": row['currentStep'],
+                "companyName": row['companyName'],
+                "industry": row['industry'],
+                "companySize": row['companySize'],
+                "targetAudience": row['targetAudience'],
+                "goals": row['goals'],
+                "mainChallenge": row['mainChallenge'],
+                "enrichmentLevel": row['enrichmentLevel'],
+                "completedAt": row['completedAt'],
+                "createdAt": row['createdAt'],
+                "updatedAt": row['updatedAt']
+            }
+    
+    async def complete_onboarding(self, user_id: str) -> bool:
+        """Mark onboarding as completed"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                UPDATE onboarding_status
+                SET completed_at = NOW(), updated_at = NOW()
+                WHERE user_id = $1 AND completed_at IS NULL
+            """, user_id)
+            
+            return result == "UPDATE 1"
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""

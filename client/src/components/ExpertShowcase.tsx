@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { useLocation } from "wouter";
+import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 
 interface Expert {
   id: string;
@@ -15,16 +16,18 @@ interface Expert {
 
 export function ExpertShowcase() {
   const [, setLocation] = useLocation();
+  const { isComplete, isLoading: isLoadingOnboarding } = useOnboardingComplete();
   
   const { data: experts, isLoading } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],
   });
 
   const handleConsult = (expertId: string) => {
-    // Check if user completed onboarding
-    const onboardingComplete = localStorage.getItem("onboarding_complete");
+    // Guard against race condition: don't navigate while onboarding status is loading
+    if (isLoadingOnboarding) return;
     
-    if (!onboardingComplete) {
+    // Check if user completed onboarding (now from PostgreSQL)
+    if (!isComplete) {
       // Redirect to onboarding first
       setLocation("/onboarding");
     } else {
@@ -128,6 +131,7 @@ export function ExpertShowcase() {
                   variant="default"
                   className="w-full gap-1.5 text-xs mt-1"
                   onClick={() => handleConsult(expert.id)}
+                  disabled={isLoadingOnboarding}
                   data-testid={`button-consult-${expert.id}`}
                 >
                   <MessageSquare className="h-3 w-3" />

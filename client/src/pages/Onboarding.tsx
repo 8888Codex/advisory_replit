@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Building2, Users, Target, Zap, CheckCircle2, Clock, Sparkles, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { insertUserPersonaSchema } from "@shared/schema";
+import { insertUserPersonaSchema, type OnboardingStatus } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import {
@@ -106,7 +106,7 @@ const pageVariants = {
 export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const { toast} = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<OnboardingFormData>({
@@ -123,6 +123,68 @@ export default function Onboarding() {
     },
   });
 
+  // Load onboarding status on mount (to resume progress)
+  const { data: onboardingStatus, isLoading: isLoadingStatus } = useQuery<OnboardingStatus | null>({
+    queryKey: ["/api/onboarding/status"],
+    retry: false, // Don't retry if user hasn't started onboarding yet
+  });
+
+  // Populate form and step when onboarding status is loaded
+  useEffect(() => {
+    if (onboardingStatus && onboardingStatus.completedAt === null) {
+      // Resume onboarding from saved progress
+      form.reset({
+        userId: "demo-user",
+        companyName: onboardingStatus.companyName || "",
+        industry: onboardingStatus.industry || "",
+        companySize: onboardingStatus.companySize || "",
+        targetAudience: onboardingStatus.targetAudience || "",
+        primaryGoal: onboardingStatus.goals?.[0] || "",
+        mainChallenge: onboardingStatus.mainChallenge || "",
+        enrichmentLevel: onboardingStatus.enrichmentLevel || "quick",
+      });
+      // Resume from next step after last saved
+      setStep(Math.min((onboardingStatus.currentStep || 0) + 1, 4));
+    } else if (onboardingStatus && onboardingStatus.completedAt) {
+      // Already completed - redirect to home
+      navigate("/home");
+    }
+  }, [onboardingStatus, form, navigate]);
+
+  // Save onboarding progress mutation (called on each step)
+  const saveProgressMutation = useMutation({
+    mutationFn: async (data: Partial<OnboardingFormData> & { currentStep: number }) => {
+      return await apiRequest("/api/onboarding/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentStep: data.currentStep,
+          companyName: data.companyName,
+          industry: data.industry,
+          companySize: data.companySize,
+          targetAudience: data.targetAudience,
+          goals: data.primaryGoal ? [data.primaryGoal] : undefined,
+          mainChallenge: data.mainChallenge,
+          enrichmentLevel: data.enrichmentLevel,
+        }),
+      });
+    },
+  });
+
+  // Complete onboarding mutation
+  const completeOnboardingMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/onboarding/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      // Invalidate status query so useOnboardingComplete hook sees the change
+      queryClient.invalidateQueries({ queryKey: ["/api/onboarding/status"] });
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
       return await apiRequest("/api/persona/create", {
@@ -133,9 +195,11 @@ export default function Onboarding() {
         body: JSON.stringify(data),
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Mark onboarding as completed in database
+      await completeOnboardingMutation.mutateAsync();
+      
       queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
-      localStorage.setItem("onboarding_complete", "true");
       toast({
         title: "Perfil criado com sucesso!",
         description: "Seu perfil foi salvo. O Conselho está pronto para ajudar!",
@@ -160,6 +224,13 @@ export default function Onboarding() {
     const isValid = await form.trigger(fieldsToValidate);
     
     if (isValid) {
+      // Save progress before moving to next step
+      const formData = form.getValues();
+      await saveProgressMutation.mutateAsync({
+        ...formData,
+        currentStep: step,
+      });
+      
       if (step < 4) {
         setStep(step + 1);
       } else {

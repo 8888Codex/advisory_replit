@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 import {
   Select,
   SelectContent,
@@ -55,6 +56,7 @@ interface ProfileFormData {
 export default function Landing() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isComplete, isLoading: isLoadingOnboarding } = useOnboardingComplete();
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
   const [profileData, setProfileData] = useState<ProfileFormData>({
@@ -71,10 +73,11 @@ export default function Landing() {
   });
 
   const handleConsult = (expertId: string) => {
-    // Check if user completed onboarding
-    const onboardingComplete = localStorage.getItem("onboarding_complete");
+    // Guard against race condition: don't navigate while onboarding status is loading
+    if (isLoadingOnboarding) return;
     
-    if (!onboardingComplete) {
+    // Check if user completed onboarding (now from PostgreSQL)
+    if (!isComplete) {
       // Redirect to onboarding first
       setLocation("/onboarding");
     } else {
@@ -101,7 +104,8 @@ export default function Landing() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      localStorage.setItem("onboarding_complete", "true");
+      // Note: This legacy flow should redirect to /onboarding instead
+      // The new flow uses the dedicated Onboarding.tsx page
       toast({
         title: "Perfil Salvo com Sucesso!",
         description: "Sua consultoria personalizada está pronta. Bem-vindo ao O Conselho!",
@@ -565,6 +569,7 @@ export default function Landing() {
 
                           <Button
                             onClick={() => handleConsult(currentExpert.id)}
+                            disabled={isLoadingOnboarding}
                             className="gap-2"
                             data-testid={`button-chat-${currentExpert.id}`}
                           >
