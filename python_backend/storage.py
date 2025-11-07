@@ -1542,6 +1542,7 @@ class MemStorage:
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
                 enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
                 # 8-Module Deep Persona System
@@ -1597,6 +1598,7 @@ class MemStorage:
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
                 enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
                 # 8-Module Deep Persona System
@@ -1652,6 +1654,7 @@ class MemStorage:
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
                 enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
                 # 8-Module Deep Persona System
@@ -1704,6 +1707,7 @@ class MemStorage:
                 "inspirationVideos": "inspiration_videos",
                 "researchMode": "research_mode",
                 "enrichmentLevel": "enrichment_level",
+                "enrichmentStatus": "enrichment_status",
                 "researchCompleteness": "research_completeness",
                 "lastEnrichedAt": "last_enriched_at",
                 # 8-Module Deep Persona System
@@ -1771,6 +1775,7 @@ class MemStorage:
                 inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
                 researchMode=row["research_mode"],
                 enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
                 researchCompleteness=row["research_completeness"],
                 lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
                 # 8-Module Deep Persona System

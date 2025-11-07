@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 
 const onboardingSchema = insertUserPersonaSchema.extend({
-  userId: z.string().default("demo-user"),
+  userId: z.string().default("default_user"),
   companyName: z.string().optional(),
   industry: z.string().min(1, "Setor é obrigatório"),
   companySize: z.string().min(1, "Tamanho da empresa é obrigatório"),
@@ -112,7 +112,7 @@ export default function Onboarding() {
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      userId: "demo-user",
+      userId: "default_user",
       companyName: "",
       industry: "",
       companySize: "",
@@ -134,7 +134,7 @@ export default function Onboarding() {
     if (onboardingStatus && onboardingStatus.completedAt === null) {
       // Resume onboarding from saved progress
       form.reset({
-        userId: "demo-user",
+        userId: "default_user",
         companyName: onboardingStatus.companyName || "",
         industry: onboardingStatus.industry || "",
         companySize: onboardingStatus.companySize || "",
@@ -195,14 +195,30 @@ export default function Onboarding() {
         body: JSON.stringify(data),
       });
     },
-    onSuccess: async () => {
+    onSuccess: async (persona: any, data: OnboardingFormData) => {
       // Mark onboarding as completed in database
       await completeOnboardingMutation.mutateAsync();
+      
+      // Dispatch background enrichment (fire and forget - doesn't block navigation)
+      try {
+        await apiRequest("/api/persona/enrich/background", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personaId: persona.id,
+            mode: data.enrichmentLevel || "quick",
+          }),
+        });
+        console.log("[ONBOARDING] Background enrichment started");
+      } catch (error) {
+        console.error("[ONBOARDING] Failed to start background enrichment:", error);
+        // Don't block navigation if enrichment fails to start
+      }
       
       queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
       toast({
         title: "Perfil criado com sucesso!",
-        description: "Seu perfil foi salvo. O Conselho está pronto para ajudar!",
+        description: "Estamos enriquecendo sua persona em segundo plano. Você já pode usar a plataforma!",
       });
       navigate("/home");
     },

@@ -622,6 +622,7 @@ export const userPersonas = pgTable("user_personas", {
   
   // Research Metadata
   enrichmentLevel: text("enrichment_level"),  // "quick" | "strategic" | "complete"
+  enrichmentStatus: text("enrichment_status").default("pending"),  // "pending" | "processing" | "completed" | "failed"
   researchMode: text("research_mode"),  // "quick" | "strategic" | "complete" (deprecated, use enrichmentLevel)
   researchCompleteness: integer("research_completeness").default(0),  // 0-100 score
   lastEnrichedAt: timestamp("last_enriched_at"),

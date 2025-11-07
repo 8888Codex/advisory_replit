@@ -2677,6 +2677,96 @@ async def get_current_persona():
         print(f"Error fetching persona: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch persona: {str(e)}")
 
+async def _background_enrichment_task(persona_id: str, level: str):
+    """
+    Background task to enrich persona without blocking HTTP response.
+    Updates enrichmentStatus as it progresses.
+    """
+    try:
+        # Mark as processing
+        await storage.update_user_persona(persona_id, {
+            "enrichmentStatus": "processing"
+        })
+        print(f"[BACKGROUND] Starting {level} enrichment for persona {persona_id}...")
+        
+        from persona_enrichment import enrich_persona_with_deep_modules
+        
+        # Execute enrichment
+        persona = await enrich_persona_with_deep_modules(
+            persona_id=persona_id,
+            level=level,
+            storage=storage,
+            existing_modules=None
+        )
+        
+        # Mark as completed
+        await storage.update_user_persona(persona_id, {
+            "enrichmentStatus": "completed"
+        })
+        print(f"[BACKGROUND] ✅ Enrichment completed for persona {persona_id}")
+        
+    except Exception as e:
+        # Mark as failed
+        await storage.update_user_persona(persona_id, {
+            "enrichmentStatus": "failed"
+        })
+        print(f"[BACKGROUND] ❌ Enrichment failed for persona {persona_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+@app.post("/api/persona/enrich/background", status_code=202)
+async def enrich_persona_background(data: PersonaEnrichmentRequest):
+    """
+    Start persona enrichment in background without blocking.
+    Returns immediately (202 Accepted) while enrichment runs asynchronously.
+    
+    User can check status via GET /api/persona/enrichment-status
+    """
+    import asyncio
+    
+    try:
+        # Verify persona exists
+        persona = await storage.get_user_persona_by_id(data.personaId)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona not found")
+        
+        # Dispatch background task (fire and forget)
+        asyncio.create_task(_background_enrichment_task(data.personaId, data.mode))
+        
+        return {
+            "message": "Enrichment started in background",
+            "personaId": data.personaId,
+            "level": data.mode,
+            "status": "processing"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error starting background enrichment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to start enrichment: {str(e)}")
+
+@app.get("/api/persona/enrichment-status")
+async def get_enrichment_status():
+    """
+    Get current persona enrichment status.
+    Returns: { status: 'pending' | 'processing' | 'completed' | 'failed' }
+    """
+    user_id = "default_user"
+    try:
+        persona = await storage.get_user_persona(user_id)
+        if not persona:
+            return {"status": "no_persona"}
+        
+        return {
+            "status": persona.enrichmentStatus or "pending",
+            "personaId": persona.id,
+            "enrichmentLevel": persona.enrichmentLevel,
+            "researchCompleteness": persona.researchCompleteness or 0
+        }
+    except Exception as e:
+        print(f"Error fetching enrichment status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch status: {str(e)}")
+
 @app.post("/api/persona/enrich/youtube", response_model=UserPersona)
 async def enrich_persona_youtube(data: PersonaEnrichmentRequest):
     """

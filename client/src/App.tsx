@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { Header } from "@/components/Header";
+import { EnrichmentStatusBanner } from "@/components/EnrichmentStatusBanner";
 import { AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
@@ -168,6 +169,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <div className="min-h-screen bg-background text-foreground">
+              <EnrichmentStatusBanner />
               <Header />
               <Router />
             </div>
