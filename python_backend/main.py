@@ -721,6 +721,144 @@ RETORNE APENAS O JSON:"""
             # Fallback: try parsing the whole text
             metadata = json.loads(metadata_text_clean)
         
+        # Step 4: Generate Python class code
+        print(f"[AUTO-CLONE] Generating Python class for {data.targetName}...")
+        
+        python_class_prompt = f"""Você é um especialista em converter system prompts do Framework EXTRACT em classes Python.
+
+SYSTEM PROMPT GERADO:
+{system_prompt[:4000]}...
+
+TAREFA: Gere código Python completo de uma classe que herda de ExpertCloneBase.
+
+ESTRUTURA OBRIGATÓRIA:
+```python
+\"\"\"
+{data.targetName} - [Título do Especialista]
+Framework EXTRACT de 20 Pontos - Fidelidade Cognitiva Ultra-Realista
+\"\"\"
+
+try:
+    from .base import ExpertCloneBase
+except ImportError:
+    from base import ExpertCloneBase
+
+
+class {data.targetName.replace(' ', '')}Clone(ExpertCloneBase):
+    \"\"\"
+    {data.targetName} - [Título curto]
+    \"\"\"
+    
+    def __init__(self):
+        super().__init__()
+        
+        # Identity
+        self.name = "{data.targetName}"
+        self.title = "[Título profissional]"
+        
+        # Expertise
+        self.expertise = [
+            "[Área 1]",
+            "[Área 2]",
+            "[Área 3]",
+            # ... (extraia do system prompt)
+        ]
+        
+        # Bio
+        self.bio = (
+            "[Biografia de 2-3 frases extraída do system prompt]"
+        )
+        
+        # Temporal context
+        self.active_years = "[Anos de atividade]"
+        self.historical_context = "[Contexto histórico]"
+    
+    def get_story_banks(self):
+        \"\"\"Casos reais com métricas específicas\"\"\"
+        return [
+            {{
+                "title": "[Título do Caso]",
+                "context": "[Contexto]",
+                "challenge": "[Desafio]",
+                "action": "[Ação tomada]",
+                "result": "[Resultado]",
+                "lesson": "[Lição]",
+                "metrics": {{
+                    "[métrica1]": "[valor]",
+                    "[métrica2]": "[valor]"
+                }}
+            }},
+            # ... (extraia do system prompt - mínimo 3 casos)
+        ]
+    
+    def get_iconic_callbacks(self):
+        \"\"\"Frases icônicas e callbacks únicos\"\"\"
+        return [
+            "[Callback 1]",
+            "[Callback 2]",
+            # ... (extraia do system prompt - mínimo 5 callbacks)
+        ]
+    
+    def get_mental_chess_patterns(self):
+        \"\"\"Padrões de raciocínio característicos\"\"\"
+        return [
+            "[Padrão 1]",
+            "[Padrão 2]",
+            # ... (extraia do system prompt)
+        ]
+    
+    def get_system_prompt(self):
+        \"\"\"Generate complete system prompt\"\"\"
+        return '''{system_prompt}'''
+```
+
+INSTRUÇÕES CRÍTICAS:
+1. Extraia TODOS os dados do system prompt fornecido
+2. Converta Story Banks em dicts Python com métricas
+3. Extraia callbacks, axiomas, padrões mentais
+4. Use nome da classe sem espaços: {data.targetName.replace(' ', '')}Clone
+5. Retorne APENAS o código Python completo, sem markdown code blocks
+6. NÃO adicione ```python no início ou ``` no final
+7. Código deve ser executável imediatamente
+
+RETORNE APENAS O CÓDIGO PYTHON:"""
+
+        python_response = await anthropic_client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=8192,
+            temperature=0.2,
+            messages=[{
+                "role": "user",
+                "content": python_class_prompt
+            }]
+        )
+        
+        python_code = ""
+        for block in python_response.content:
+            if block.type == "text":
+                python_code += block.text
+        
+        # Clean Python code (remove markdown if present)
+        python_code_clean = python_code.strip()
+        if python_code_clean.startswith("```python"):
+            python_code_clean = python_code_clean.split("```python")[1].split("```")[0].strip()
+        elif python_code_clean.startswith("```"):
+            python_code_clean = python_code_clean.split("```")[1].split("```")[0].strip()
+        
+        # Step 5: Save Python class to file
+        import re
+        # Sanitize filename
+        filename = re.sub(r'[^a-zA-Z0-9_]', '_', data.targetName.lower())
+        filename = re.sub(r'_+', '_', filename).strip('_')
+        filepath = f"python_backend/clones/custom/{filename}.py"
+        
+        # Save file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(python_code_clean)
+        
+        print(f"[AUTO-CLONE] ✅ Python class saved to {filepath}")
+        print(f"[AUTO-CLONE] Class will be auto-discovered by CloneRegistry on next restart")
+        
         # Create ExpertCreate object (NOT persisted yet)
         expert_data = ExpertCreate(
             name=data.targetName,

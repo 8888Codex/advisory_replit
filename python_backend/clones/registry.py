@@ -38,18 +38,38 @@ class CloneRegistry:
         """
         Auto-discover all clone classes in python_backend/clones/ directory.
         Looks for classes that inherit from ExpertCloneBase.
+        Searches both main clones/ directory and clones/custom/ subdirectory.
         """
         # Get path to clones directory
         clones_dir = Path(__file__).parent
         
-        # Import all Python modules in clones directory
-        for module_info in pkgutil.iter_modules([str(clones_dir)]):
-            if module_info.name in ['base', 'registry', '__init__']:
+        # Discover clones in main directory
+        print("[CloneRegistry] Discovering seed clones...")
+        self._discover_clones_in_directory(clones_dir, 'clones')
+        
+        # Discover clones in custom subdirectory
+        custom_dir = clones_dir / 'custom'
+        if custom_dir.exists():
+            print("[CloneRegistry] Discovering custom auto-generated clones...")
+            self._discover_clones_in_directory(custom_dir, 'clones.custom')
+    
+    def _discover_clones_in_directory(self, directory: Path, package_name: str) -> None:
+        """
+        Discover and load clones from a specific directory.
+        
+        Args:
+            directory: Path to directory containing clone modules
+            package_name: Python package name (e.g., 'clones' or 'clones.custom')
+        """
+        # Import all Python modules in directory
+        for module_info in pkgutil.iter_modules([str(directory)]):
+            if module_info.name in ['base', 'registry', '__init__', 'README']:
                 continue
             
             try:
                 # Import module (using relative import from clones package)
-                module = importlib.import_module(f'clones.{module_info.name}')
+                module_full_name = f'{package_name}.{module_info.name}'
+                module = importlib.import_module(module_full_name)
                 
                 # Find all classes that inherit from ExpertCloneBase
                 for name, obj in inspect.getmembers(module, inspect.isclass):
@@ -73,7 +93,8 @@ class CloneRegistry:
                             self._clones[clone_name] = clone_instance
                             self._clone_classes[clone_name] = obj
                             
-                            print(f"[CloneRegistry] Registered clone: {clone_name} ({len(clone_instance.story_banks)} stories)")
+                            clone_type = "CUSTOM" if "custom" in package_name else "SEED"
+                            print(f"[CloneRegistry] Registered {clone_type} clone: {clone_name} ({len(clone_instance.story_banks)} stories)")
                         
                         except Exception as e:
                             print(f"[CloneRegistry] Error instantiating {name}: {e}")
