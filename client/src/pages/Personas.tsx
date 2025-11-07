@@ -135,29 +135,29 @@ export default function Personas() {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-2">Persona Builder</h1>
-        <p className="text-muted-foreground">
+    <div className="container mx-auto py-8 sm:py-10 md:py-12 max-w-7xl px-4">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2">Persona Builder</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Crie personas detalhadas usando pesquisa estratégica em comunidades do Reddit
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Form Column */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Nova Persona</CardTitle>
-              <CardDescription>
+          <Card className="rounded-2xl">
+            <CardHeader className="p-4 sm:p-5 md:p-6">
+              <CardTitle className="text-base sm:text-lg">Nova Persona</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Pesquisa {mode === "quick" ? "rápida (1-2 min)" : "estratégica (5-10 min)"}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 {/* Mode Selection */}
                 <div className="space-y-2">
-                  <Label>Modo de Pesquisa</Label>
+                  <Label className="text-sm sm:text-base">Modo de Pesquisa</Label>
                   <RadioGroup
                     value={mode}
                     onValueChange={(value) => setMode(value as "quick" | "strategic")}
@@ -165,13 +165,13 @@ export default function Personas() {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="quick" id="quick" data-testid="radio-quick" />
-                      <Label htmlFor="quick" className="font-normal cursor-pointer">
+                      <Label htmlFor="quick" className="font-normal cursor-pointer text-sm sm:text-base">
                         Rápida (1-2 min)
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="strategic" id="strategic" data-testid="radio-strategic" />
-                      <Label htmlFor="strategic" className="font-normal cursor-pointer">
+                      <Label htmlFor="strategic" className="font-normal cursor-pointer text-sm sm:text-base">
                         Estratégica (5-10 min)
                       </Label>
                     </div>
@@ -180,7 +180,7 @@ export default function Personas() {
 
                 {/* Target Description */}
                 <div className="space-y-2">
-                  <Label htmlFor="target">Público-Alvo *</Label>
+                  <Label htmlFor="target" className="text-sm sm:text-base">Público-Alvo *</Label>
                   <Textarea
                     id="target"
                     data-testid="input-target"
@@ -188,25 +188,27 @@ export default function Personas() {
                     value={targetDescription}
                     onChange={(e) => setTargetDescription(e.target.value)}
                     rows={3}
+                    className="text-sm sm:text-base"
                   />
                 </div>
 
                 {/* Industry */}
                 <div className="space-y-2">
-                  <Label htmlFor="industry">Indústria (opcional)</Label>
+                  <Label htmlFor="industry" className="text-sm sm:text-base">Indústria (opcional)</Label>
                   <Input
                     id="industry"
                     data-testid="input-industry"
                     placeholder="Ex: E-commerce, SaaS, Marketing"
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
+                    className="h-12 text-sm sm:text-base"
                   />
                 </div>
 
                 {/* Additional Context (Strategic only) */}
                 {mode === "strategic" && (
                   <div className="space-y-2">
-                    <Label htmlFor="context">Contexto Adicional</Label>
+                    <Label htmlFor="context" className="text-sm sm:text-base">Contexto Adicional</Label>
                     <Textarea
                       id="context"
                       data-testid="input-context"
@@ -214,6 +216,7 @@ export default function Personas() {
                       value={additionalContext}
                       onChange={(e) => setAdditionalContext(e.target.value)}
                       rows={3}
+                      className="text-sm sm:text-base"
                     />
                   </div>
                 )}
@@ -221,7 +224,7 @@ export default function Personas() {
                 <Button
                   type="submit"
                   data-testid="button-create-persona"
-                  className="w-full"
+                  className="w-full h-12"
                   disabled={createPersonaMutation.isPending}
                 >
                   {createPersonaMutation.isPending ? (

@@ -144,8 +144,8 @@ export default function Chat() {
     <AnimatedPage>
       <div className="flex flex-col h-screen">
       <div className="flex-shrink-0 border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 p-3 sm:p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -154,16 +154,16 @@ export default function Chat() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <Avatar className="h-12 w-12 ring-2 ring-accent/20">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-accent/20">
               <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">{expert.name}</h2>
+                <h2 className="text-base sm:text-lg font-semibold truncate">{expert.name}</h2>
                 <PersonaContextBadge persona={persona || null} compact />
               </div>
-              <p className="text-sm text-muted-foreground">{expert.title}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{expert.title}</p>
             </div>
             <div className="hidden md:flex gap-2">
               {expert.expertise.slice(0, 3).map((skill, index) => (
@@ -176,7 +176,7 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 pb-6 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 pb-6 space-y-4 min-h-0">
         {messagesLoading ? (
           <ChatLoadingSkeleton />
         ) : (
@@ -252,22 +252,22 @@ export default function Chat() {
       <div className="flex-shrink-0">
         {suggestedQuestions.length > 0 && messages.length === 0 && !sendMessageMutation.isPending && (
           <motion.div 
-            className="px-6 pb-4 border-t"
+            className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 border-t"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
             <motion.div 
-              className="flex items-center gap-2 mb-3 pt-4"
+              className="flex items-center gap-2 mb-3 pt-3 sm:pt-4"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
               <Sparkles className="h-4 w-4 text-accent" />
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Perguntas Sugeridas
                 {suggestedQuestionsData?.personalized && (
-                  <span className="ml-2 text-xs text-accent">(Personalizadas para você)</span>
+                  <span className="ml-2 text-xs text-accent hidden sm:inline">(Personalizadas para você)</span>
                 )}
               </span>
             </motion.div>
@@ -285,7 +285,7 @@ export default function Chat() {
                 >
                   <Badge
                     variant="outline"
-                    className="cursor-pointer hover-elevate active-elevate-2 py-2 px-3"
+                    className="cursor-pointer hover-elevate active-elevate-2 py-2 px-2 sm:px-3 text-xs"
                     onClick={() => handleSuggestedQuestion(question)}
                     data-testid={`badge-suggestion-${index}`}
                   >
@@ -297,14 +297,14 @@ export default function Chat() {
           </motion.div>
         )}
 
-        <div className="border-t bg-card p-4">
+        <div className="border-t bg-card p-3 sm:p-4">
           <div className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !sendMessageMutation.isPending && handleSend()}
               placeholder="Digite sua pergunta estratégica..."
-              className="flex-1"
+              className="flex-1 h-12 text-sm sm:text-base"
               disabled={sendMessageMutation.isPending}
               data-testid="input-chat-message"
             />
@@ -312,6 +312,7 @@ export default function Chat() {
               onClick={handleSend} 
               size="icon" 
               disabled={sendMessageMutation.isPending || !input.trim()}
+              className="h-12 w-12"
               data-testid="button-send-message"
             >
               <Send className="h-4 w-4" />

@@ -165,7 +165,7 @@ function CategoryCard({ category, index }: { category: Category; index: number }
       <Link href={`/experts?category=${category.id}`} data-testid={`link-category-${category.id}`}>
         <motion.div
           className={cn(
-            "group relative rounded-2xl p-8",
+            "group relative rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8",
             "bg-card border border-border/50",
             "hover:shadow-md transition-shadow duration-200 cursor-pointer"
           )}
@@ -178,28 +178,28 @@ function CategoryCard({ category, index }: { category: Category; index: number }
           {/* Icon Circle */}
           <div
             className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center mb-6",
+              "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-4 sm:mb-6",
               colors.bg,
               `border ${colors.border}`,
               "group-hover:scale-105 transition-transform duration-200"
             )}
             data-testid={`icon-category-${category.id}`}
           >
-            <Icon className={cn("w-7 h-7", colors.text)} />
+            <Icon className={cn("w-6 h-6 sm:w-7 sm:h-7", colors.text)} />
           </div>
 
           {/* Category Name */}
-          <h3 className="text-xl font-medium tracking-tight mb-2" data-testid={`text-category-name-${category.id}`}>
+          <h3 className="text-lg sm:text-xl font-medium tracking-tight mb-2" data-testid={`text-category-name-${category.id}`}>
             {category.name}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed mb-6" data-testid={`text-category-description-${category.id}`}>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6" data-testid={`text-category-description-${category.id}`}>
             {category.description}
           </p>
 
           {/* Expert Count + CTA */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             <span className="text-xs font-medium text-muted-foreground" data-testid={`text-expert-count-${category.id}`}>
               {category.expertCount} {category.expertCount === 1 ? "Especialista" : "Especialistas"}
             </span>
@@ -207,10 +207,11 @@ function CategoryCard({ category, index }: { category: Category; index: number }
             <Button
               variant="ghost"
               size="sm"
-              className={cn("rounded-xl", colors.text)}
+              className={cn("rounded-xl text-xs sm:text-sm", colors.text)}
               data-testid={`button-view-experts-${category.id}`}
             >
-              Ver Especialistas →
+              <span className="hidden sm:inline">Ver Especialistas →</span>
+              <span className="sm:hidden">Ver →</span>
             </Button>
           </div>
         </motion.div>
@@ -298,36 +299,36 @@ export default function Categories() {
   return (
     <AnimatedPage>
       <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 lg:py-24">
           {/* Header */}
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-12 md:mb-16"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <h1 className="text-5xl md:text-6xl font-semibold tracking-tight mb-6" data-testid="heading-categories">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight mb-4 sm:mb-6" data-testid="heading-categories">
               Explore por Área de Expertise
             </h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-categories-subtitle">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4" data-testid="text-categories-subtitle">
               Descreva seu desafio e deixe a IA recomendar os especialistas ideais, ou navegue pelas categorias abaixo.
             </p>
           </motion.div>
 
           {/* Semantic Search Section */}
           <motion.div
-            className="mb-12 max-w-4xl mx-auto"
+            className="mb-8 sm:mb-12 max-w-4xl mx-auto"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Card className="border-primary/20 bg-card/50">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3 mb-3">
-                  <Sparkles className="h-5 w-5 text-primary mt-1" />
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold mb-1">Encontre o Especialista Ideal</h2>
-                    <p className="text-sm text-muted-foreground">
+              <CardContent className="p-4 sm:p-5 md:p-6">
+                <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base sm:text-lg font-semibold mb-1">Encontre o Especialista Ideal</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Descreva seu desafio em detalhes e nossa IA analisará qual especialista é ideal para você.
                     </p>
                   </div>
@@ -336,7 +337,7 @@ export default function Categories() {
                   placeholder="Ex: Preciso aumentar a conversão do meu e-commerce de moda. Temos 10mil visitas/mês mas apenas 1% de conversão..."
                   value={challenge}
                   onChange={(e) => setChallenge(e.target.value)}
-                  className="min-h-[100px] resize-none"
+                  className="min-h-[80px] sm:min-h-[100px] resize-none text-sm sm:text-base"
                   data-testid="textarea-semantic-search"
                 />
                 {challenge.trim().length > 0 && challenge.trim().length < 10 && (
@@ -365,17 +366,17 @@ export default function Categories() {
 
           {semanticRecs.length > 0 && (
             <motion.div
-              className="mb-16 max-w-4xl mx-auto"
+              className="mb-8 sm:mb-12 md:mb-16 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <Star className="h-5 w-5 text-primary" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Especialistas Recomendados para Você
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {semanticRecs.map((rec) => {
                   const initials = rec.expertName
                     .split(" ")
@@ -392,23 +393,23 @@ export default function Categories() {
                       transition={{ duration: 0.26 }}
                     >
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex gap-4">
-                            <Avatar className="h-16 w-16">
+                        <CardContent className="p-4 sm:p-5 md:p-6">
+                          <div className="flex gap-3 sm:gap-4">
+                            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0">
                               {rec.avatar && <AvatarImage src={rec.avatar} alt={rec.expertName} />}
-                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-semibold text-lg">{rec.expertName}</h4>
-                                <div className="flex items-center gap-1">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <h4 className="font-semibold text-base sm:text-lg truncate">{rec.expertName}</h4>
+                                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                                   {[...Array(5)].map((_, i) => (
                                     <Star
                                       key={i}
                                       className={cn(
-                                        "h-4 w-4",
+                                        "h-3 w-3 sm:h-4 sm:w-4",
                                         i < rec.stars
                                           ? "fill-primary text-primary"
                                           : "text-muted-foreground/30"
@@ -417,13 +418,13 @@ export default function Categories() {
                                   ))}
                                 </div>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-4">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
                                 {rec.justification}
                               </p>
-                              <div className="flex gap-2">
+                              <div className="flex flex-col sm:flex-row gap-2">
                                 <Button
                                   size="sm"
-                                  className="flex-1 gap-2"
+                                  className="flex-1 gap-2 h-10 sm:h-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleConsult(rec);
@@ -436,7 +437,7 @@ export default function Categories() {
                                 <Button 
                                   size="sm" 
                                   variant={councilExperts.includes(rec.expertId) ? "default" : "outline"}
-                                  className="flex-1 gap-2"
+                                  className="flex-1 gap-2 h-10 sm:h-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleCouncilExpert(rec.expertId);
@@ -456,8 +457,8 @@ export default function Categories() {
                 })}
               </div>
 
-              <div className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
+              <div className="text-center mt-4 sm:mt-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Ou continue explorando as categorias abaixo
                 </p>
               </div>
@@ -468,14 +469,14 @@ export default function Categories() {
           {isLoading ? (
             <CategoryGridSkeleton />
           ) : categories && categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="grid-categories">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" data-testid="grid-categories">
               {categories.map((category, index) => (
                 <CategoryCard key={category.id} category={category} index={index} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground">Nenhuma categoria disponível no momento.</p>
+            <div className="text-center py-12 sm:py-16">
+              <p className="text-sm sm:text-base text-muted-foreground">Nenhuma categoria disponível no momento.</p>
             </div>
           )}
         </div>

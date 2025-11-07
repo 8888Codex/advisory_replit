@@ -245,37 +245,38 @@ export default function CouncilRoom() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.26, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="container max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-semibold flex items-center gap-2">
-                  <Brain className="h-6 w-6 text-primary" />
-                  Sala do Conselho
+        <div className="container max-w-6xl mx-auto px-4 p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-semibold flex items-center gap-2">
+                  <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  <span className="hidden sm:inline">Sala do Conselho</span>
+                  <span className="sm:hidden">Conselho</span>
                 </h1>
                 <PersonaContextBadge persona={persona || null} />
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
                 Continue a conversa com os especialistas
               </p>
             </div>
             
-            {/* Expert Avatars */}
-            <div className="flex items-center gap-2">
+            {/* Expert Avatars - Horizontal scroll on mobile */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-[40%] sm:max-w-none scrollbar-hide">
               {expertAvatars.map((expert, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.24, delay: 0.1 + idx * 0.035, ease: [0.34, 1.56, 0.64, 1] }}
-                  className={`relative transition-all duration-200 ${
+                  className={`relative transition-all duration-200 flex-shrink-0 ${
                     currentExpert === expert.name ? "ring-2 ring-primary ring-offset-2 scale-110" : "scale-100"
                   }`}
                   data-testid={`avatar-${expert.name.toLowerCase().replace(/\s+/g, "-")}`}
                 >
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage src={expert.avatar} alt={expert.name} />
-                    <AvatarFallback>{getExpertInitials(expert.name)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{getExpertInitials(expert.name)}</AvatarFallback>
                   </Avatar>
                   {currentExpert === expert.name && (
                     <motion.div 
@@ -284,7 +285,7 @@ export default function CouncilRoom() {
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.18, ease: "backOut" }}
                     >
-                      <Loader2 className="h-3 w-3 animate-spin text-primary-foreground" />
+                      <Loader2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 animate-spin text-primary-foreground" />
                     </motion.div>
                   )}
                 </motion.div>
@@ -296,20 +297,20 @@ export default function CouncilRoom() {
       
       {/* Messages Area */}
       <ScrollArea className="flex-1">
-        <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
           {/* Initial Analysis Summary */}
           <Card className="border-primary/20 bg-primary/5" data-testid="card-initial-analysis">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+            <CardHeader className="p-4 sm:p-5 md:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Análise Inicial
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {analysis.problem}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+            <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
+              <div className="prose prose-sm dark:prose-invert max-w-none text-sm sm:text-base">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {analysis.consensus}
                 </ReactMarkdown>
@@ -498,13 +499,13 @@ export default function CouncilRoom() {
       
       {/* Input Area */}
       <div className="border-t bg-card/50 backdrop-blur-sm">
-        <div className="container max-w-4xl mx-auto px-4 py-4">
+        <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex gap-2">
             <Textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Faça uma pergunta ao conselho..."
-              className="min-h-[60px] resize-none"
+              className="min-h-[56px] sm:min-h-[60px] resize-none text-sm sm:text-base"
               disabled={isStreaming}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -518,13 +519,13 @@ export default function CouncilRoom() {
               onClick={handleSendMessage}
               disabled={!question.trim() || isStreaming}
               size="icon"
-              className="h-[60px] w-[60px]"
+              className="h-[56px] w-[56px] sm:h-[60px] sm:w-[60px]"
               data-testid="button-send"
             >
               {isStreaming ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               )}
             </Button>
           </div>

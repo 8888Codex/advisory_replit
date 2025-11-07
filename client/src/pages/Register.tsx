@@ -62,22 +62,22 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-accent" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
+              <UserPlus className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
             </div>
           </div>
-          <h1 className="text-4xl font-semibold tracking-tight mb-2">Criar Conta</h1>
-          <p className="text-muted-foreground">Junte-se ao Conselho de Especialistas</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-2">Criar Conta</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Junte-se ao Conselho de Especialistas</p>
         </div>
 
-        <div className="mb-6 p-4 rounded-xl bg-accent/5 border border-accent/20">
-          <div className="flex gap-3">
-            <Info className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-            <div className="text-sm">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-accent/5 border border-accent/20">
+          <div className="flex gap-2 sm:gap-3">
+            <Info className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm">
               <p className="font-medium text-foreground mb-1">Sistema de convites</p>
               <p className="text-muted-foreground">
                 É necessário um código de convite para criar uma conta. Ao se registrar, você receberá 5 códigos para convidar outras pessoas.
@@ -86,9 +86,9 @@ export default function Register() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="username">Nome de usuário</Label>
+            <Label htmlFor="username" className="text-sm sm:text-base">Nome de usuário</Label>
             <Input
               id="username"
               type="text"
@@ -97,13 +97,13 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
               disabled={isLoading || isRateLimited}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-username"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
             <Input
               id="email"
               type="email"
@@ -112,13 +112,13 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
               disabled={isLoading || isRateLimited}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-email"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password" className="text-sm sm:text-base">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -127,13 +127,13 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
               disabled={isLoading || isRateLimited}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-password"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar senha</Label>
+            <Label htmlFor="confirmPassword" className="text-sm sm:text-base">Confirmar senha</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -142,13 +142,13 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               required
               disabled={isLoading || isRateLimited}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-confirm-password"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="inviteCode">Código de convite</Label>
+            <Label htmlFor="inviteCode" className="text-sm sm:text-base">Código de convite</Label>
             <Input
               id="inviteCode"
               type="text"
@@ -157,14 +157,14 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase() })}
               required
               disabled={isLoading || isRateLimited}
-              className="rounded-xl font-mono tracking-wider"
+              className="rounded-xl h-12 font-mono tracking-wider"
               data-testid="input-invite-code"
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full rounded-xl"
+            className="w-full rounded-xl h-12 sm:h-14 text-base sm:text-lg"
             disabled={isLoading || isRateLimited}
             data-testid="button-register"
           >
@@ -172,8 +172,8 @@ export default function Register() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-6 sm:mt-8 text-center">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Já tem uma conta?{' '}
             <Link href="/login" className="text-accent font-medium hover:underline" data-testid="link-login">
               Fazer login

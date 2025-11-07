@@ -90,16 +90,16 @@ export default function Landing() {
     <AnimatedPage>
       <div className="min-h-screen">
         {/* Hero Section - MATADOR */}
-        <section className="relative w-full py-20 md:py-32 bg-gradient-to-b from-destructive/5 via-background to-background">
+        <section className="relative w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-gradient-to-b from-destructive/5 via-background to-background">
           <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto text-center space-y-10">
+            <div className="max-w-6xl mx-auto text-center space-y-6 sm:space-y-8 md:space-y-10">
               
               {/* Headline Killer */}
               <motion.h1
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight leading-[1.1]"
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight leading-[1.15] px-2"
               >
                 <span className="text-destructive">Você Está Queimando Dinheiro</span>
                 <br />
@@ -113,7 +113,7 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-medium"
+                className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-medium px-2"
               >
                 18 mentes que faturaram <span className="text-accent font-semibold">BILHÕES</span> ensinando estratégias que funcionaram em 1967, 1983, 2005 e{" "}
                 <span className="text-accent font-semibold">CONTINUAM funcionando hoje</span>.
@@ -124,14 +124,14 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto"
+                className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto px-2"
               >
                 {["Philip Kotler", "David Ogilvy", "Seth Godin", "Gary Vaynerchuk", "Eugene Schwartz", "Dan Kennedy"].map((name, idx) => (
-                  <Badge key={idx} variant="outline" className="px-4 py-2 text-base font-medium">
+                  <Badge key={idx} variant="outline" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm md:text-base font-medium">
                     {name}
                   </Badge>
                 ))}
-                <Badge variant="outline" className="px-4 py-2 text-base font-medium text-accent">
+                <Badge variant="outline" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm md:text-base font-medium text-accent">
                   +12 Lendas
                 </Badge>
               </motion.div>
@@ -140,7 +140,7 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.25 }}
-                className="text-lg md:text-xl text-muted-foreground"
+                className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground px-2"
               >
                 Respondendo <span className="text-accent font-semibold">SUAS perguntas</span>. Em português. Agora.
               </motion.p>
@@ -150,18 +150,18 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="pt-6"
+                className="pt-4 sm:pt-6"
               >
                 <Button
                   size="lg"
-                  className="gap-2 h-16 px-12 text-xl font-semibold"
+                  className="gap-2 h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-12 text-base sm:text-lg md:text-xl font-semibold w-full sm:w-auto"
                   onClick={() => setLocation("/register")}
                   data-testid="button-start-now"
                 >
                   Parar de Adivinhar. Começar Agora
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                 </Button>
-                <p className="text-sm text-muted-foreground mt-3">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-3 px-2">
                   ✓ Grátis ✓ Sem cartão ✓ Respostas em 30 segundos
                 </p>
               </motion.div>
@@ -170,9 +170,9 @@ export default function Landing() {
         </section>
 
         {/* Impact Stats */}
-        <section className="w-full py-16 bg-background">
+        <section className="w-full py-8 sm:py-12 md:py-16 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto">
               {impactStats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -180,13 +180,13 @@ export default function Landing() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
                 >
-                  <Card className="p-8 text-center rounded-2xl">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                      <stat.icon className="h-8 w-8 text-muted-foreground" />
+                  <Card className="p-4 sm:p-6 md:p-8 text-center rounded-2xl">
+                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-muted mb-3 sm:mb-4">
+                      <stat.icon className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-muted-foreground" />
                     </div>
-                    <div className="text-4xl font-semibold mb-2">{stat.value}</div>
-                    <h3 className="text-lg font-medium mb-2">{stat.label}</h3>
-                    <p className="text-sm text-muted-foreground">{stat.description}</p>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-1 sm:mb-2">{stat.value}</div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1 sm:mb-2">{stat.label}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{stat.description}</p>
                   </Card>
                 </motion.div>
               ))}
@@ -195,61 +195,61 @@ export default function Landing() {
         </section>
 
         {/* Problem-Agitate Section - DOR DO CLIENTE */}
-        <section className="w-full py-20 bg-destructive/5">
+        <section className="w-full py-10 sm:py-14 md:py-20 bg-destructive/5">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
               <motion.h2
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-4xl md:text-5xl font-semibold text-center mb-12"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-center mb-8 sm:mb-10 md:mb-12 px-2"
               >
                 VOCÊ JÁ TENTOU:
               </motion.h2>
 
-              <div className="grid md:grid-cols-2 gap-8 mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-10 sm:mb-12 md:mb-16">
                 {/* LADO ESQUERDO - Problemas */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="space-y-6"
+                  className="space-y-3 sm:space-y-4 md:space-y-6"
                 >
-                  <Card className="p-6 border-destructive/20 bg-destructive/5">
-                    <div className="flex items-start gap-4">
-                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <X className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-destructive">Curso de R$ 3.997 que não funcionou</h3>
-                        <p className="text-destructive/80">Você gastou uma grana, assistiu tudo, testou... e nada mudou.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-destructive">Curso de R$ 3.997 que não funcionou</h3>
+                        <p className="text-xs sm:text-sm text-destructive/80">Você gastou uma grana, assistiu tudo, testou... e nada mudou.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-destructive/20 bg-destructive/5">
-                    <div className="flex items-start gap-4">
-                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <X className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-destructive">Agência que prometeu "resultados garantidos"</h3>
-                        <p className="text-destructive/80">3 meses de contrato, orçamento queimado, apenas "relatórios bonitos".</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-destructive">Agência que prometeu "resultados garantidos"</h3>
+                        <p className="text-xs sm:text-sm text-destructive/80">3 meses de contrato, orçamento queimado, apenas "relatórios bonitos".</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-destructive/20 bg-destructive/5">
-                    <div className="flex items-start gap-4">
-                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <X className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-destructive">Guru do Instagram vendendo fórmula mágica</h3>
-                        <p className="text-destructive/80">"Faça isso e fature 6 dígitos". Spoiler: não funcionou.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-destructive">Guru do Instagram vendendo fórmula mágica</h3>
+                        <p className="text-xs sm:text-sm text-destructive/80">"Faça isso e fature 6 dígitos". Spoiler: não funcionou.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-destructive/20 bg-destructive/5">
-                    <div className="flex items-start gap-4">
-                      <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-destructive/20 bg-destructive/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <X className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-destructive">Copiar o que a concorrência faz</h3>
-                        <p className="text-destructive/80">Você tenta replicar, mas nunca alcança os mesmos resultados.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-destructive">Copiar o que a concorrência faz</h3>
+                        <p className="text-xs sm:text-sm text-destructive/80">Você tenta replicar, mas nunca alcança os mesmos resultados.</p>
                       </div>
                     </div>
                   </Card>
@@ -260,44 +260,44 @@ export default function Landing() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="space-y-6"
+                  className="space-y-3 sm:space-y-4 md:space-y-6"
                 >
-                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
-                    <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-emerald-500/50 bg-emerald-500/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Check className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Philip Kotler analisa SEU posicionamento</h3>
-                        <p className="text-emerald-700/80 dark:text-emerald-300/80">O pai do marketing moderno respondendo VOCÊ diretamente.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-emerald-600 dark:text-emerald-400">Philip Kotler analisa SEU posicionamento</h3>
+                        <p className="text-xs sm:text-sm text-emerald-700/80 dark:text-emerald-300/80">O pai do marketing moderno respondendo VOCÊ diretamente.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
-                    <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-emerald-500/50 bg-emerald-500/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Check className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Eugene Schwartz valida sua copy</h3>
-                        <p className="text-emerald-700/80 dark:text-emerald-300/80">O homem que vendeu U$1 BI com palavras corrigindo SEU texto.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-emerald-600 dark:text-emerald-400">Eugene Schwartz valida sua copy</h3>
+                        <p className="text-xs sm:text-sm text-emerald-700/80 dark:text-emerald-300/80">O homem que vendeu U$1 BI com palavras corrigindo SEU texto.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
-                    <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-emerald-500/50 bg-emerald-500/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Check className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Seth Godin testa sua ideia de campanha</h3>
-                        <p className="text-emerald-700/80 dark:text-emerald-300/80">21 best-sellers. Purple Cow. Tribos. Ele sabe se vai funcionar.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-emerald-600 dark:text-emerald-400">Seth Godin testa sua ideia de campanha</h3>
+                        <p className="text-xs sm:text-sm text-emerald-700/80 dark:text-emerald-300/80">21 best-sellers. Purple Cow. Tribos. Ele sabe se vai funcionar.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
-                    <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
+                  <Card className="p-4 sm:p-5 md:p-6 border-emerald-500/50 bg-emerald-500/5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Check className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Gary Vaynerchuk revisa seu social media</h3>
-                        <p className="text-emerald-700/80 dark:text-emerald-300/80">De $3M → $60M com conteúdo. Ele sabe o que viraliza.</p>
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-emerald-600 dark:text-emerald-400">Gary Vaynerchuk revisa seu social media</h3>
+                        <p className="text-xs sm:text-sm text-emerald-700/80 dark:text-emerald-300/80">De $3M → $60M com conteúdo. Ele sabe o que viraliza.</p>
                       </div>
                     </div>
                   </Card>
@@ -309,33 +309,33 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-center space-y-6"
+                className="text-center space-y-4 sm:space-y-6 px-2"
               >
-                <p className="text-2xl md:text-3xl font-semibold">
+                <p className="text-xl sm:text-2xl md:text-3xl font-semibold">
                   <span className="text-destructive">RESULTADO?</span> Frustração. Dinheiro jogado fora. Nada muda.
                 </p>
 
-                <div className="max-w-3xl mx-auto space-y-4 text-lg md:text-xl text-muted-foreground">
+                <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-sm sm:text-base md:text-lg text-muted-foreground">
                   <p className="font-semibold text-foreground">O PROBLEMA NÃO É VOCÊ.</p>
                   <p>É que você está pedindo conselho pra quem NUNCA fez funcionar de verdade.</p>
-                  <p className="text-accent font-semibold text-2xl">
+                  <p className="text-accent font-semibold text-base sm:text-lg md:text-xl lg:text-2xl">
                     E se você pudesse perguntar diretamente pro cara que INVENTOU o posicionamento? 
                     Pro cara que vendeu U$ 1 bilhão com uma carta de vendas? 
                     Pro cara que criou o conceito de tribo?
                   </p>
-                  <p className="text-3xl font-bold text-foreground pt-4">
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground pt-2 sm:pt-4">
                     ELES ESTÃO AQUI. AGORA.
                   </p>
                 </div>
 
                 <Button
                   size="lg"
-                  className="gap-2 h-14 px-10 text-lg mt-8"
+                  className="gap-2 h-12 sm:h-14 px-6 sm:px-8 md:px-10 text-base sm:text-lg mt-6 sm:mt-8"
                   onClick={() => setLocation("/register")}
                   data-testid="button-stop-guessing"
                 >
                   Parar de Queimar Dinheiro
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </motion.div>
             </div>
@@ -343,14 +343,14 @@ export default function Landing() {
         </section>
 
         {/* Timeline de Impacto */}
-        <section className="w-full py-20 bg-muted/20">
+        <section className="w-full py-10 sm:py-14 md:py-20 bg-muted/20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 sm:mb-10 md:mb-12 px-2">
               <motion.h2
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-4xl md:text-5xl font-semibold mb-4"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4"
               >
                 57 Anos de Inovação em Marketing. Grátis Para Começar.
               </motion.h2>
@@ -358,13 +358,13 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 }}
-                className="text-lg text-muted-foreground max-w-2xl mx-auto"
+                className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto"
               >
                 De 1967 até hoje: converse com quem inventou as estratégias que você estuda.
               </motion.p>
             </div>
 
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
               {[
                 {
                   decade: "1967-1980",
@@ -397,20 +397,20 @@ export default function Landing() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.08 }}
                 >
-                  <Card className="p-6 rounded-2xl">
-                    <div className="flex items-start gap-6">
+                  <Card className="p-4 sm:p-5 md:p-6 rounded-2xl">
+                    <div className="flex items-start gap-3 sm:gap-4 md:gap-6">
                       <div className="flex-shrink-0 text-center">
-                        <Badge variant="secondary" className="rounded-full px-4 py-1 mb-2">
+                        <Badge variant="secondary" className="rounded-full px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-1 mb-1 sm:mb-2 text-xs sm:text-sm">
                           {era.decade}
                         </Badge>
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <h3 className="text-xl font-semibold">{era.title}</h3>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="flex-1 space-y-1 sm:space-y-2">
+                        <h3 className="text-base sm:text-lg md:text-xl font-semibold">{era.title}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           <span className="font-medium">Lendas: </span>
                           {era.experts.join(", ")}
                         </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                           {era.impact}
                         </p>
                       </div>
@@ -424,9 +424,9 @@ export default function Landing() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.4 }}
-              className="text-center mt-12"
+              className="text-center mt-8 sm:mt-10 md:mt-12 px-2"
             >
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Mais de 50 anos de inovação em marketing, agora em conversas instantâneas
               </p>
             </motion.div>
@@ -434,19 +434,19 @@ export default function Landing() {
         </section>
 
         {/* Como Funciona */}
-        <section className="w-full py-20 bg-background">
+        <section className="w-full py-10 sm:py-14 md:py-20 bg-background">
           <div className="container mx-auto px-4">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-3xl md:text-4xl font-semibold">
+            <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-10 md:mb-12 px-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold">
                 Como Funciona a Clonagem Cognitiva?
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
                 3 passos simples separam você das maiores mentes do marketing mundial
               </p>
             </div>
 
             {/* 3 Steps */}
-            <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto mb-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto mb-10 sm:mb-12 md:mb-16">
               {[
                 {
                   step: "1",
@@ -472,15 +472,15 @@ export default function Landing() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.1, duration: 0.3 }}
-                  className="text-center space-y-4"
+                  className="text-center space-y-3 sm:space-y-4"
                 >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted">
-                    <item.icon className="h-8 w-8 text-muted-foreground" />
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-muted">
+                    <item.icon className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-muted-foreground" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-accent">Passo {item.step}</div>
-                    <h3 className="text-xl font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                  <div className="space-y-1 sm:space-y-2">
+                    <div className="text-xs sm:text-sm font-medium text-accent">Passo {item.step}</div>
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold">{item.title}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed px-2">
                       {item.description}
                     </p>
                   </div>
@@ -489,16 +489,16 @@ export default function Landing() {
             </div>
 
             {/* IA Genérica vs Clone Perfeito */}
-            <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto">
-              <Card className="p-6 rounded-2xl bg-background border-border">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
-                      <X className="h-5 w-5 text-destructive" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 max-w-5xl mx-auto">
+              <Card className="p-4 sm:p-5 md:p-6 rounded-2xl bg-background border-border">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-destructive/10">
+                      <X className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
                     </div>
-                    <h4 className="text-lg font-semibold">IA Genérica</h4>
+                    <h4 className="text-base sm:text-lg font-semibold">IA Genérica</h4>
                   </div>
-                  <ul className="space-y-3 text-sm text-muted-foreground">
+                  <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-muted-foreground">
                     <li className="flex gap-2">
                       <span className="text-destructive flex-shrink-0">×</span>
                       <span>Respostas superficiais e genéricas</span>
@@ -519,15 +519,15 @@ export default function Landing() {
                 </div>
               </Card>
 
-              <Card className="p-6 rounded-2xl bg-accent/5 border-accent/20">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/20">
-                      <Check className="h-5 w-5 text-accent" />
+              <Card className="p-4 sm:p-5 md:p-6 rounded-2xl bg-accent/5 border-accent/20">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-accent/20">
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
                     </div>
-                    <h4 className="text-lg font-semibold">Clone Cognitivo</h4>
+                    <h4 className="text-base sm:text-lg font-semibold">Clone Cognitivo</h4>
                   </div>
-                  <ul className="space-y-3 text-sm text-muted-foreground">
+                  <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-muted-foreground">
                     <li className="flex gap-2">
                       <span className="text-accent flex-shrink-0">✓</span>
                       <span>Fala com a voz única de cada lenda</span>
@@ -550,16 +550,16 @@ export default function Landing() {
             </div>
 
             {/* Badge "Como Se Estivessem Vivos" */}
-            <div className="text-center pt-12">
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-muted border border-border/50">
-                <Award className="h-5 w-5 text-accent" />
-                <span className="text-sm font-medium">Como Se Estivessem Vivos na Sua Frente</span>
+            <div className="text-center pt-8 sm:pt-10 md:pt-12 px-2">
+              <div className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded-full bg-muted border border-border/50">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                <span className="text-xs sm:text-sm font-medium">Como Se Estivessem Vivos na Sua Frente</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-4 max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-3 sm:mt-4 max-w-2xl mx-auto">
                 Respostas que capturam não só conhecimento, mas o jeito único de pensar de cada lenda
               </p>
-              <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/30 max-w-2xl mx-auto">
-                <p className="text-sm text-muted-foreground italic leading-relaxed">
+              <div className="mt-4 sm:mt-5 md:mt-6 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/30 max-w-2xl mx-auto">
+                <p className="text-xs sm:text-sm text-muted-foreground italic leading-relaxed">
                   Philip Kotler não diria "use redes sociais". Ele diria: <span className="text-foreground font-medium">"Segmente por psicografia, não demografia. Depois teste canais."</span>
                 </p>
               </div>
@@ -568,13 +568,13 @@ export default function Landing() {
         </section>
 
         {/* Tour Interativo das 18 Lendas */}
-        <section id="tour-section" className="w-full py-20 bg-muted/20">
+        <section id="tour-section" className="w-full py-10 sm:py-14 md:py-20 bg-muted/20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-semibold mb-4">
+            <div className="text-center mb-8 sm:mb-10 md:mb-12 px-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
                 18 Lendas. 450+ Anos. 30 Segundos Para Respostas.
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
                 Escolha sua lenda. Descreva seu desafio. Receba insights que livros não ensinam.
               </p>
             </div>
@@ -604,9 +604,9 @@ export default function Landing() {
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card className="p-8 rounded-2xl">
+                    <Card className="p-4 sm:p-6 md:p-8 rounded-2xl">
                       {/* Progress Bar */}
-                      <div className="flex gap-2 mb-8">
+                      <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-7 md:mb-8">
                         {marketingLegends.map((_, idx) => (
                           <div
                             key={idx}
@@ -618,23 +618,23 @@ export default function Landing() {
                       </div>
 
                       {/* Expert Content */}
-                      <div className="flex flex-col md:flex-row gap-8 items-start">
+                      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
                         <div className="flex-shrink-0 mx-auto md:mx-0">
-                          <Avatar className="h-32 w-32 border-4 border-accent/20">
+                          <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-2 sm:border-3 md:border-4 border-accent/20">
                             <AvatarImage src={currentExpert.avatar || undefined} alt={currentExpert.name} />
-                            <AvatarFallback className="text-3xl font-semibold bg-accent/10">
+                            <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10">
                               {expertInitials}
                             </AvatarFallback>
                           </Avatar>
                         </div>
 
-                        <div className="flex-1 space-y-4 text-center md:text-left">
+                        <div className="flex-1 space-y-3 sm:space-y-4 text-center md:text-left">
                           <div>
-                            <h3 className="text-2xl font-semibold mb-2">{currentExpert.name}</h3>
-                            <p className="text-lg text-muted-foreground mb-4">{currentExpert.title}</p>
+                            <h3 className="text-xl sm:text-2xl font-semibold mb-1 sm:mb-2">{currentExpert.name}</h3>
+                            <p className="text-base sm:text-lg text-muted-foreground mb-3 sm:mb-4">{currentExpert.title}</p>
                           </div>
 
-                          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center md:justify-start">
                             {currentExpert.expertise.slice(0, 4).map((skill, idx) => (
                               <Badge key={idx} variant="secondary" className="rounded-full">
                                 {skill}
@@ -642,13 +642,13 @@ export default function Landing() {
                             ))}
                           </div>
 
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed px-2 md:px-0">
                             {currentExpert.bio}
                           </p>
 
                           <Button
                             onClick={() => handleConsult(currentExpert.id)}
-                            className="gap-2"
+                            className="gap-2 h-12 sm:h-auto w-full sm:w-auto"
                             data-testid={`button-chat-${currentExpert.id}`}
                           >
                             <MessageSquare className="h-4 w-4" />
@@ -658,18 +658,19 @@ export default function Landing() {
                       </div>
 
                       {/* Navigation */}
-                      <div className="flex justify-between items-center mt-8 pt-8 border-t">
+                      <div className="flex justify-between items-center mt-6 sm:mt-7 md:mt-8 pt-6 sm:pt-7 md:pt-8 border-t">
                         <Button
                           variant="ghost"
                           onClick={() => setTourIndex(Math.max(0, tourIndex - 1))}
                           disabled={tourIndex === 0}
                           data-testid="button-tour-previous"
+                          className="h-12 sm:h-auto"
                         >
                           <ChevronLeft className="h-4 w-4 mr-1" />
                           Anterior
                         </Button>
 
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           {tourIndex + 1} de {marketingLegends.length}
                         </span>
 
@@ -678,6 +679,7 @@ export default function Landing() {
                             variant="ghost"
                             onClick={() => setTourIndex(tourIndex + 1)}
                             data-testid="button-tour-next"
+                            className="h-12 sm:h-auto"
                           >
                             Próximo
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -686,6 +688,7 @@ export default function Landing() {
                           <Button
                             onClick={() => setShowProfileForm(true)}
                             data-testid="button-complete-tour"
+                            className="h-12 sm:h-auto"
                           >
                             Continuar
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -701,13 +704,13 @@ export default function Landing() {
         </section>
 
         {/* ROSTER DAS LENDAS - Grid Completo */}
-        <section className="w-full py-24 bg-background">
+        <section className="w-full py-12 sm:py-16 md:py-20 lg:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 sm:mb-12 md:mb-16 px-2">
               <motion.h2
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-6"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 sm:mb-5 md:mb-6"
               >
                 CONHEÇA AS <span className="text-accent">18 LENDAS</span>
               </motion.h2>
@@ -715,14 +718,14 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto"
+                className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-4xl mx-auto"
               >
                 Não são influencers. Não são "especialistas auto-proclamados". São os inventores. Os que faturaram bilhões. Os que escreveram os livros que todo mundo copia.
               </motion.p>
             </div>
 
             {/* Grid de Experts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-7xl mx-auto">
               {marketingLegends.map((expert, idx) => (
                 <motion.div
                   key={expert.id}
@@ -730,11 +733,11 @@ export default function Landing() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <Card className="p-6 h-full hover-elevate cursor-pointer" onClick={() => handleConsult(expert.id)}>
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-16 w-16 flex-shrink-0 border-2 border-accent/20">
+                  <Card className="p-4 sm:p-5 md:p-6 h-full hover-elevate cursor-pointer" onClick={() => handleConsult(expert.id)}>
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0 border-2 border-accent/20">
                         <AvatarImage src={expert.avatar || undefined} alt={expert.name} />
-                        <AvatarFallback className="text-lg font-semibold bg-accent/10">
+                        <AvatarFallback className="text-sm sm:text-base md:text-lg font-semibold bg-accent/10">
                           {expert.name
                             .split(" ")
                             .map((n) => n[0])
@@ -744,9 +747,9 @@ export default function Landing() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold mb-1 truncate">{expert.name}</h3>
-                        <p className="text-sm text-accent font-medium mb-2">{expert.title}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{expert.bio}</p>
+                        <h3 className="text-base sm:text-lg font-semibold mb-1 truncate">{expert.name}</h3>
+                        <p className="text-xs sm:text-sm text-accent font-medium mb-1 sm:mb-2">{expert.title}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{expert.bio}</p>
                       </div>
                     </div>
                   </Card>
@@ -759,59 +762,59 @@ export default function Landing() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="mt-16 text-center space-y-8"
+              className="mt-10 sm:mt-12 md:mt-16 text-center space-y-6 sm:space-y-8 px-2"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                <div className="space-y-2">
-                  <div className="text-5xl font-bold text-accent">{totalYearsExperience}+</div>
-                  <p className="text-lg text-muted-foreground">Anos de Expertise Real</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-w-4xl mx-auto">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-accent">{totalYearsExperience}+</div>
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Anos de Expertise Real</p>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-5xl font-bold text-accent">Bilhões</div>
-                  <p className="text-lg text-muted-foreground">Faturados Combinados</p>
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-accent">Bilhões</div>
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Faturados Combinados</p>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-5xl font-bold text-accent">18</div>
-                  <p className="text-lg text-muted-foreground">Mentes Que Mudaram o Marketing</p>
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-accent">18</div>
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Mentes Que Mudaram o Marketing</p>
                 </div>
               </div>
 
-              <div className="max-w-3xl mx-auto">
-                <p className="text-xl md:text-2xl text-foreground font-semibold mb-4">
+              <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-foreground font-semibold">
                   Eles INVENTARAM as estratégias que os gurus de hoje COPIAM.
                 </p>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
                   Philip Kotler criou os 4Ps. Eugene Schwartz vendeu U$1 BI com copy. Seth Godin inventou o conceito de tribo. Gary Vaynerchuk dominou social media antes de virar moda.
                 </p>
               </div>
 
               <Button
                 size="lg"
-                className="gap-2 h-16 px-12 text-xl font-semibold mt-8"
+                className="gap-2 h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-12 text-base sm:text-lg md:text-xl font-semibold mt-6 sm:mt-8 w-full sm:w-auto"
                 onClick={() => setLocation("/register")}
                 data-testid="button-meet-legends"
               >
                 Consultar as Lendas Agora
-                <ChevronRight className="h-6 w-6" />
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
               </Button>
             </motion.div>
           </div>
         </section>
 
         {/* Perguntas Concretas */}
-        <section className="w-full py-20 bg-muted/20">
+        <section className="w-full py-10 sm:py-14 md:py-20 bg-muted/20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-semibold mb-4">
+            <div className="text-center mb-8 sm:mb-10 md:mb-12 px-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
                 Perguntas Que Cada Lenda Responde
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
                 Exemplos reais de como consultar cada especialista.
                 Faça suas próprias perguntas ou use essas como inspiração.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 max-w-6xl mx-auto">
               {[
                 {
                   expert: "Philip Kotler",
@@ -874,15 +877,15 @@ export default function Landing() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, delay: index * 0.05 }}
                 >
-                  <Card className="p-6 h-full rounded-2xl">
-                    <div className="space-y-4">
+                  <Card className="p-4 sm:p-5 md:p-6 h-full rounded-2xl">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h3 className="font-semibold text-lg mb-1">{item.expert}</h3>
-                        <p className="text-sm text-muted-foreground">{item.title}</p>
+                        <h3 className="font-semibold text-base sm:text-lg mb-1">{item.expert}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{item.title}</p>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5 sm:space-y-2">
                         {item.questions.map((question, qIndex) => (
-                          <div key={qIndex} className="flex gap-2 text-sm">
+                          <div key={qIndex} className="flex gap-2 text-xs sm:text-sm">
                             <span className="text-accent flex-shrink-0">•</span>
                             <span className="text-muted-foreground leading-relaxed">
                               "{question}"
@@ -893,7 +896,7 @@ export default function Landing() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full gap-2 mt-2"
+                        className="w-full gap-2 mt-2 h-12 sm:h-auto"
                         onClick={() => {
                           const expert = marketingLegends.find((e) => e.name === item.expert);
                           if (expert) setLocation(`/chat/${expert.id}`);
@@ -909,8 +912,8 @@ export default function Landing() {
               ))}
             </div>
 
-            <div className="text-center mt-12">
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="text-center mt-8 sm:mt-10 md:mt-12 px-2">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 David Aaker (Branding), Jay Levinson (Guerrilla), Donald Miller (StoryBrand), Robert Cialdini (Persuasão) e +8 outros prontos para consulta.
               </p>
             </div>
@@ -918,63 +921,63 @@ export default function Landing() {
         </section>
 
         {/* CTA FINAL GIGANTE - IMPOSSÍVEL DE IGNORAR */}
-        <section className="relative w-full py-32 md:py-40 bg-gradient-to-b from-background via-accent/5 to-destructive/10 overflow-hidden">
+        <section className="relative w-full py-16 sm:py-20 md:py-32 lg:py-40 bg-gradient-to-b from-background via-accent/5 to-destructive/10 overflow-hidden">
           {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-accent to-destructive" />
             </div>
 
             <div className="container mx-auto px-4 relative z-10">
-              <div className="max-w-5xl mx-auto text-center space-y-12">
+              <div className="max-w-5xl mx-auto text-center space-y-8 sm:space-y-10 md:space-y-12">
                 
                 {/* Urgência Máxima */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="space-y-6"
+                  className="space-y-4 sm:space-y-6 px-2"
                 >
-                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-destructive/10 border border-destructive/20">
-                    <Zap className="h-5 w-5 text-destructive" />
-                    <span className="text-sm font-semibold text-destructive uppercase tracking-wide">
+                  <div className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded-full bg-destructive/10 border border-destructive/20">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
+                    <span className="text-xs sm:text-sm font-semibold text-destructive uppercase tracking-wide">
                       CADA MINUTO PERDIDO = DINHEIRO NA MESA
                     </span>
                   </div>
 
-                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
                     <span className="text-foreground">Se Você Não Testar Isso,</span>
                     <br />
                     <span className="text-destructive">Você É Louco.</span>
                   </h2>
 
-                  <div className="max-w-3xl mx-auto space-y-6">
-                    <p className="text-2xl md:text-3xl font-semibold text-foreground">
+                  <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-foreground">
                       ZERO RISCO. 100% GRÁTIS. 30 SEGUNDOS PARA COMEÇAR.
                     </p>
 
-                    <div className="grid md:grid-cols-3 gap-4 text-left">
-                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
-                          <h3 className="font-semibold">Sem Cartão</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-left">
+                      <Card className="p-4 sm:p-5 md:p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <Check className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                          <h3 className="text-sm sm:text-base font-semibold">Sem Cartão</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">Nem pedimos. Comece agora mesmo.</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Nem pedimos. Comece agora mesmo.</p>
                       </Card>
 
-                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
-                          <h3 className="font-semibold">100% Grátis</h3>
+                      <Card className="p-4 sm:p-5 md:p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <Check className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                          <h3 className="text-sm sm:text-base font-semibold">100% Grátis</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">Primeira consulta. Zero custo. Zero pegadinha.</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Primeira consulta. Zero custo. Zero pegadinha.</p>
                       </Card>
 
-                      <Card className="p-6 bg-background/50 backdrop-blur border-accent/20">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Check className="h-6 w-6 text-accent flex-shrink-0" />
-                          <h3 className="font-semibold">30 Segundos</h3>
+                      <Card className="p-4 sm:p-5 md:p-6 bg-background/50 backdrop-blur border-accent/20">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <Check className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                          <h3 className="text-sm sm:text-base font-semibold">30 Segundos</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">Respostas rápidas. Insights imediatos.</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Respostas rápidas. Insights imediatos.</p>
                       </Card>
                     </div>
                   </div>
@@ -985,61 +988,61 @@ export default function Landing() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  className="space-y-8 pt-8"
+                  className="space-y-6 sm:space-y-8 pt-6 sm:pt-8 px-2"
                 >
-                  <div className="max-w-3xl mx-auto space-y-4 text-lg md:text-xl text-muted-foreground">
-                    <p className="font-semibold text-foreground text-2xl">
+                  <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-sm sm:text-base md:text-lg text-muted-foreground">
+                    <p className="font-semibold text-foreground text-base sm:text-lg md:text-xl lg:text-2xl">
                       Você já desperdiçou dinheiro com curso que não funcionou.
                     </p>
-                    <p className="font-semibold text-foreground text-2xl">
+                    <p className="font-semibold text-foreground text-base sm:text-lg md:text-xl lg:text-2xl">
                       Você já pagou agência que não entregou.
                     </p>
-                    <p className="font-semibold text-foreground text-2xl">
+                    <p className="font-semibold text-foreground text-base sm:text-lg md:text-xl lg:text-2xl">
                       Você já seguiu guru que só queria vender.
                     </p>
-                    <p className="text-3xl font-bold text-accent pt-6">
+                    <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-accent pt-4 sm:pt-6">
                       E SE... você pudesse perguntar diretamente pro cara que INVENTOU o que você precisa?
                     </p>
                   </div>
 
                   {/* CTA Gigante */}
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <Button
                       size="lg"
                       onClick={() => setLocation("/register")}
-                      className="gap-3 h-20 px-16 text-2xl font-bold shadow-2xl hover:shadow-accent/20 transition-all duration-300"
+                      className="gap-2 sm:gap-3 h-14 sm:h-16 md:h-20 px-8 sm:px-12 md:px-16 text-base sm:text-lg md:text-xl lg:text-2xl font-bold shadow-2xl hover:shadow-accent/20 transition-all duration-300 w-full sm:w-auto"
                       data-testid="button-final-cta-giant"
                     >
                       COMEÇAR AGORA (100% GRÁTIS)
-                      <ChevronRight className="h-8 w-8" />
+                      <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
                     </Button>
 
-                    <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-accent" />
+                    <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                         <span>Sem cartão de crédito</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-accent" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                         <span>Primeira consulta grátis</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-accent" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                         <span>18 lendas disponíveis</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-accent" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                         <span>Respostas em 30s</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Final Blow */}
-                  <div className="pt-8 max-w-2xl mx-auto">
-                    <p className="text-xl md:text-2xl text-foreground italic font-medium">
+                  <div className="pt-6 sm:pt-8 max-w-2xl mx-auto">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-foreground italic font-medium">
                       "O maior erro não é tentar e falhar. É não tentar quando não custa nada."
                     </p>
-                    <p className="text-lg text-muted-foreground mt-4">
+                    <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-3 sm:mt-4">
                       — Philip Kotler (provavelmente diria algo assim)
                     </p>
                   </div>

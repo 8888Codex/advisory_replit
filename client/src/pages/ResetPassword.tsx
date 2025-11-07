@@ -125,15 +125,15 @@ export default function ResetPassword() {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
         <div className="w-full max-w-md text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
-              <KeyRound className="w-8 h-8 text-accent animate-pulse" />
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
+              <KeyRound className="w-7 h-7 sm:w-8 sm:h-8 text-accent animate-pulse" />
             </div>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight mb-2">Verificando link...</h1>
-          <p className="text-muted-foreground">Aguarde um momento</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight mb-2">Verificando link...</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Aguarde um momento</p>
         </div>
       </div>
     );
@@ -141,20 +141,20 @@ export default function ResetPassword() {
 
   if (resetComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-950 flex items-center justify-center">
-                <Check className="w-8 h-8 text-green-500" />
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-green-50 dark:bg-green-950 flex items-center justify-center">
+                <Check className="w-7 h-7 sm:w-8 sm:h-8 text-green-500" />
               </div>
             </div>
-            <h1 className="text-4xl font-semibold tracking-tight mb-2">Senha Redefinida</h1>
-            <p className="text-muted-foreground">Sucesso! Redirecionando para o login...</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-2">Senha Redefinida</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Sucesso! Redirecionando para o login...</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
-            <p className="text-sm text-green-900 dark:text-green-100">
+          <div className="p-4 sm:p-6 rounded-2xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+            <p className="text-xs sm:text-sm text-green-900 dark:text-green-100">
               Sua senha foi atualizada com sucesso. Você já pode fazer login com sua nova senha.
             </p>
           </div>
@@ -168,29 +168,29 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
-              <KeyRound className="w-8 h-8 text-accent" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accent/10 flex items-center justify-center">
+              <KeyRound className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
             </div>
           </div>
-          <h1 className="text-4xl font-semibold tracking-tight mb-2">Nova Senha</h1>
-          <p className="text-muted-foreground">Defina uma nova senha para sua conta</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-2">Nova Senha</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Defina uma nova senha para sua conta</p>
         </div>
 
         {email && (
-          <div className="mb-6 p-4 rounded-xl bg-muted/50">
-            <p className="text-sm text-muted-foreground">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-muted/50">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Redefinindo senha para: <strong className="text-foreground">{email}</strong>
             </p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="password">Nova senha</Label>
+            <Label htmlFor="password" className="text-sm sm:text-base">Nova senha</Label>
             <Input
               id="password"
               type="password"
@@ -199,13 +199,13 @@ export default function ResetPassword() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-password"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+            <Label htmlFor="confirmPassword" className="text-sm sm:text-base">Confirmar nova senha</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -214,14 +214,14 @@ export default function ResetPassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="rounded-xl"
+              className="rounded-xl h-12"
               data-testid="input-confirm-password"
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full rounded-xl"
+            className="w-full rounded-xl h-12 sm:h-14 text-base sm:text-lg"
             disabled={isLoading}
             data-testid="button-reset-password"
           >
@@ -229,11 +229,11 @@ export default function ResetPassword() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 sm:mt-8 text-center">
           <Link href="/login">
             <Button
               variant="ghost"
-              className="text-sm"
+              className="text-xs sm:text-sm h-auto py-2"
               data-testid="link-back-to-login"
             >
               Voltar para o login

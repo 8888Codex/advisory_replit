@@ -86,7 +86,7 @@ function OverviewCards({ data, isLoading }: { data?: OverviewStats; isLoading: b
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {cards.map((card, idx) => (
         <motion.div
           key={card.label}
@@ -95,19 +95,19 @@ function OverviewCards({ data, isLoading }: { data?: OverviewStats; isLoading: b
           transition={{ duration: 0.3, delay: idx * 0.05 }}
         >
           <Card className="rounded-2xl" data-testid={`card-${card.label.toLowerCase().replace(/\s+/g, "-")}`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2 p-4 sm:p-5 md:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                 {card.label}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${card.bgColor}`}>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
+              <div className={`p-1.5 sm:p-2 rounded-lg ${card.bgColor} flex-shrink-0`}>
+                <card.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${card.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
               {isLoading ? (
                 <Skeleton className="h-8 w-20" />
               ) : (
-                <div className="text-3xl font-semibold">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-semibold">
                   {card.value}{card.suffix || ''}
                 </div>
               )}
@@ -141,17 +141,17 @@ function ActivityChart({ data, isLoading }: { data?: TimelinePoint[]; isLoading:
 
   return (
     <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="font-semibold flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Atividade nos Últimos 30 Dias
+      <CardHeader className="p-4 sm:p-5 md:p-6">
+        <CardTitle className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <span className="truncate">Atividade nos Últimos 30 Dias</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Histórico de conversas 1:1 e sessões de Council
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+      <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis 
@@ -225,56 +225,56 @@ function ExpertRankingList({ data, isLoading }: { data?: TopExpert[]; isLoading:
 
   return (
     <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="font-semibold flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          Experts Mais Consultados
+      <CardHeader className="p-4 sm:p-5 md:p-6">
+        <CardTitle className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+          <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <span className="truncate">Experts Mais Consultados</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Ranking dos seus especialistas favoritos
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-6 pt-0 pb-0">
+      <CardContent className="px-4 sm:px-5 md:px-6 pt-0 pb-0">
         {experts.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
+          <p className="text-xs sm:text-sm text-muted-foreground text-center py-6 sm:py-8">
             Comece a consultar experts para ver seu ranking!
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {experts.map((expert, idx) => (
               <motion.div
                 key={expert.expertId}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
-                className="flex items-center gap-3 p-3 rounded-xl hover-elevate active-elevate-2 cursor-pointer"
+                className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover-elevate active-elevate-2 cursor-pointer"
                 data-testid={`expert-rank-${idx + 1}`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {idx < 3 ? (
-                    <span className="text-2xl">{medals[idx]}</span>
+                    <span className="text-xl sm:text-2xl">{medals[idx]}</span>
                   ) : (
-                    <span className="text-muted-foreground font-semibold w-8 text-center">
+                    <span className="text-muted-foreground font-semibold w-6 sm:w-8 text-center text-sm">
                       {idx + 1}
                     </span>
                   )}
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage src={expert.avatar} alt={expert.expertName} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-xs">
                       {expert.expertName.split(' ').map(n => n[0]).join('').slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">{expert.expertName}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-xs">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-xs sm:text-sm truncate">{expert.expertName}</div>
+                  <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
                       {expert.category}
                     </Badge>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-semibold text-lg">{expert.consultations}</div>
+                <div className="text-right flex-shrink-0">
+                  <div className="font-semibold text-base sm:text-lg">{expert.consultations}</div>
                   <div className="text-xs text-muted-foreground">
                     {expert.consultations === 1 ? 'consulta' : 'consultas'}
                   </div>
@@ -322,22 +322,22 @@ function CategoryDistribution({ data, isLoading }: { data?: Record<string, numbe
 
   return (
     <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="font-semibold flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
-          Distribuição por Categoria
+      <CardHeader className="p-4 sm:p-5 md:p-6">
+        <CardTitle className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+          <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <span className="truncate">Distribuição por Categoria</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Áreas de especialização mais consultadas
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
         {chartData.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
+          <p className="text-xs sm:text-sm text-muted-foreground text-center py-6 sm:py-8">
             Consulte experts de diferentes categorias para ver a distribuição
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
                 data={chartData}
@@ -414,17 +414,17 @@ function SmartRecommendations({ data, isLoading }: { data?: Recommendation[]; is
 
   return (
     <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="font-semibold flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-primary" />
-          Recomendações Inteligentes
+      <CardHeader className="p-4 sm:p-5 md:p-6">
+        <CardTitle className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+          <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <span className="truncate">Recomendações Inteligentes</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Insights gerados por IA baseados no seu histórico
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
+        <div className="space-y-2 sm:space-y-3">
           {recommendations.map((rec, idx) => {
             const Icon = getIcon(rec.type);
             const color = getColor(rec.type);
@@ -435,19 +435,19 @@ function SmartRecommendations({ data, isLoading }: { data?: Recommendation[]; is
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.08 }}
-                className="p-4 rounded-xl border hover-elevate active-elevate-2 cursor-pointer"
+                className="p-3 sm:p-4 rounded-xl border hover-elevate active-elevate-2 cursor-pointer"
                 data-testid={`recommendation-${idx}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg bg-muted/50`}>
-                    <Icon className={`h-4 w-4 ${color}`} />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className={`p-1.5 sm:p-2 rounded-lg bg-muted/50 flex-shrink-0`}>
+                    <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${color}`} />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm mb-1">{rec.title}</div>
-                    <div className="text-sm text-muted-foreground">{rec.description}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm mb-1">{rec.title}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">{rec.description}</div>
                     {rec.action && (
-                      <div className="mt-2">
-                        <Badge variant="outline" className="text-xs">
+                      <div className="mt-1.5 sm:mt-2">
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">
                           {rec.action}
                         </Badge>
                       </div>
@@ -490,19 +490,19 @@ export default function Analytics() {
   });
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 sm:py-10 md:py-12 px-4 max-w-7xl">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="mb-8"
+        className="mb-6 sm:mb-8"
       >
-        <h1 className="text-4xl font-semibold mb-2 flex items-center gap-3">
-          <Calendar className="h-10 w-10 text-muted-foreground" />
-          Analytics & Insights
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 flex items-center gap-2 sm:gap-3">
+          <Calendar className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-muted-foreground" />
+          <span className="truncate">Analytics & Insights</span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Acompanhe sua jornada de aprendizado com especialistas de marketing
         </p>
       </motion.div>
@@ -511,7 +511,7 @@ export default function Analytics() {
       <OverviewCards data={overview} isLoading={loadingOverview} />
 
       {/* Charts and Rankings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
         {/* Activity Chart - 2 columns */}
         <div className="lg:col-span-2">
           <ActivityChart data={timeline} isLoading={loadingTimeline} />
@@ -524,7 +524,7 @@ export default function Analytics() {
       </div>
 
       {/* Category Distribution and Recommendations Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mt-6 sm:mt-8">
         {/* Category Distribution */}
         <CategoryDistribution data={categories} isLoading={loadingCategories} />
 
