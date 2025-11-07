@@ -498,6 +498,364 @@ class PostgresStorage:
                 "createdAt": row['createdAt']
             }
     
+    # ============================================
+    # USER PERSONA OPERATIONS (PostgreSQL)
+    # ============================================
+    
+    async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
+        """Create or replace user persona (UPSERT logic to handle unique constraint on user_id)"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            persona_id = str(uuid.uuid4())
+            now = datetime.utcnow()
+            
+            row = await conn.fetchrow(
+                """
+                INSERT INTO user_personas (
+                    id, user_id,
+                    company_name, industry, company_size, target_audience,
+                    main_products, channels, budget_range, primary_goal,
+                    main_challenge, timeline,
+                    demographics, psychographics, pain_points, goals, values,
+                    communities, behavioral_patterns, content_preferences,
+                    youtube_research, video_insights, campaign_references, inspiration_videos,
+                    research_mode, enrichment_level, enrichment_status, research_completeness, last_enriched_at,
+                    created_at, updated_at
+                ) VALUES (
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                    $13, $14, $15, $16, $17, $18, $19, $20,
+                    $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
+                )
+                ON CONFLICT (user_id) DO UPDATE SET
+                    company_name = EXCLUDED.company_name,
+                    industry = EXCLUDED.industry,
+                    company_size = EXCLUDED.company_size,
+                    target_audience = EXCLUDED.target_audience,
+                    main_products = EXCLUDED.main_products,
+                    channels = EXCLUDED.channels,
+                    budget_range = EXCLUDED.budget_range,
+                    primary_goal = EXCLUDED.primary_goal,
+                    main_challenge = EXCLUDED.main_challenge,
+                    timeline = EXCLUDED.timeline,
+                    research_mode = EXCLUDED.research_mode,
+                    enrichment_level = EXCLUDED.enrichment_level,
+                    enrichment_status = EXCLUDED.enrichment_status,
+                    updated_at = EXCLUDED.updated_at
+                RETURNING *
+                """,
+                persona_id, user_id,
+                data.companyName, data.industry, data.companySize, data.targetAudience,
+                data.mainProducts, data.channels, data.budgetRange, data.primaryGoal,
+                data.mainChallenge, data.timeline,
+                json.dumps({}), json.dumps({}), [], [], [],
+                [], json.dumps({}), json.dumps({}),
+                json.dumps([]), [], json.dumps([]), json.dumps([]),
+                data.researchMode, data.enrichmentLevel or data.researchMode, "pending", 0, None,
+                now, now
+            )
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+    
+    async def get_user_persona(self, user_id: str) -> Optional[UserPersona]:
+        """Get the user persona for a specific user"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT * FROM user_personas WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+                user_id
+            )
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+    
+    async def get_user_persona_by_id(self, persona_id: str) -> Optional[UserPersona]:
+        """Get a specific user persona by ID"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT * FROM user_personas WHERE id = $1",
+                persona_id
+            )
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+    
+    async def update_user_persona(self, persona_id: str, updates: dict) -> UserPersona:
+        """Update a user persona with partial updates"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            now = datetime.utcnow()
+            
+            set_clauses = ["updated_at = $1"]
+            params: List[Any] = [now]
+            param_num = 2
+            
+            field_mapping = {
+                "companyName": "company_name",
+                "industry": "industry",
+                "companySize": "company_size",
+                "targetAudience": "target_audience",
+                "mainProducts": "main_products",
+                "channels": "channels",
+                "budgetRange": "budget_range",
+                "primaryGoal": "primary_goal",
+                "mainChallenge": "main_challenge",
+                "timeline": "timeline",
+                "demographics": "demographics",
+                "psychographics": "psychographics",
+                "painPoints": "pain_points",
+                "goals": "goals",
+                "values": "values",
+                "communities": "communities",
+                "behavioralPatterns": "behavioral_patterns",
+                "contentPreferences": "content_preferences",
+                "youtubeResearch": "youtube_research",
+                "videoInsights": "video_insights",
+                "campaignReferences": "campaign_references",
+                "inspirationVideos": "inspiration_videos",
+                "researchMode": "research_mode",
+                "enrichmentLevel": "enrichment_level",
+                "enrichmentStatus": "enrichment_status",
+                "researchCompleteness": "research_completeness",
+                "lastEnrichedAt": "last_enriched_at",
+                # 8-Module Deep Persona System
+                "psychographicCore": "psychographic_core",
+                "buyerJourney": "buyer_journey",
+                "behavioralProfile": "behavioral_profile",
+                "languageCommunication": "language_communication",
+                "strategicInsights": "strategic_insights",
+                "jobsToBeDone": "jobs_to_be_done",
+                "decisionProfile": "decision_profile",
+                "copyExamples": "copy_examples"
+            }
+            
+            json_fields = [
+                "demographics", "psychographics", "behavioral_patterns", 
+                "content_preferences", "youtube_research", "campaign_references", 
+                "inspiration_videos",
+                # 8-Module Deep Persona System (all JSON)
+                "psychographic_core", "buyer_journey", "behavioral_profile",
+                "language_communication", "strategic_insights", "jobs_to_be_done",
+                "decision_profile", "copy_examples"
+            ]
+            
+            for field_camel, field_snake in field_mapping.items():
+                if field_camel in updates:
+                    value = updates[field_camel]
+                    if field_snake in json_fields:
+                        value = json.dumps(value)
+                    
+                    set_clauses.append(f"{field_snake} = ${param_num}")
+                    params.append(value)
+                    param_num += 1
+            
+            params.append(persona_id)
+            query = f"UPDATE user_personas SET {', '.join(set_clauses)} WHERE id = ${param_num} RETURNING *"
+            
+            row = await conn.fetchrow(query, *params)
+            if not row:
+                raise ValueError(f"UserPersona with id {persona_id} not found")
+            
+            return UserPersona(
+                id=str(row["id"]),
+                userId=row["user_id"],
+                companyName=row["company_name"],
+                industry=row["industry"],
+                companySize=row["company_size"],
+                targetAudience=row["target_audience"],
+                mainProducts=row["main_products"],
+                channels=list(row["channels"]) if row["channels"] else [],
+                budgetRange=row["budget_range"],
+                primaryGoal=row["primary_goal"],
+                mainChallenge=row["main_challenge"],
+                timeline=row["timeline"],
+                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
+                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
+                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
+                goals=list(row["goals"]) if row["goals"] else [],
+                values=list(row["values"]) if row["values"] else [],
+                communities=list(row["communities"]) if row["communities"] else [],
+                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
+                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
+                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
+                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
+                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
+                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
+                researchMode=row["research_mode"],
+                enrichmentLevel=row.get("enrichment_level"),
+                enrichmentStatus=row.get("enrichment_status", "pending"),
+                researchCompleteness=row["research_completeness"],
+                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                # 8-Module Deep Persona System
+                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
+                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
+                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
+                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
+                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
+                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
+                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
+                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                createdAt=_parse_timestamp(row["created_at"]),
+                updatedAt=_parse_timestamp(row["updated_at"])
+            )
+    
+    async def enrich_persona_youtube(self, persona_id: str, youtube_data: dict) -> UserPersona:
+        """Enrich persona with YouTube research data"""
+        now = datetime.utcnow()
+        
+        updates = {
+            "youtubeResearch": youtube_data.get("youtubeResearch", []),
+            "videoInsights": youtube_data.get("videoInsights", []),
+            "campaignReferences": youtube_data.get("campaignReferences", []),
+            "inspirationVideos": youtube_data.get("inspirationVideos", []),
+            "researchCompleteness": youtube_data.get("researchCompleteness", 50),
+            "lastEnrichedAt": now
+        }
+        
+        return await self.update_user_persona(persona_id, updates)
+    
+    async def delete_user_persona(self, persona_id: str) -> bool:
+        """Delete a user persona"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("DELETE FROM user_personas WHERE id = $1", persona_id)
+            return result == "DELETE 1"
+    
     async def get_user_by_email(self, email: str) -> Optional[dict]:
         """Get user by email address"""
         if not self.pool:

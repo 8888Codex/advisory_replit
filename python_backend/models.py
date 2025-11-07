@@ -297,6 +297,7 @@ class UserPersona(BaseModel):
     # Research Metadata
     researchMode: Optional[str] = None  # "quick" | "strategic" | "complete" (deprecated, use enrichmentLevel)
     enrichmentLevel: Optional[str] = None  # "quick" | "strategic" | "complete"
+    enrichmentStatus: Optional[str] = None  # "pending" | "processing" | "completed" | "failed"
     researchCompleteness: int = 0  # 0-100 score
     lastEnrichedAt: Optional[datetime] = None
     
