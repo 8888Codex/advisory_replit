@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { Header } from "@/components/Header";
 import { AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
@@ -16,6 +17,10 @@ import Categories from "@/pages/Categories";
 import Chat from "@/pages/Chat";
 import Create from "@/pages/Create";
 import AdminExperts from "@/pages/AdminExperts";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminInvites from "@/pages/AdminInvites";
+import AdminLogs from "@/pages/AdminLogs";
 import Onboarding from "@/pages/Onboarding";
 import TestCouncil from "@/pages/TestCouncil";
 import Personas from "@/pages/Personas";
@@ -101,11 +106,38 @@ function Router() {
             <Create />
           </ProtectedRoute>
         </Route>
-        <Route path="/admin/experts">
-          <ProtectedRoute>
-            <AdminExperts />
-          </ProtectedRoute>
+        {/* Admin Routes */}
+        <Route path="/admin">
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
         </Route>
+        <Route path="/admin/users">
+          <AdminRoute requireSuperAdmin>
+            <AdminUsers />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/invites">
+          <AdminRoute>
+            <AdminInvites />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/analytics">
+          <AdminRoute>
+            <Analytics />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/logs">
+          <AdminRoute>
+            <AdminLogs />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/experts">
+          <AdminRoute>
+            <AdminExperts />
+          </AdminRoute>
+        </Route>
+        
         <Route path="/test-council">
           <ProtectedRoute>
             <TestCouncil />
