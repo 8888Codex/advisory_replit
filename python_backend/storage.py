@@ -607,7 +607,7 @@ class PostgresStorage:
         
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
-                SELECT id, username, email, password, available_invites as "availableInvites", created_at as "createdAt"
+                SELECT id, username, email, password, role, available_invites as "availableInvites", created_at as "createdAt"
                 FROM users
                 WHERE email = $1
             """, email)
@@ -620,6 +620,7 @@ class PostgresStorage:
                 "username": row['username'],
                 "email": row['email'],
                 "password": row['password'],
+                "role": row['role'],
                 "availableInvites": row['availableInvites'],
                 "createdAt": row['createdAt']
             }
@@ -631,7 +632,7 @@ class PostgresStorage:
         
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
-                SELECT id, username, email, password, available_invites as "availableInvites", created_at as "createdAt"
+                SELECT id, username, email, password, role, available_invites as "availableInvites", created_at as "createdAt"
                 FROM users
                 WHERE id = $1
             """, user_id)
@@ -644,6 +645,7 @@ class PostgresStorage:
                 "username": row['username'],
                 "email": row['email'],
                 "password": row['password'],
+                "role": row['role'],
                 "availableInvites": row['availableInvites'],
                 "createdAt": row['createdAt']
             }
