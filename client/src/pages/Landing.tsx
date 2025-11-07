@@ -686,7 +686,7 @@ export default function Landing() {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => setShowProfileForm(true)}
+                            onClick={() => setLocation("/register")}
                             data-testid="button-complete-tour"
                             className="h-12 sm:h-auto"
                           >
