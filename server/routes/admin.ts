@@ -61,12 +61,19 @@ export function registerAdminRoutes(app: Express) {
 
       const oldRole = currentUser.role;
 
-      // Update user role
+      // Update user role (return only safe fields, exclude password)
       const [updatedUser] = await db
         .update(users)
         .set({ role })
         .where(eq(users.id, userId))
-        .returning();
+        .returning({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          role: users.role,
+          availableInvites: users.availableInvites,
+          createdAt: users.createdAt,
+        });
 
       // Log audit event with correct old role
       await db.insert(auditLogs).values({

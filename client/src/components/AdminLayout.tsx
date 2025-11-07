@@ -36,11 +36,6 @@ const menuItems = [
     icon: TicketCheck,
   },
   {
-    title: 'Analytics',
-    url: '/admin/analytics',
-    icon: BarChart3,
-  },
-  {
     title: 'Logs',
     url: '/admin/logs',
     icon: FileText,

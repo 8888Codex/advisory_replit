@@ -988,13 +988,22 @@ class PostgresStorage:
         
         async with self.pool.acquire() as conn:
             log_id = str(uuid.uuid4())
-            success_str = "true" if success else "false"
             
-            # Pass dict directly to asyncpg - it handles JSONB natively
+            # Append success/failure to action name
+            full_action = f"{action}_{'success' if success else 'failure'}"
+            
+            # Include user_agent and success in metadata
+            full_metadata = metadata.copy() if metadata else {}
+            full_metadata['success'] = success
+            if user_agent:
+                full_metadata['user_agent'] = user_agent
+            
+            # Insert into audit_logs table (not login_audit)
+            # Pass dict to asyncpg - it handles JSONB natively
             await conn.execute("""
-                INSERT INTO login_audit (id, user_id, action, success, ip_address, user_agent, metadata)
+                INSERT INTO audit_logs (id, user_id, action, resource_type, resource_id, metadata, ip_address)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
-            """, log_id, user_id, action, success_str, ip_address, user_agent, metadata)
+            """, log_id, user_id, full_action, "auth", None, full_metadata, ip_address)
             
             return log_id
     
