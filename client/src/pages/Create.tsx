@@ -13,6 +13,7 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { Sparkles, Loader2, Brain, Search, Wand2, Check, MessageSquare, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Expert } from "@shared/schema";
+import { motion, AnimatePresence } from "framer-motion";
 
 type CloneStep = "idle" | "researching" | "analyzing" | "synthesizing" | "generating-samples" | "complete";
 
@@ -49,19 +50,47 @@ export default function Create() {
 
   const autoCloneMutation = useMutation({
     mutationFn: async (data: { targetName: string; context?: string }) => {
-      // Simulate step progression
-      setCloneStep("researching");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      setCloneStep("analyzing");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      setCloneStep("synthesizing");
-      
-      return await apiRequestJson<any>("/api/experts/auto-clone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      // Disney Effect #2: Use SSE streaming for real-time progress
+      return new Promise((resolve, reject) => {
+        const eventSource = new EventSource(
+          `/api/experts/auto-clone-stream?targetName=${encodeURIComponent(data.targetName)}&context=${encodeURIComponent(data.context || "")}`
+        );
+        
+        let expertData: any = null;
+        
+        eventSource.addEventListener("step-start", (e) => {
+          const eventData = JSON.parse(e.data);
+          setCloneStep(eventData.step);
+        });
+        
+        eventSource.addEventListener("step-progress", (e) => {
+          const eventData = JSON.parse(e.data);
+          // Could show detailed progress here in future
+          console.log("[SSE]", eventData.message);
+        });
+        
+        eventSource.addEventListener("step-complete", (e) => {
+          const eventData = JSON.parse(e.data);
+          console.log("[SSE] ✅", eventData.message);
+        });
+        
+        eventSource.addEventListener("expert-complete", (e) => {
+          const eventData = JSON.parse(e.data);
+          expertData = eventData.expert;
+          eventSource.close();
+          resolve(expertData);
+        });
+        
+        eventSource.addEventListener("error", (e: any) => {
+          const eventData = e.data ? JSON.parse(e.data) : { message: "Unknown error" };
+          eventSource.close();
+          reject(new Error(eventData.message || "Erro durante clonagem"));
+        });
+        
+        eventSource.onerror = () => {
+          eventSource.close();
+          reject(new Error("Conexão perdida com servidor"));
+        };
       });
     },
     onSuccess: async (expertData) => {
@@ -304,28 +333,84 @@ export default function Create() {
                   </p>
                 </div>
 
-                {isProcessing && (
-                  <Card className="p-4 rounded-2xl bg-muted/50 border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className="text-muted-foreground flex-shrink-0">
-                        {getStepIcon(cloneStep)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium mb-2">{getStepText(cloneStep)}</p>
-                        <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
-                          <div 
-                            className="bg-accent h-1.5 rounded-full transition-all duration-300 ease-out"
-                            style={{
-                              width: cloneStep === "researching" ? "33%" :
-                                     cloneStep === "analyzing" ? "66%" :
-                                     cloneStep === "synthesizing" ? "90%" : "0%"
-                            }}
-                          />
+                {/* Disney Effect #2: Real-time animated progress */}
+                <AnimatePresence mode="wait">
+                  {isProcessing && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card className="p-6 rounded-2xl bg-gradient-to-br from-accent/5 via-background to-background border-accent/20">
+                        <div className="flex items-center gap-4 mb-4">
+                          <motion.div
+                            className="text-accent flex-shrink-0"
+                            animate={{ rotate: cloneStep === "synthesizing" ? 360 : 0 }}
+                            transition={{ duration: 2, repeat: cloneStep === "synthesizing" ? Infinity : 0, ease: "linear" }}
+                          >
+                            {getStepIcon(cloneStep)}
+                          </motion.div>
+                          <div className="flex-1 min-w-0">
+                            <motion.p
+                              key={cloneStep}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="text-sm font-semibold mb-2"
+                            >
+                              {getStepText(cloneStep)}
+                            </motion.p>
+                            <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+                              <motion.div
+                                className="bg-accent h-2 rounded-full"
+                                initial={{ width: "0%" }}
+                                animate={{
+                                  width: cloneStep === "researching" ? "25%" :
+                                         cloneStep === "analyzing" ? "50%" :
+                                         cloneStep === "synthesizing" ? "75%" :
+                                         cloneStep === "generating-samples" ? "90%" : "0%"
+                                }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </Card>
-                )}
+                        
+                        {/* Individual step indicators */}
+                        <div className="grid grid-cols-4 gap-2 mt-4">
+                          {["researching", "analyzing", "synthesizing", "generating-samples"].map((step, index) => {
+                            const stepNumber = index + 1;
+                            const isActive = cloneStep === step;
+                            const isComplete = 
+                              (step === "researching" && ["analyzing", "synthesizing", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "analyzing" && ["synthesizing", "generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "synthesizing" && ["generating-samples", "complete"].includes(cloneStep)) ||
+                              (step === "generating-samples" && cloneStep === "complete");
+                            
+                            return (
+                              <motion.div
+                                key={step}
+                                className={`text-xs p-2 rounded-xl text-center transition-colors ${
+                                  isActive ? "bg-accent text-accent-foreground font-semibold" :
+                                  isComplete ? "bg-muted/50 text-muted-foreground line-through" :
+                                  "bg-muted/30 text-muted-foreground"
+                                }`}
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: isActive ? 1.05 : 1, opacity: 1 }}
+                                transition={{ delay: index * 0.1 }}
+                              >
+                                {step === "researching" && "🔍 Pesquisa"}
+                                {step === "analyzing" && "🧠 Análise"}
+                                {step === "synthesizing" && "✨ Síntese"}
+                                {step === "generating-samples" && "💬 Amostras"}
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <Button 
                   type="submit" 

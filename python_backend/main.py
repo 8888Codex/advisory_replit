@@ -1017,8 +1017,8 @@ async def generate_sample_conversations(data: dict):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to generate samples: {str(e)}")
 
-@app.post("/api/experts/auto-clone-stream")
-async def auto_clone_expert_stream(data: AutoCloneRequest):
+@app.get("/api/experts/auto-clone-stream")
+async def auto_clone_expert_stream(targetName: str, context: str = ""):
     """
     Stream real-time progress during expert auto-clone process.
     Disney Effect #2: User sees every step happening live.
@@ -1052,8 +1052,8 @@ async def auto_clone_expert_stream(data: AutoCloneRequest):
                 })
                 return
             
-            context_suffix = f" Foco: {data.context}" if data.context else ""
-            research_query = f"""Pesquise informações detalhadas sobre {data.targetName}{context_suffix}.
+            context_suffix = f" Foco: {context}" if context else ""
+            research_query = f"""Pesquise informações detalhadas sobre {targetName}{context_suffix}.
 
 Forneça:
 1. Biografia completa e trajetória profissional
@@ -1108,7 +1108,7 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
             
             yield send_event("step-complete", {
                 "step": "researching",
-                "message": f"✅ Pesquisa sobre {data.targetName} concluída"
+                "message": f"✅ Pesquisa sobre {targetName} concluída"
             })
 
             # STEP 2: YouTube Research
@@ -1126,15 +1126,15 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
                     
                     yield send_event("step-progress", {
                         "step": "analyzing",
-                        "message": f"Buscando vídeos e palestras de {data.targetName}..."
+                        "message": f"Buscando vídeos e palestras de {targetName}..."
                     })
                     
                     youtube_api = YouTubeAPITool()
                     queries = [
-                        f"{data.targetName} palestra",
-                        f"{data.targetName} entrevista",
-                        f"{data.targetName} talk",
-                        f"{data.targetName} keynote"
+                        f"{targetName} palestra",
+                        f"{targetName} entrevista",
+                        f"{targetName} talk",
+                        f"{targetName} keynote"
                     ]
                     
                     youtube_results = []
@@ -1216,7 +1216,7 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
             })
             
             # Use the exact same synthesis logic as the original endpoint
-            synthesis_prompt = f"""Você é um especialista em clonagem cognitiva. Crie um especialista cognitivo de alta fidelidade para: {data.targetName}
+            synthesis_prompt = f"""Você é um especialista em clonagem cognitiva. Crie um especialista cognitivo de alta fidelidade para: {targetName}
 
 DADOS DE PESQUISA:
 {research_findings}
