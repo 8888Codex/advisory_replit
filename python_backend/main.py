@@ -951,6 +951,72 @@ async def test_chat_expert(data: dict):
         print(f"Error in test chat: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process test chat: {str(e)}")
 
+@app.post("/api/experts/generate-samples")
+async def generate_sample_conversations(data: dict):
+    """
+    Generate 3 sample conversations with a newly created expert.
+    Shows the expert's voice, tone, and thinking patterns in action.
+    Part of the "Disney Effect" - users see the magic before saving.
+    """
+    try:
+        from anthropic import AsyncAnthropic
+        
+        system_prompt = data.get("systemPrompt")
+        expert_name = data.get("expertName", "Especialista")
+        user_challenge = data.get("userChallenge", "")
+        
+        if not system_prompt:
+            raise HTTPException(status_code=400, detail="systemPrompt is required")
+        
+        anthropic_client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        
+        # Define 3 strategic questions that showcase expert's personality
+        sample_questions = [
+            f"Qual o seu principal conselho para quem está começando agora?",
+            f"Como você abordaria este desafio: {user_challenge}" if user_challenge else "Conte-me sobre um caso de sucesso marcante da sua carreira.",
+            f"Qual o maior erro que você vê pessoas cometendo nesta área?"
+        ]
+        
+        samples = []
+        
+        # Generate responses in parallel (but sequentially for now to avoid rate limits)
+        for i, question in enumerate(sample_questions):
+            print(f"[SAMPLES] Generating sample {i+1}/3 for {expert_name}...")
+            
+            response = await anthropic_client.messages.create(
+                model="claude-haiku-4-20250514",  # Use Haiku for speed
+                max_tokens=800,
+                system=system_prompt,
+                messages=[{
+                    "role": "user",
+                    "content": question
+                }]
+            )
+            
+            response_text = ""
+            for block in response.content:
+                if block.type == "text":
+                    response_text += block.text
+            
+            samples.append({
+                "question": question,
+                "answer": response_text,
+                "wordCount": len(response_text.split())
+            })
+        
+        print(f"[SAMPLES] ✅ Generated {len(samples)} sample conversations for {expert_name}")
+        
+        return {
+            "samples": samples,
+            "totalSamples": len(samples)
+        }
+    
+    except Exception as e:
+        print(f"Error generating samples: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to generate samples: {str(e)}")
+
 @app.post("/api/recommend-experts", response_model=RecommendExpertsResponse)
 async def recommend_experts(request: RecommendExpertsRequest):
     """
