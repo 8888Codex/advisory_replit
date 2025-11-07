@@ -31,6 +31,7 @@ from crew_council import council_orchestrator
 from llm_router import llm_router, LLMTask
 from analytics import AnalyticsEngine
 from seed_analytics import seed_analytics_data, clear_analytics_data
+from clones.registry import CloneRegistry
 
 app = FastAPI(title="O Conselho - Marketing Legends API")
 
@@ -49,9 +50,23 @@ analytics_engine = AnalyticsEngine(storage)
 # Initialize with seeded legends
 @app.on_event("startup")
 async def startup_event():
-    print("Seeding marketing legends...")
+    # Initialize PostgreSQL connection pool
+    print("[Startup] Initializing PostgreSQL storage...")
+    await storage.initialize()
+    print("[Startup] PostgreSQL storage initialized successfully")
+    
+    # Seed marketing legends
+    print("[Startup] Seeding marketing legends...")
     await seed_legends(storage)
-    print(f"Seeded {len(await storage.get_experts())} marketing legends successfully.")
+    experts_count = len(await storage.get_experts())
+    print(f"[Startup] Seeded {experts_count} marketing legends successfully.")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Close PostgreSQL connection pool
+    print("[Shutdown] Closing PostgreSQL storage...")
+    await storage.close()
+    print("[Shutdown] PostgreSQL storage closed successfully")
 
 # Health check
 @app.get("/")
@@ -747,6 +762,92 @@ async def create_expert(data: ExpertCreate):
         print(f"[CREATE-EXPERT] Received expert: {data.name}, category: {data.category.value if hasattr(data.category, 'value') else data.category}")
         expert = await storage.create_expert(data)
         print(f"[CREATE-EXPERT] Saved expert with ID: {expert.id}, category: {expert.category.value}")
+        
+        # CRITICAL FIX: If this is a custom expert, save Python class file and reload registry
+        if data.expertType == ExpertType.CUSTOM:
+            try:
+                # Ensure custom directory exists
+                custom_dir = Path("python_backend/clones/custom")
+                custom_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Validate Anthropic API key
+                anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+                if not anthropic_api_key:
+                    raise HTTPException(
+                        status_code=500,
+                        detail="ANTHROPIC_API_KEY not configured - cannot generate Python class"
+                    )
+                
+                from anthropic import AsyncAnthropic
+                anthropic_client = AsyncAnthropic(api_key=anthropic_api_key)
+                
+                # Generate Python class from expert data
+                python_class_prompt = f"""Você é um expert em criar código Python para clones cognitivos.
+
+TAREFA: Converta os dados do especialista abaixo em uma classe Python completa que herda de ExpertCloneBase.
+
+EXPERT DATA:
+Nome: {data.name}
+Título: {data.title}
+Bio: {data.bio}
+Expertise: {data.expertise}
+System Prompt (Framework EXTRACT):
+{data.systemPrompt}
+
+INSTRUÇÕES:
+1. Classe deve herdar de `from clones.base import ExpertCloneBase`
+2. Implemente __init__ com name, title, bio, expertise, story_banks
+3. story_banks deve ter pelo menos 1 story bank com 3-5 histórias derivadas do system prompt
+4. Use \" para strings (não aspas simples)
+5. Retorne APENAS código Python, sem markdown
+6. Classe deve ser executável imediatamente
+
+RETORNE APENAS O CÓDIGO PYTHON:"""
+
+                python_response = await anthropic_client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=8192,
+                    temperature=0.2,
+                    messages=[{
+                        "role": "user",
+                        "content": python_class_prompt
+                    }]
+                )
+                
+                python_code = ""
+                for block in python_response.content:
+                    if block.type == "text":
+                        python_code += block.text
+                
+                # Clean Python code
+                python_code_clean = python_code.strip()
+                if python_code_clean.startswith("```python"):
+                    python_code_clean = python_code_clean.split("```python")[1].split("```")[0].strip()
+                elif python_code_clean.startswith("```"):
+                    python_code_clean = python_code_clean.split("```")[1].split("```")[0].strip()
+                
+                # Save Python class file
+                import re
+                filename = re.sub(r'[^a-zA-Z0-9_]', '_', data.name.lower())
+                filename = re.sub(r'_+', '_', filename).strip('_')
+                filepath = f"python_backend/clones/custom/{filename}.py"
+                
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(python_code_clean)
+                
+                print(f"[CREATE-EXPERT] ✅ Python class saved to {filepath}")
+                
+                # CRITICAL: Use singleton instance to reload registry
+                print(f"[CREATE-EXPERT] Reloading global CloneRegistry singleton...")
+                clone_registry = CloneRegistry()  # Gets existing singleton instance
+                clone_registry.reload_clones()    # Reloads all clones in the shared instance
+                print(f"[CREATE-EXPERT] ✅ CloneRegistry reloaded - expert now accessible globally!")
+                
+            except Exception as py_error:
+                print(f"[CREATE-EXPERT] Warning: Failed to save Python class: {str(py_error)}")
+                # Don't fail the whole request if Python generation fails
+                # Expert is still saved in storage
+        
         return expert
     except Exception as e:
         print(f"[CREATE-EXPERT] Error: {str(e)}")
@@ -1426,7 +1527,12 @@ RETORNE APENAS O CÓDIGO PYTHON:"""
             f.write(python_code_clean)
         
         print(f"[AUTO-CLONE] ✅ Python class saved to {filepath}")
-        print(f"[AUTO-CLONE] Class will be auto-discovered by CloneRegistry on next restart")
+        
+        # CRITICAL FIX: Reload CloneRegistry to make expert immediately accessible
+        print(f"[AUTO-CLONE] Reloading CloneRegistry to load new expert...")
+        clone_registry = CloneRegistry()
+        clone_registry.reload_clones()
+        print(f"[AUTO-CLONE] ✅ CloneRegistry reloaded - expert now accessible!")
         
         # Create ExpertCreate object (NOT persisted yet)
         expert_data = ExpertCreate(

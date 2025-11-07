@@ -17,6 +17,538 @@ def _parse_timestamp(value):
         return datetime.fromisoformat(value.replace('Z', '+00:00'))
     return value
 
+class PostgresStorage:
+    """
+    PostgreSQL-backed storage for persistent data.
+    Uses asyncpg connection pool for high-performance async operations.
+    """
+    
+    def __init__(self):
+        self.pool: Optional[asyncpg.Pool] = None
+        self._initialized = False
+    
+    async def initialize(self):
+        """Initialize database connection pool"""
+        if self._initialized:
+            return
+        
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise RuntimeError("DATABASE_URL environment variable not set")
+        
+        self.pool = await asyncpg.create_pool(
+            database_url,
+            min_size=2,
+            max_size=10,
+            command_timeout=60
+        )
+        self._initialized = True
+        print("[PostgresStorage] Connection pool initialized")
+    
+    async def close(self):
+        """Close database connection pool"""
+        if self.pool:
+            await self.pool.close()
+            print("[PostgresStorage] Connection pool closed")
+    
+    # Expert operations
+    async def create_expert(self, data: ExpertCreate) -> Expert:
+        """Create a new expert in PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            expert_id = str(uuid.uuid4())
+            category_value = data.category.value if hasattr(data.category, 'value') else str(data.category)
+            
+            row = await conn.fetchrow("""
+                INSERT INTO experts (id, name, title, expertise, bio, avatar, system_prompt, category)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING id, name, title, expertise, bio, avatar, system_prompt as "systemPrompt", category, created_at as "createdAt"
+            """, expert_id, data.name, data.title, data.expertise, data.bio, 
+                 data.avatar, data.systemPrompt, category_value)
+            
+            return Expert(
+                id=row['id'],
+                name=row['name'],
+                title=row['title'],
+                expertise=row['expertise'],
+                bio=row['bio'],
+                avatar=row['avatar'],
+                systemPrompt=row['systemPrompt'],
+                expertType=data.expertType,
+                category=CategoryType(row['category']),
+                createdAt=row['createdAt']
+            )
+    
+    async def get_expert(self, expert_id: str) -> Optional[Expert]:
+        """Get expert by ID from PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, name, title, expertise, bio, avatar, 
+                       system_prompt as "systemPrompt", category, created_at as "createdAt"
+                FROM experts WHERE id = $1
+            """, expert_id)
+            
+            if not row:
+                return None
+            
+            return Expert(
+                id=row['id'],
+                name=row['name'],
+                title=row['title'],
+                expertise=row['expertise'],
+                bio=row['bio'],
+                avatar=row['avatar'],
+                systemPrompt=row['systemPrompt'],
+                expertType=ExpertType.CUSTOM,  # Assume custom if in DB
+                category=CategoryType(row['category']),
+                createdAt=row['createdAt']
+            )
+    
+    async def get_experts(self) -> List[Expert]:
+        """Get all experts from PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT id, name, title, expertise, bio, avatar,
+                       system_prompt as "systemPrompt", category, created_at as "createdAt"
+                FROM experts
+                ORDER BY created_at DESC
+            """)
+            
+            return [
+                Expert(
+                    id=row['id'],
+                    name=row['name'],
+                    title=row['title'],
+                    expertise=row['expertise'],
+                    bio=row['bio'],
+                    avatar=row['avatar'],
+                    systemPrompt=row['systemPrompt'],
+                    expertType=ExpertType.CUSTOM,
+                    category=CategoryType(row['category']),
+                    createdAt=row['createdAt']
+                )
+                for row in rows
+            ]
+    
+    async def update_expert_avatar(self, expert_id: str, avatar_path: str) -> Optional[Expert]:
+        """Update expert's avatar path"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                UPDATE experts SET avatar = $1
+                WHERE id = $2
+                RETURNING id, name, title, expertise, bio, avatar,
+                          system_prompt as "systemPrompt", category, created_at as "createdAt"
+            """, avatar_path, expert_id)
+            
+            if not row:
+                return None
+            
+            return Expert(
+                id=row['id'],
+                name=row['name'],
+                title=row['title'],
+                expertise=row['expertise'],
+                bio=row['bio'],
+                avatar=row['avatar'],
+                systemPrompt=row['systemPrompt'],
+                expertType=ExpertType.CUSTOM,
+                category=CategoryType(row['category']),
+                createdAt=row['createdAt']
+            )
+    
+    # Conversation operations
+    async def create_conversation(self, data: ConversationCreate) -> Conversation:
+        """Create a new conversation in PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            conversation_id = str(uuid.uuid4())
+            
+            row = await conn.fetchrow("""
+                INSERT INTO conversations (id, expert_id, title)
+                VALUES ($1, $2, $3)
+                RETURNING id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+            """, conversation_id, data.expertId, data.title)
+            
+            return Conversation(
+                id=row['id'],
+                expertId=row['expertId'],
+                title=row['title'],
+                createdAt=row['createdAt'],
+                updatedAt=row['updatedAt']
+            )
+    
+    async def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
+        """Get conversation by ID from PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+                FROM conversations WHERE id = $1
+            """, conversation_id)
+            
+            if not row:
+                return None
+            
+            return Conversation(
+                id=row['id'],
+                expertId=row['expertId'],
+                title=row['title'],
+                createdAt=row['createdAt'],
+                updatedAt=row['updatedAt']
+            )
+    
+    async def get_conversations(self, expert_id: Optional[str] = None) -> List[Conversation]:
+        """Get all conversations, optionally filtered by expert_id"""
+        async with self.pool.acquire() as conn:
+            if expert_id:
+                rows = await conn.fetch("""
+                    SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+                    FROM conversations WHERE expert_id = $1
+                    ORDER BY updated_at DESC
+                """, expert_id)
+            else:
+                rows = await conn.fetch("""
+                    SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+                    FROM conversations
+                    ORDER BY updated_at DESC
+                """)
+            
+            return [
+                Conversation(
+                    id=row['id'],
+                    expertId=row['expertId'],
+                    title=row['title'],
+                    createdAt=row['createdAt'],
+                    updatedAt=row['updatedAt']
+                )
+                for row in rows
+            ]
+    
+    async def update_conversation_timestamp(self, conversation_id: str):
+        """Update conversation's updated_at timestamp"""
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE conversations SET updated_at = NOW()
+                WHERE id = $1
+            """, conversation_id)
+    
+    # Message operations
+    async def create_message(self, data: MessageCreate) -> Message:
+        """Create a new message in PostgreSQL"""
+        async with self.pool.acquire() as conn:
+            message_id = str(uuid.uuid4())
+            
+            row = await conn.fetchrow("""
+                INSERT INTO messages (id, conversation_id, role, content)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, conversation_id as "conversationId", role, content, created_at as "createdAt"
+            """, message_id, data.conversationId, data.role, data.content)
+            
+            # Update conversation timestamp
+            await self.update_conversation_timestamp(data.conversationId)
+            
+            return Message(
+                id=row['id'],
+                conversationId=row['conversationId'],
+                role=row['role'],
+                content=row['content'],
+                createdAt=row['createdAt']
+            )
+    
+    async def get_messages(self, conversation_id: str) -> List[Message]:
+        """Get all messages for a conversation"""
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT id, conversation_id as "conversationId", role, content, created_at as "createdAt"
+                FROM messages WHERE conversation_id = $1
+                ORDER BY created_at ASC
+            """, conversation_id)
+            
+            return [
+                Message(
+                    id=row['id'],
+                    conversationId=row['conversationId'],
+                    role=row['role'],
+                    content=row['content'],
+                    createdAt=row['createdAt']
+                )
+                for row in rows
+            ]
+    
+    # Business Profile operations (keep using in-memory for now - can migrate later)
+    async def save_business_profile(self, user_id: str, data: BusinessProfileCreate) -> BusinessProfile:
+        """Create or update business profile - TODO: migrate to PostgreSQL"""
+        # For now, keep this as a placeholder that returns a simple profile
+        # We'll implement full PostgreSQL storage in a follow-up task
+        profile_id = str(uuid.uuid4())
+        return BusinessProfile(
+            id=profile_id,
+            userId=user_id,
+            companyName=data.companyName,
+            industry=data.industry,
+            companySize=data.companySize,
+            targetAudience=data.targetAudience,
+            mainProducts=data.mainProducts,
+            channels=data.channels,
+            budgetRange=data.budgetRange,
+            primaryGoal=data.primaryGoal,
+            mainChallenge=data.mainChallenge,
+            timeline=data.timeline,
+            createdAt=datetime.utcnow().isoformat(),
+            updatedAt=datetime.utcnow().isoformat()
+        )
+    
+    async def get_business_profile(self, user_id: str) -> Optional[BusinessProfile]:
+        """Get business profile - TODO: migrate to PostgreSQL"""
+        return None  # Temporary implementation
+    
+    # Council Analysis operations (stubbed - TODO: implement full PostgreSQL support)
+    async def save_council_analysis(self, analysis: CouncilAnalysis) -> CouncilAnalysis:
+        """Save council analysis - stub for now"""
+        return analysis
+    
+    async def get_council_analysis(self, analysis_id: str) -> Optional[CouncilAnalysis]:
+        """Get council analysis - stub for now"""
+        return None
+    
+    async def get_council_analyses(self, user_id: str) -> List[CouncilAnalysis]:
+        """Get council analyses for user - stub for now"""
+        return []
+    
+    # Council Messages (PostgreSQL implementation)
+    async def get_council_messages(self, session_id: str) -> List:
+        """Get council messages for a session"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT id, session_id as "sessionId", role, content, contributions, created_at as "createdAt"
+                FROM council_messages
+                WHERE session_id = $1
+                ORDER BY created_at ASC
+            """, session_id)
+            
+            return [dict(row) for row in rows]
+    
+    async def create_council_message(
+        self,
+        session_id: str,
+        role: str,
+        content: str,
+        contributions: Optional[str] = None
+    ):
+        """Create a new council message"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            message_id = str(uuid.uuid4())
+            
+            await conn.execute("""
+                INSERT INTO council_messages (id, session_id, role, content, contributions)
+                VALUES ($1, $2, $3, $4, $5)
+            """, message_id, session_id, role, content, contributions)
+            
+            return {"id": message_id, "session_id": session_id, "role": role, "content": content}
+    
+    # Persona operations (stubbed - TODO: implement)
+    async def create_persona(self, user_id: str, persona_data: dict) -> Persona:
+        """Create persona - stub for now"""
+        raise NotImplementedError("Persona operations not yet migrated to PostgreSQL")
+    
+    async def get_persona(self, persona_id: str) -> Optional[Persona]:
+        """Get persona - stub for now"""
+        return None
+    
+    async def get_personas(self, user_id: str) -> List[Persona]:
+        """Get personas - stub for now"""
+        return []
+    
+    async def update_persona(self, persona_id: str, updates: dict) -> Optional[Persona]:
+        """Update persona - stub for now"""
+        return None
+    
+    async def delete_persona(self, persona_id: str) -> bool:
+        """Delete persona - stub for now"""
+        return False
+    
+    # User Persona operations (PostgreSQL implementation)
+    async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
+        """Create user persona in PostgreSQL"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            persona_id = str(uuid.uuid4())
+            
+            row = await conn.fetchrow("""
+                INSERT INTO user_personas (
+                    id, user_id, name, research_mode, demographics, psychographics, 
+                    pain_points, goals, values, content_preferences, communities, 
+                    behavioral_patterns, research_data
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                RETURNING *
+            """, persona_id, user_id, data.name, data.researchMode, 
+                 json.dumps(data.demographics), json.dumps(data.psychographics),
+                 json.dumps(data.painPoints), json.dumps(data.goals), 
+                 json.dumps(data.values), json.dumps(data.contentPreferences),
+                 json.dumps(data.communities), json.dumps(data.behavioralPatterns),
+                 json.dumps(data.researchData))
+            
+            return UserPersona(
+                id=row['id'],
+                userId=row['user_id'],
+                name=row['name'],
+                researchMode=row['research_mode'],
+                demographics=json.loads(row['demographics']) if row['demographics'] else {},
+                psychographics=json.loads(row['psychographics']) if row['psychographics'] else {},
+                painPoints=json.loads(row['pain_points']) if row['pain_points'] else [],
+                goals=json.loads(row['goals']) if row['goals'] else [],
+                values=json.loads(row['values']) if row['values'] else [],
+                contentPreferences=json.loads(row['content_preferences']) if row['content_preferences'] else {},
+                communities=json.loads(row['communities']) if row['communities'] else [],
+                behavioralPatterns=json.loads(row['behavioral_patterns']) if row['behavioral_patterns'] else {},
+                researchData=json.loads(row['research_data']) if row['research_data'] else {},
+                createdAt=row['created_at'],
+                updatedAt=row['updated_at']
+            )
+    
+    async def get_user_persona(self, user_id: str) -> Optional[UserPersona]:
+        """Get user persona by user_id"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT * FROM user_personas WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1
+            """, user_id)
+            
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=row['id'],
+                userId=row['user_id'],
+                name=row['name'],
+                researchMode=row['research_mode'],
+                demographics=json.loads(row['demographics']) if row['demographics'] else {},
+                psychographics=json.loads(row['psychographics']) if row['psychographics'] else {},
+                painPoints=json.loads(row['pain_points']) if row['pain_points'] else [],
+                goals=json.loads(row['goals']) if row['goals'] else [],
+                values=json.loads(row['values']) if row['values'] else [],
+                contentPreferences=json.loads(row['content_preferences']) if row['content_preferences'] else {},
+                communities=json.loads(row['communities']) if row['communities'] else [],
+                behavioralPatterns=json.loads(row['behavioral_patterns']) if row['behavioral_patterns'] else {},
+                researchData=json.loads(row['research_data']) if row['research_data'] else {},
+                createdAt=row['created_at'],
+                updatedAt=row['updated_at']
+            )
+    
+    async def get_user_persona_by_id(self, persona_id: str) -> Optional[UserPersona]:
+        """Get user persona by ID"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT * FROM user_personas WHERE id = $1
+            """, persona_id)
+            
+            if not row:
+                return None
+            
+            return UserPersona(
+                id=row['id'],
+                userId=row['user_id'],
+                name=row['name'],
+                researchMode=row['research_mode'],
+                demographics=json.loads(row['demographics']) if row['demographics'] else {},
+                psychographics=json.loads(row['psychographics']) if row['psychographics'] else {},
+                painPoints=json.loads(row['pain_points']) if row['pain_points'] else [],
+                goals=json.loads(row['goals']) if row['goals'] else [],
+                values=json.loads(row['values']) if row['values'] else [],
+                contentPreferences=json.loads(row['content_preferences']) if row['content_preferences'] else {},
+                communities=json.loads(row['communities']) if row['communities'] else [],
+                behavioralPatterns=json.loads(row['behavioral_patterns']) if row['behavioral_patterns'] else {},
+                researchData=json.loads(row['research_data']) if row['research_data'] else {},
+                createdAt=row['created_at'],
+                updatedAt=row['updated_at']
+            )
+    
+    async def update_user_persona(self, persona_id: str, updates: dict) -> UserPersona:
+        """Update user persona"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            # Build update query dynamically based on provided fields
+            set_clauses = []
+            params = [persona_id]
+            param_count = 2
+            
+            for key, value in updates.items():
+                if key in ['demographics', 'psychographics', 'painPoints', 'goals', 'values', 
+                          'contentPreferences', 'communities', 'behavioralPatterns', 'researchData']:
+                    # JSON fields - need to serialize
+                    snake_key = ''.join(['_'+c.lower() if c.isupper() else c for c in key]).lstrip('_')
+                    set_clauses.append(f"{snake_key} = ${param_count}")
+                    params.append(json.dumps(value))
+                    param_count += 1
+                elif key in ['name', 'researchMode']:
+                    snake_key = ''.join(['_'+c.lower() if c.isupper() else c for c in key]).lstrip('_')
+                    set_clauses.append(f"{snake_key} = ${param_count}")
+                    params.append(value)
+                    param_count += 1
+            
+            if not set_clauses:
+                # No updates provided, just return current persona
+                return await self.get_user_persona_by_id(persona_id)
+            
+            query = f"""
+                UPDATE user_personas 
+                SET {', '.join(set_clauses)}, updated_at = NOW()
+                WHERE id = $1
+                RETURNING *
+            """
+            
+            row = await conn.fetchrow(query, *params)
+            
+            if not row:
+                raise ValueError(f"Persona {persona_id} not found")
+            
+            return UserPersona(
+                id=row['id'],
+                userId=row['user_id'],
+                name=row['name'],
+                researchMode=row['research_mode'],
+                demographics=json.loads(row['demographics']) if row['demographics'] else {},
+                psychographics=json.loads(row['psychographics']) if row['psychographics'] else {},
+                painPoints=json.loads(row['pain_points']) if row['pain_points'] else [],
+                goals=json.loads(row['goals']) if row['goals'] else [],
+                values=json.loads(row['values']) if row['values'] else [],
+                contentPreferences=json.loads(row['content_preferences']) if row['content_preferences'] else {},
+                communities=json.loads(row['communities']) if row['communities'] else [],
+                behavioralPatterns=json.loads(row['behavioral_patterns']) if row['behavioral_patterns'] else {},
+                researchData=json.loads(row['research_data']) if row['research_data'] else {},
+                createdAt=row['created_at'],
+                updatedAt=row['updated_at']
+            )
+    
+    async def enrich_persona_youtube(self, persona_id: str, youtube_data: dict) -> UserPersona:
+        """Enrich persona with YouTube data"""
+        return await self.update_user_persona(persona_id, {"researchData": youtube_data})
+    
+    async def delete_user_persona(self, persona_id: str) -> bool:
+        """Delete user persona"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            result = await conn.execute("""
+                DELETE FROM user_personas WHERE id = $1
+            """, persona_id)
+            
+            return result == "DELETE 1"
+
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""
     
@@ -775,5 +1307,5 @@ class MemStorage:
         finally:
             await conn.close()
 
-# Global storage instance
-storage = MemStorage()
+# Global storage instance - PostgreSQL backed
+storage = PostgresStorage()
