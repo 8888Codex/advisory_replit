@@ -3,6 +3,17 @@
 ## Overview
 O Conselho is a premium AI consultancy platform providing expert advice through cognitive clones of 18 specialists across 15 disciplines. It consolidates over 450 years of marketing expertise into an accessible, interactive format. The platform utilizes a 20-point "Framework EXTRACT" with Anthropic's Claude to create ultra-realistic AI personalities, offering specialized multi-category consulting.
 
+## Recent Updates (November 2025)
+
+### Landing Page Expert Count Fix
+- **Problem**: Landing page displayed "31,900+ Anos de Expertise" instead of "450+" because it counted ALL 1,438 experts instead of just 18 seed experts
+- **Solution**: 
+  1. Modified `/api/experts` endpoint to combine HIGH_FIDELITY seed experts (from CloneRegistry) with CUSTOM experts (from PostgreSQL)
+  2. Added `expertType` field to TypeScript Expert type (`shared/schema.ts`)
+  3. Landing.tsx filters by `expertType === "high_fidelity"` to show only 18 seed legends
+- **Result**: Correct display of "450+ Anos de Expertise" (18 experts × 25 years)
+- **Auto-Redirect**: Authenticated users visiting `/` are automatically redirected to `/home`
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
