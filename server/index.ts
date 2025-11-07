@@ -20,13 +20,19 @@ app.set('trust proxy', 1);
 // Session configuration with PostgreSQL store
 const PgSession = connectPgSimple(session);
 
+// Validate SESSION_SECRET in production
+const sessionSecret = process.env.SESSION_SECRET;
+if (process.env.NODE_ENV === 'production' && !sessionSecret) {
+  throw new Error('SESSION_SECRET environment variable is required in production');
+}
+
 app.use(session({
   store: new PgSession({
     conString: process.env.DATABASE_URL,
     tableName: 'session',
     createTableIfMissing: true
   }),
-  secret: process.env.SESSION_SECRET || 'o-conselho-secret-key-change-in-production',
+  secret: sessionSecret || 'o-conselho-dev-secret-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -557,7 +563,8 @@ app.use('/api', createProxyMiddleware({
   changeOrigin: true,
   // Exclude auth, invite, and onboarding endpoints (handled by Express middleware above)
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
-  filter: (pathname, req) => {
+  // @ts-ignore - filter option exists in runtime but not in type definitions
+  filter: (pathname: string, req: any) => {
     // Block /auth/*, /invites/*, and /onboarding/* from being proxied
     return !pathname.startsWith('/auth') && !pathname.startsWith('/invites') && !pathname.startsWith('/onboarding');
   },

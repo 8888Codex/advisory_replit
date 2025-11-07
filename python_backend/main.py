@@ -38,9 +38,32 @@ import secrets
 app = FastAPI(title="O Conselho - Marketing Legends API")
 
 # CORS middleware for frontend integration
+# Environment-based origins for security
+def get_allowed_origins():
+    """Get allowed CORS origins based on environment"""
+    env = os.getenv("NODE_ENV", "development")
+    if env == "production":
+        # In production, REQUIRE Replit environment variables for security
+        replit_domain = os.getenv("REPL_SLUG", "")
+        replit_owner = os.getenv("REPL_OWNER", "")
+        if not replit_domain or not replit_owner:
+            raise ValueError(
+                "REPL_SLUG and REPL_OWNER environment variables are required in production for CORS security"
+            )
+        return [
+            f"https://{replit_domain}-{replit_owner}.replit.app",
+            f"https://{replit_domain}.{replit_owner}.repl.co",
+        ]
+    else:
+        # Development: allow localhost
+        return ["http://localhost:5000", "http://127.0.0.1:5000"]
+
+allowed_origins = get_allowed_origins()
+print(f"[CORS] Allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
