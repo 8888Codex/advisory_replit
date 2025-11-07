@@ -3,18 +3,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,45 +23,14 @@ import {
   Zap,
   Check,
   X,
-  Send,
 } from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequestJson, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import type { Expert } from "@shared/schema";
-
-interface ProfileFormData {
-  companyName: string;
-  industry: string;
-  companySize: string;
-  targetAudience: string;
-  mainProducts: string;
-  channels: string[];
-  budgetRange: string;
-  primaryGoal: string;
-  mainChallenge: string;
-  timeline: string;
-}
 
 export default function Landing() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { isComplete, isLoading: isLoadingOnboarding } = useOnboardingComplete();
-  const [showProfileForm, setShowProfileForm] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
-  const [profileData, setProfileData] = useState<ProfileFormData>({
-    companyName: "",
-    industry: "",
-    companySize: "",
-    targetAudience: "",
-    mainProducts: "",
-    channels: [],
-    budgetRange: "",
-    primaryGoal: "",
-    mainChallenge: "",
-    timeline: "",
-  });
 
   useEffect(() => {
     if (!isAuthLoading && user) {
@@ -81,72 +39,22 @@ export default function Landing() {
   }, [user, isAuthLoading, setLocation]);
 
   const handleConsult = (expertId: string) => {
-    // Guard against race condition: don't navigate while onboarding status is loading
-    if (isLoadingOnboarding) return;
-    
-    // Check if user completed onboarding (now from PostgreSQL)
-    if (!isComplete) {
-      // Redirect to onboarding first
-      setLocation("/onboarding");
-    } else {
-      // Go directly to chat
-      setLocation(`/chat/${expertId}`);
-    }
+    // Redirect to registration page
+    setLocation("/register");
   };
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],
   });
 
-  // Filter only seed experts (18 main legends with HIGH_FIDELITY type)
-  const marketingLegends = experts.filter((e) => e.expertType === "high_fidelity");
+  // Filter only seed experts (18 main legends with HIGH_FIDELITY type) and deduplicate by ID
+  const marketingLegends = experts
+    .filter((e) => e.expertType === "high_fidelity")
+    .filter((expert, index, self) => 
+      index === self.findIndex((e) => e.id === expert.id)
+    );
   const totalYearsExperience = marketingLegends.length * 25;
   const currentExpert = marketingLegends[tourIndex];
-
-  const saveProfileMutation = useMutation({
-    mutationFn: async (data: ProfileFormData) => {
-      return await apiRequestJson("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      // Note: This legacy flow should redirect to /onboarding instead
-      // The new flow uses the dedicated Onboarding.tsx page
-      toast({
-        title: "Perfil Salvo com Sucesso!",
-        description: "Sua consultoria personalizada está pronta. Bem-vindo ao O Conselho!",
-      });
-      setLocation("/home");
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao salvar perfil",
-        description: "Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    saveProfileMutation.mutate(profileData);
-  };
-
-  const updateProfileField = (field: keyof ProfileFormData, value: any) => {
-    setProfileData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const toggleChannel = (channel: string) => {
-    setProfileData((prev) => ({
-      ...prev,
-      channels: prev.channels.includes(channel)
-        ? prev.channels.filter((c) => c !== channel)
-        : [...prev.channels, channel],
-    }));
-  };
 
   const expertInitials = currentExpert
     ? currentExpert.name
@@ -247,7 +155,7 @@ export default function Landing() {
                 <Button
                   size="lg"
                   className="gap-2 h-16 px-12 text-xl font-semibold"
-                  onClick={() => setLocation("/onboarding")}
+                  onClick={() => setLocation("/register")}
                   data-testid="button-start-now"
                 >
                   Parar de Adivinhar. Começar Agora
@@ -310,8 +218,8 @@ export default function Landing() {
                     <div className="flex items-start gap-4">
                       <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Curso de R$ 3.997 que não funcionou</h3>
-                        <p className="text-muted-foreground">Você gastou uma grana, assistiu tudo, testou... e nada mudou.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-destructive">Curso de R$ 3.997 que não funcionou</h3>
+                        <p className="text-destructive/80">Você gastou uma grana, assistiu tudo, testou... e nada mudou.</p>
                       </div>
                     </div>
                   </Card>
@@ -320,8 +228,8 @@ export default function Landing() {
                     <div className="flex items-start gap-4">
                       <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Agência que prometeu "resultados garantidos"</h3>
-                        <p className="text-muted-foreground">3 meses de contrato, orçamento queimado, apenas "relatórios bonitos".</p>
+                        <h3 className="text-lg font-semibold mb-2 text-destructive">Agência que prometeu "resultados garantidos"</h3>
+                        <p className="text-destructive/80">3 meses de contrato, orçamento queimado, apenas "relatórios bonitos".</p>
                       </div>
                     </div>
                   </Card>
@@ -330,8 +238,8 @@ export default function Landing() {
                     <div className="flex items-start gap-4">
                       <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Guru do Instagram vendendo fórmula mágica</h3>
-                        <p className="text-muted-foreground">"Faça isso e fature 6 dígitos". Spoiler: não funcionou.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-destructive">Guru do Instagram vendendo fórmula mágica</h3>
+                        <p className="text-destructive/80">"Faça isso e fature 6 dígitos". Spoiler: não funcionou.</p>
                       </div>
                     </div>
                   </Card>
@@ -340,8 +248,8 @@ export default function Landing() {
                     <div className="flex items-start gap-4">
                       <X className="h-8 w-8 text-destructive flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Copiar o que a concorrência faz</h3>
-                        <p className="text-muted-foreground">Você tenta replicar, mas nunca alcança os mesmos resultados.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-destructive">Copiar o que a concorrência faz</h3>
+                        <p className="text-destructive/80">Você tenta replicar, mas nunca alcança os mesmos resultados.</p>
                       </div>
                     </div>
                   </Card>
@@ -354,42 +262,42 @@ export default function Landing() {
                   transition={{ delay: 0.2 }}
                   className="space-y-6"
                 >
-                  <Card className="p-6 border-accent/50 bg-accent/5">
+                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
                     <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Philip Kotler analisa SEU posicionamento</h3>
-                        <p className="text-muted-foreground">O pai do marketing moderno respondendo VOCÊ diretamente.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Philip Kotler analisa SEU posicionamento</h3>
+                        <p className="text-emerald-700/80 dark:text-emerald-300/80">O pai do marketing moderno respondendo VOCÊ diretamente.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-accent/50 bg-accent/5">
+                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
                     <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Eugene Schwartz valida sua copy</h3>
-                        <p className="text-muted-foreground">O homem que vendeu U$1 BI com palavras corrigindo SEU texto.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Eugene Schwartz valida sua copy</h3>
+                        <p className="text-emerald-700/80 dark:text-emerald-300/80">O homem que vendeu U$1 BI com palavras corrigindo SEU texto.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-accent/50 bg-accent/5">
+                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
                     <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Seth Godin testa sua ideia de campanha</h3>
-                        <p className="text-muted-foreground">21 best-sellers. Purple Cow. Tribos. Ele sabe se vai funcionar.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Seth Godin testa sua ideia de campanha</h3>
+                        <p className="text-emerald-700/80 dark:text-emerald-300/80">21 best-sellers. Purple Cow. Tribos. Ele sabe se vai funcionar.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-accent/50 bg-accent/5">
+                  <Card className="p-6 border-emerald-500/50 bg-emerald-500/5">
                     <div className="flex items-start gap-4">
-                      <Check className="h-8 w-8 text-accent flex-shrink-0 mt-1" />
+                      <Check className="h-8 w-8 text-emerald-500 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Gary Vaynerchuk revisa seu social media</h3>
-                        <p className="text-muted-foreground">De $3M → $60M com conteúdo. Ele sabe o que viraliza.</p>
+                        <h3 className="text-lg font-semibold mb-2 text-emerald-600 dark:text-emerald-400">Gary Vaynerchuk revisa seu social media</h3>
+                        <p className="text-emerald-700/80 dark:text-emerald-300/80">De $3M → $60M com conteúdo. Ele sabe o que viraliza.</p>
                       </div>
                     </div>
                   </Card>
@@ -423,7 +331,7 @@ export default function Landing() {
                 <Button
                   size="lg"
                   className="gap-2 h-14 px-10 text-lg mt-8"
-                  onClick={() => setLocation("/onboarding")}
+                  onClick={() => setLocation("/register")}
                   data-testid="button-stop-guessing"
                 >
                   Parar de Queimar Dinheiro
@@ -881,7 +789,7 @@ export default function Landing() {
               <Button
                 size="lg"
                 className="gap-2 h-16 px-12 text-xl font-semibold mt-8"
-                onClick={() => setLocation("/onboarding")}
+                onClick={() => setLocation("/register")}
                 data-testid="button-meet-legends"
               >
                 Consultar as Lendas Agora
@@ -1010,151 +918,9 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Formulário de Perfil */}
-        {showProfileForm && (
-          <section className="w-full py-20 bg-muted/20">
-            <div className="container mx-auto px-4">
-              <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl md:text-5xl font-semibold mb-4">
-                    1 Minuto Para Descobrir Qual Lenda Pode 10x Seu Marketing
-                  </h2>
-                  <p className="text-lg text-muted-foreground">
-                    Responda 4 perguntas. Receba recomendações personalizadas de especialistas que dominam seu desafio específico.
-                  </p>
-                </div>
-
-                <Card className="p-8 rounded-2xl">
-                  <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="companyName">Nome da Empresa</Label>
-                        <Input
-                          id="companyName"
-                          value={profileData.companyName}
-                          onChange={(e) => updateProfileField("companyName", e.target.value)}
-                          placeholder="Sua empresa"
-                          required
-                          data-testid="input-company-name"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="industry">Indústria</Label>
-                        <Select
-                          value={profileData.industry}
-                          onValueChange={(value) => updateProfileField("industry", value)}
-                          required
-                        >
-                          <SelectTrigger id="industry" data-testid="select-industry">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                            <SelectItem value="E-commerce">E-commerce</SelectItem>
-                            <SelectItem value="Saúde">Saúde</SelectItem>
-                            <SelectItem value="Educação">Educação</SelectItem>
-                            <SelectItem value="Finanças">Finanças</SelectItem>
-                            <SelectItem value="Serviços">Serviços</SelectItem>
-                            <SelectItem value="Varejo">Varejo</SelectItem>
-                            <SelectItem value="Outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="companySize">Tamanho da Empresa</Label>
-                        <Select
-                          value={profileData.companySize}
-                          onValueChange={(value) => updateProfileField("companySize", value)}
-                          required
-                        >
-                          <SelectTrigger id="companySize" data-testid="select-company-size">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1-10">1-10 funcionários</SelectItem>
-                            <SelectItem value="11-50">11-50 funcionários</SelectItem>
-                            <SelectItem value="51-200">51-200 funcionários</SelectItem>
-                            <SelectItem value="201-1000">201-1000 funcionários</SelectItem>
-                            <SelectItem value="1000+">1000+ funcionários</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="primaryGoal">Objetivo Principal</Label>
-                        <Select
-                          value={profileData.primaryGoal}
-                          onValueChange={(value) => updateProfileField("primaryGoal", value)}
-                          required
-                        >
-                          <SelectTrigger id="primaryGoal" data-testid="select-primary-goal">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="aumentar-vendas">Aumentar Vendas</SelectItem>
-                            <SelectItem value="brand-awareness">Brand Awareness</SelectItem>
-                            <SelectItem value="gerar-leads">Gerar Leads</SelectItem>
-                            <SelectItem value="engagement">Engagement</SelectItem>
-                            <SelectItem value="lancamento">Lançamento de Produto</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="mainChallenge">Principal Desafio</Label>
-                      <Textarea
-                        id="mainChallenge"
-                        value={profileData.mainChallenge}
-                        onChange={(e) => updateProfileField("mainChallenge", e.target.value)}
-                        placeholder="Descreva seu maior desafio de marketing..."
-                        rows={4}
-                        required
-                        data-testid="textarea-main-challenge"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full gap-2"
-                      disabled={saveProfileMutation.isPending}
-                      data-testid="button-submit-profile"
-                    >
-                      {saveProfileMutation.isPending ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          >
-                            <Sparkles className="h-5 w-5" />
-                          </motion.div>
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-5 w-5" />
-                          Começar Minha Jornada Premium
-                        </>
-                      )}
-                    </Button>
-
-                    <p className="text-center text-sm text-muted-foreground">
-                      Você poderá atualizar essas informações a qualquer momento
-                    </p>
-                  </form>
-                </Card>
-              </div>
-            </div>
-          </section>
-        )}
-
         {/* CTA FINAL GIGANTE - IMPOSSÍVEL DE IGNORAR */}
-        {!showProfileForm && (
-          <section className="relative w-full py-32 md:py-40 bg-gradient-to-b from-background via-accent/5 to-destructive/10 overflow-hidden">
-            {/* Background Pattern */}
+        <section className="relative w-full py-32 md:py-40 bg-gradient-to-b from-background via-accent/5 to-destructive/10 overflow-hidden">
+          {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-accent to-destructive" />
             </div>
@@ -1241,7 +1007,7 @@ export default function Landing() {
                   <div className="space-y-4">
                     <Button
                       size="lg"
-                      onClick={() => setLocation("/onboarding")}
+                      onClick={() => setLocation("/register")}
                       className="gap-3 h-20 px-16 text-2xl font-bold shadow-2xl hover:shadow-accent/20 transition-all duration-300"
                       data-testid="button-final-cta-giant"
                     >
