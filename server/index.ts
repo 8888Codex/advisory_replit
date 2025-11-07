@@ -41,8 +41,10 @@ const pythonBackend = startPythonBackend();
 
 // Proxy all /api requests to Python backend BEFORE any other middleware
 // This ensures the request body is not consumed by express.json()
+// pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:5001/api',
+  target: 'http://localhost:5001',
+  pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
   // SSE-specific configuration for streaming endpoints
   on: {
