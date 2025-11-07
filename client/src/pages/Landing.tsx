@@ -604,7 +604,7 @@ export default function Landing() {
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card className="p-4 sm:p-6 md:p-8 rounded-2xl">
+                    <div className="relative">
                       {/* Progress Bar */}
                       <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-7 md:mb-8">
                         {marketingLegends.map((_, idx) => (
@@ -617,45 +617,13 @@ export default function Landing() {
                         ))}
                       </div>
 
-                      {/* Expert Content */}
-                      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
-                        <div className="flex-shrink-0 mx-auto md:mx-0">
-                          <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-2 sm:border-3 md:border-4 border-accent/20">
-                            <AvatarImage src={currentExpert.avatar || undefined} alt={currentExpert.name} />
-                            <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10">
-                              {expertInitials}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-
-                        <div className="flex-1 space-y-3 sm:space-y-4 text-center md:text-left">
-                          <div>
-                            <h3 className="text-xl sm:text-2xl font-semibold mb-1 sm:mb-2">{currentExpert.name}</h3>
-                            <p className="text-base sm:text-lg text-muted-foreground mb-3 sm:mb-4">{currentExpert.title}</p>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center md:justify-start">
-                            {currentExpert.expertise.slice(0, 4).map((skill, idx) => (
-                              <Badge key={idx} variant="secondary" className="rounded-full">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
-
-                          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed px-2 md:px-0">
-                            {currentExpert.bio}
-                          </p>
-
-                          <Button
-                            onClick={() => handleConsult(currentExpert.id)}
-                            className="gap-2 h-12 sm:h-auto w-full sm:w-auto"
-                            data-testid={`button-chat-${currentExpert.id}`}
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                            Conversar com {currentExpert.name.split(" ")[0]}
-                          </Button>
-                        </div>
-                      </div>
+                      {/* Expert Card with Chat Button */}
+                      <ExpertCard
+                        expert={currentExpert}
+                        variant="rich"
+                        index={tourIndex}
+                        onChat={handleConsult}
+                      />
 
                       {/* Navigation */}
                       <div className="flex justify-between items-center mt-6 sm:mt-7 md:mt-8 pt-6 sm:pt-7 md:pt-8 border-t">
@@ -695,7 +663,7 @@ export default function Landing() {
                           </Button>
                         )}
                       </div>
-                    </Card>
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
