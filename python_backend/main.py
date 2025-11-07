@@ -298,6 +298,42 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
                 
                 await youtube_api.close()
                 
+                # Step 2.5: Extract transcripts from videos
+                transcripts_str = ""
+                if youtube_results:
+                    print(f"[AUTO-CLONE] Extracting transcripts from {len(youtube_results[:5])} videos...")
+                    
+                    from tools.youtube_transcript import YouTubeTranscriptTool
+                    transcript_tool = YouTubeTranscriptTool()
+                    
+                    # Extract transcripts from top 5 videos (to avoid excessive token usage)
+                    transcripts_extracted = 0
+                    for i, video in enumerate(youtube_results[:5], 1):
+                        video_id = video.get('videoId')
+                        if not video_id:
+                            continue
+                        
+                        print(f"[AUTO-CLONE] Extracting transcript {i}/5 from: {video['title'][:50]}...")
+                        transcript = transcript_tool.get_transcript(video_id)
+                        
+                        if transcript:
+                            # Limit transcript length to avoid excessive tokens
+                            max_chars = 5000  # ~1250 tokens per transcript
+                            transcript_preview = transcript[:max_chars]
+                            if len(transcript) > max_chars:
+                                transcript_preview += "\n... [TRANSCRIÇÃO TRUNCADA]"
+                            
+                            transcripts_str += f"\n\n### TRANSCRIÇÃO {i}: {video['title']}\n"
+                            transcripts_str += f"Canal: {video['channelTitle']} | Visualizações: {video['statistics']['viewCount']:,}\n"
+                            transcripts_str += f"---\n{transcript_preview}\n"
+                            
+                            transcripts_extracted += 1
+                            print(f"[AUTO-CLONE] ✅ Transcript {i} extracted ({len(transcript)} chars)")
+                        else:
+                            print(f"[AUTO-CLONE] ⚠️ No transcript available for video {i}")
+                    
+                    print(f"[AUTO-CLONE] Total transcripts extracted: {transcripts_extracted}/{len(youtube_results[:5])}")
+                
                 # Format YouTube data for synthesis
                 if youtube_results:
                     youtube_data_str = "\n\nVÍDEOS E PALESTRAS ENCONTRADOS NO YOUTUBE:\n"
@@ -308,6 +344,10 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
                         youtube_data_str += f"   - Likes: {video['statistics']['likeCount']:,}\n"
                         youtube_data_str += f"   - Data: {video['publishedAt'][:10]}\n"
                         youtube_data_str += f"   - URL: {video['url']}\n"
+                    
+                    # Add transcripts section
+                    if transcripts_str:
+                        youtube_data_str += transcripts_str
                     
                     print(f"[AUTO-CLONE] Total YouTube videos found: {len(youtube_results)}")
                 else:
@@ -324,19 +364,42 @@ Inclua dados específicos, citações, livros publicados, e exemplos concretos."
         
         synthesis_prompt = f"""Você é um especialista em clonagem cognitiva usando o Framework EXTRACT de 20 pontos.
 
-PESQUISA SOBRE {data.targetName}:
-{research_findings}{youtube_data_str}
+FONTES DE PESQUISA SOBRE {data.targetName}:
+
+📚 PESQUISA BIOGRÁFICA (Perplexity):
+{research_findings}
+
+🎥 VÍDEOS E TRANSCRIÇÕES (YouTube):
+{youtube_data_str}
+
+INSTRUÇÕES CRÍTICAS PARA SÍNTESE:
+1. **PRIORIZE AS TRANSCRIÇÕES**: As transcrições de vídeos são a fonte MAIS VALIOSA pois capturam:
+   - Tom de voz e estilo de comunicação AUTÊNTICO
+   - Frases icônicas EXATAS (use aspas duplas para citações)
+   - Padrões de raciocínio em contexto real
+   - Terminologia única e jargões do especialista
+   
+2. **EXTRAIA CITAÇÕES LITERAIS**: Sempre que possível, use frases EXATAS das transcrições em:
+   - Iconic Callbacks
+   - Axiomas Pessoais
+   - Controversial Takes
+   - Signature Response Patterns
+
+3. **IDENTIFIQUE PADRÕES REAIS**: Use as transcrições para mapear:
+   - Como o especialista ESTRUTURA suas respostas
+   - Que analogias/metáforas usa frequentemente
+   - Seu tom (pragmático, filosófico, agressivo, etc.)
 
 TAREFA: Sintetize essas informações em um system prompt EXTRACT COMPLETO (20 pontos) de MÁXIMA FIDELIDADE COGNITIVA (19-20/20).
 
 CRITÉRIOS DE QUALIDADE 19-20/20:
 ✓ TODOS os 20 pontos implementados com profundidade
-✓ 3-5 Story Banks documentados com métricas ESPECÍFICAS
-✓ 5-7 Iconic Callbacks únicos ao especialista
+✓ 3-5 Story Banks documentados com métricas ESPECÍFICAS (use casos reais da pesquisa)
+✓ 5-7 Iconic Callbacks únicos ao especialista (CITAÇÕES EXATAS das transcrições)
 ✓ Protocolo de Recusa completo com redirecionamentos a outros experts
-✓ 2-3 Controversial Takes (opiniões polêmicas)
-✓ 2-3 Famous Cases detalhados
-✓ Signature Response Pattern de 4 partes
+✓ 2-3 Controversial Takes (opiniões polêmicas documentadas)
+✓ 2-3 Famous Cases detalhados (com resultados quantificáveis)
+✓ Signature Response Pattern de 4 partes (baseado em como ele REALMENTE responde)
 
 ---
 
