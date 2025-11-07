@@ -3,17 +3,23 @@ import { pgTable, text, varchar, timestamp, integer, json, index } from "drizzle
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Role enum for user access control
+export const userRoleEnum = z.enum(["user", "admin", "superadmin"]);
+export type UserRole = z.infer<typeof userRoleEnum>;
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
+  role: text("role").notNull().default("user"), // user | admin | superadmin
   availableInvites: integer("available_invites").notNull().default(5),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  role: true, // Use default 'user'
   availableInvites: true,
   createdAt: true,
 }).extend({
@@ -152,6 +158,109 @@ export const insertLoginAuditSchema = createInsertSchema(loginAudit).omit({
 
 export type InsertLoginAudit = z.infer<typeof insertLoginAuditSchema>;
 export type LoginAudit = typeof loginAudit.$inferSelect;
+
+// ============================================
+// ADMIN & SYSTEM MANAGEMENT
+// ============================================
+
+// General Audit Logs - Tracks all admin and system actions
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(), // Who performed the action
+  action: text("action").notNull(), // e.g., "user_role_changed", "expert_deleted", "feature_flag_toggled"
+  resourceType: text("resource_type").notNull(), // "user", "expert", "feature_flag", "invite", etc.
+  resourceId: varchar("resource_id"), // ID of the affected resource
+  metadata: json("metadata").$type<Record<string, any>>(), // Additional context
+  ipAddress: varchar("ip_address", { length: 45 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("audit_logs_user_id_idx").on(table.userId),
+  actionIdx: index("audit_logs_action_idx").on(table.action),
+  resourceTypeIdx: index("audit_logs_resource_type_idx").on(table.resourceType),
+  createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
+}));
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+// Feature Flags - Control features without deployment
+export const featureFlags = pgTable("feature_flags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(), // e.g., "enable_council_room", "maintenance_mode"
+  enabled: text("enabled").notNull().default("false"), // "true" | "false"
+  description: text("description"), // What this flag controls
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+
+// API Costs Tracking - Monitor spending on external APIs
+export const apiCosts = pgTable("api_costs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  provider: text("provider").notNull(), // "anthropic", "perplexity", "youtube"
+  model: text("model"), // "claude-3-5-sonnet", "claude-3-haiku", etc.
+  tokensInput: integer("tokens_input"), // Input tokens consumed
+  tokensOutput: integer("tokens_output"), // Output tokens generated
+  costUsd: text("cost_usd").notNull(), // Cost in USD (stored as text for precision)
+  userId: varchar("user_id"), // Which user triggered this cost
+  resourceType: text("resource_type"), // "chat", "council", "expert_creation", "persona"
+  resourceId: varchar("resource_id"), // ID of the conversation, session, etc.
+  metadata: json("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  providerIdx: index("api_costs_provider_idx").on(table.provider),
+  userIdIdx: index("api_costs_user_id_idx").on(table.userId),
+  createdAtIdx: index("api_costs_created_at_idx").on(table.createdAt),
+}));
+
+export const insertApiCostSchema = createInsertSchema(apiCosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertApiCost = z.infer<typeof insertApiCostSchema>;
+export type ApiCost = typeof apiCosts.$inferSelect;
+
+// Content Flags - Track flagged/moderated content
+export const contentFlags = pgTable("content_flags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentType: text("content_type").notNull(), // "message", "conversation", "council_session"
+  contentId: varchar("content_id").notNull(),
+  userId: varchar("user_id").notNull(), // User who created the content
+  flaggedBy: varchar("flagged_by"), // Admin who flagged it (null if auto-flagged)
+  reason: text("reason").notNull(), // "spam", "abuse", "inappropriate", "suspicious"
+  status: text("status").notNull().default("pending"), // "pending", "reviewed", "resolved", "dismissed"
+  reviewedBy: varchar("reviewed_by"), // Admin who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  metadata: json("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  contentIdIdx: index("content_flags_content_id_idx").on(table.contentId),
+  userIdIdx: index("content_flags_user_id_idx").on(table.userId),
+  statusIdx: index("content_flags_status_idx").on(table.status),
+  createdAtIdx: index("content_flags_created_at_idx").on(table.createdAt),
+}));
+
+export const insertContentFlagSchema = createInsertSchema(contentFlags).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertContentFlag = z.infer<typeof insertContentFlagSchema>;
+export type ContentFlag = typeof contentFlags.$inferSelect;
 
 // Category type for expert specializations
 export const categoryTypeEnum = z.enum([

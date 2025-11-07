@@ -7,6 +7,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { RateLimiterPostgres } from 'rate-limiter-flexible';
 import pg from 'pg';
 import { registerRoutes } from "./routes";
+import { registerAdminRoutes } from "./routes/admin";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedExperts } from "./seed";
 
@@ -51,6 +52,7 @@ declare module 'express-session' {
       id: string;
       username: string;
       email: string;
+      role: string; // "user" | "admin" | "superadmin"
       availableInvites: number;
     };
   }
@@ -202,6 +204,7 @@ app.post('/api/auth/register', registerRateLimit, async (req, res) => {
       id: data.id,
       username: data.username,
       email: data.email,
+      role: data.role || 'user', // Default to 'user' if not provided
       availableInvites: data.availableInvites
     };
 
@@ -244,6 +247,7 @@ app.post('/api/auth/login', loginRateLimit, async (req, res) => {
       id: data.id,
       username: data.username,
       email: data.email,
+      role: data.role || 'user', // Default to 'user' if not provided
       availableInvites: data.availableInvites
     };
 
@@ -639,6 +643,9 @@ app.use((req, res, next) => {
   app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
   
   const server = await registerRoutes(app);
+  
+  // Register admin routes (protected by RBAC middleware)
+  registerAdminRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
