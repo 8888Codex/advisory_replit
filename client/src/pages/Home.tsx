@@ -3,12 +3,11 @@ import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, TrendingUp, Users, MessageSquare, ArrowRight, Star } from "lucide-react";
+import { Sparkles, TrendingUp, Users, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
+import { ExpertCard, type Expert as ExpertCardType } from "@/components/ExpertCard";
 
 interface Expert {
   id: number;
@@ -36,6 +35,17 @@ export default function Home() {
 
   // Get top 6 experts for quick access
   const featuredExperts = experts.slice(0, 6);
+
+  // Convert local Expert type to ExpertCard type
+  const convertToExpertCard = (expert: Expert): ExpertCardType => ({
+    id: String(expert.id),
+    name: expert.name,
+    title: expert.title,
+    expertise: expert.expertise,
+    bio: expert.title, // Use title as bio for display
+    avatar: expert.avatar || null,
+    category: expert.category,
+  });
 
   return (
     <AnimatedPage>
@@ -183,51 +193,13 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {featuredExperts.map((expert, index) => (
-                  <motion.div
+                  <ExpertCard
                     key={expert.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 * index }}
-                  >
-                    <Card
-                      className="rounded-2xl hover-elevate cursor-pointer transition-all"
-                      onClick={() => setLocation(`/chat/${expert.id}`)}
-                      data-testid={`card-expert-${expert.id}`}
-                    >
-                      <CardContent className="p-4 sm:p-5 md:p-6">
-                        <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 ring-2 ring-border shrink-0">
-                            <AvatarImage src={expert.avatar} alt={expert.name} />
-                            <AvatarFallback className="bg-accent/10 text-accent font-semibold text-sm sm:text-base">
-                              {expert.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base sm:text-lg mb-1">{expert.name}</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{expert.title}</p>
-                          </div>
-                        </div>
-                        
-                        <Badge variant="secondary" className="mb-2 sm:mb-3 rounded-lg text-xs">
-                          {expert.category}
-                        </Badge>
-
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-                          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-accent text-accent" />
-                          <span>{expert.expertise.length}+ especialidades</span>
-                        </div>
-
-                        <Button
-                          variant="ghost"
-                          className="w-full rounded-xl gap-2 h-10 sm:h-auto text-sm sm:text-base"
-                          data-testid={`button-chat-${expert.id}`}
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                          Iniciar conversa
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                    expert={convertToExpertCard(expert)}
+                    variant="rich"
+                    index={index}
+                    onChat={() => setLocation(`/chat/${expert.id}`)}
+                  />
                 ))}
               </div>
             )}
