@@ -103,6 +103,31 @@ class PostgresStorage:
                 createdAt=row['createdAt']
             )
     
+    async def get_expert_by_name(self, name: str) -> Optional[Expert]:
+        """Get expert by name from PostgreSQL (for idempotent seeding)"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT id, name, title, expertise, bio, avatar, 
+                       system_prompt as "systemPrompt", category, created_at as "createdAt"
+                FROM experts WHERE name = $1
+            """, name)
+            
+            if not row:
+                return None
+            
+            return Expert(
+                id=row['id'],
+                name=row['name'],
+                title=row['title'],
+                expertise=row['expertise'],
+                bio=row['bio'],
+                avatar=row['avatar'],
+                systemPrompt=row['systemPrompt'],
+                expertType=ExpertType.CUSTOM,
+                category=CategoryType(row['category']),
+                createdAt=row['createdAt']
+            )
+    
     async def get_experts(self) -> List[Expert]:
         """Get all experts from PostgreSQL"""
         async with self.pool.acquire() as conn:

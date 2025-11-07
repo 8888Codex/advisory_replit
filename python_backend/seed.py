@@ -187,6 +187,11 @@ async def seed_legends(storage: MemStorage):
     ]
     
     for legend in legends_data:
+        # Check if this expert already exists by name (idempotency check)
+        existing = await storage.get_expert_by_name(legend["name"])
+        if existing:
+            continue  # Skip if already seeded
+        
         expert_data = ExpertCreate(
             name=legend["name"],
             title=legend["title"],
