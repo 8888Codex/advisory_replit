@@ -199,33 +199,50 @@ export default function Onboarding() {
       return result;
     },
     onSuccess: async (persona: any, data: OnboardingFormData) => {
-      console.log("[ONBOARDING] saveMutation.onSuccess called, persona:", persona);
-      // Mark onboarding as completed in database
-      await completeOnboardingMutation.mutateAsync();
-      
-      // Dispatch background enrichment (fire and forget - doesn't block navigation)
       try {
-        await apiRequest("/api/persona/enrich/background", {
+        console.log("[ONBOARDING] saveMutation.onSuccess START, persona:", persona);
+        
+        // Mark onboarding as completed (fire and forget)
+        console.log("[ONBOARDING] Marking onboarding as complete...");
+        completeOnboardingMutation.mutate();
+        
+        // Dispatch background enrichment (fire and forget)
+        console.log("[ONBOARDING] Starting background enrichment...");
+        apiRequest("/api/persona/enrich/background", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             personaId: persona.id,
             mode: data.enrichmentLevel || "quick",
           }),
+        }).then(() => {
+          console.log("[ONBOARDING] Background enrichment dispatched successfully");
+        }).catch((error) => {
+          console.error("[ONBOARDING] Background enrichment dispatch failed:", error);
         });
-        console.log("[ONBOARDING] Background enrichment started");
+        
+        console.log("[ONBOARDING] Invalidating queries...");
+        queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
+        
+        console.log("[ONBOARDING] Showing toast...");
+        toast({
+          title: "Perfil criado com sucesso!",
+          description: "Estamos enriquecendo sua persona em segundo plano. Você já pode usar a plataforma!",
+        });
+        
+        console.log("[ONBOARDING] About to call navigate('/home')...");
+        console.log("[ONBOARDING] Navigate function:", typeof navigate, navigate);
+        navigate("/home");
+        console.log("[ONBOARDING] Navigate called successfully");
       } catch (error) {
-        console.error("[ONBOARDING] Failed to start background enrichment:", error);
-        // Don't block navigation if enrichment fails to start
+        console.error("[ONBOARDING] ERROR in onSuccess:", error);
+        // Still try to navigate even if something fails
+        try {
+          navigate("/home");
+        } catch (navError) {
+          console.error("[ONBOARDING] Failed to navigate:", navError);
+        }
       }
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/persona/current"] });
-      toast({
-        title: "Perfil criado com sucesso!",
-        description: "Estamos enriquecendo sua persona em segundo plano. Você já pode usar a plataforma!",
-      });
-      console.log("[ONBOARDING] Navigating to /home");
-      navigate("/home");
     },
     onError: (error: Error) => {
       console.error("[ONBOARDING] saveMutation.onError:", error);
@@ -404,7 +421,7 @@ export default function Onboarding() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-medium">Tamanho da Empresa *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="rounded-xl" data-testid="select-company-size">
                                 <SelectValue placeholder="Selecione o tamanho..." />
