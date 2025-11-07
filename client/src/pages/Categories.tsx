@@ -28,10 +28,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { apiRequest } from "@/lib/queryClient";
+import { ExpertCard, type Expert as ExpertCardType } from "@/components/ExpertCard";
 
 interface Category {
   id: string;
@@ -248,6 +248,11 @@ export default function Categories() {
     queryKey: ["/api/categories"],
   });
 
+  // Fetch all experts to hydrate recommendations
+  const { data: allExperts = [] } = useQuery<ExpertCardType[]>({
+    queryKey: ["/api/experts"],
+  });
+
   // Debounce challenge input for semantic recommendations
   const debouncedChallenge = useDebounce(challenge, 800);
 
@@ -273,6 +278,30 @@ export default function Categories() {
   });
 
   const semanticRecs = semanticRecommendations?.recommendations || [];
+
+  // Create lookup map for expert hydration
+  const expertsMap = useMemo(() => {
+    const map = new Map<string, ExpertCardType>();
+    allExperts.forEach(expert => map.set(expert.id, expert));
+    return map;
+  }, [allExperts]);
+
+  // Hydrate recommendation with full expert data
+  const hydrateRecommendation = (rec: ExpertRecommendation): ExpertCardType => {
+    const fullExpert = expertsMap.get(rec.expertId);
+    if (fullExpert) {
+      return fullExpert;
+    }
+    // Fallback when expert data is not available
+    return {
+      id: rec.expertId,
+      name: rec.expertName,
+      title: "Marketing Expert",
+      expertise: [],
+      bio: rec.justification || "",
+      avatar: rec.avatar || null,
+    };
+  };
 
   const toggleCouncilExpert = (expertId: string) => {
     setCouncilExperts(prev =>
@@ -377,84 +406,21 @@ export default function Categories() {
               </h3>
               
               <div className="space-y-3 sm:space-y-4">
-                {semanticRecs.map((rec) => {
-                  const initials = rec.expertName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2);
-
-                  return (
-                    <motion.div
-                      key={rec.expertId}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.26 }}
-                    >
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-4 sm:p-5 md:p-6">
-                          <div className="flex gap-3 sm:gap-4">
-                            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0">
-                              {rec.avatar && <AvatarImage src={rec.avatar} alt={rec.expertName} />}
-                              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <h4 className="font-semibold text-base sm:text-lg truncate">{rec.expertName}</h4>
-                                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={cn(
-                                        "h-3 w-3 sm:h-4 sm:w-4",
-                                        i < rec.stars
-                                          ? "fill-primary text-primary"
-                                          : "text-muted-foreground/30"
-                                      )}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
-                                {rec.justification}
-                              </p>
-                              <div className="flex flex-col sm:flex-row gap-2">
-                                <Button
-                                  size="sm"
-                                  className="flex-1 gap-2 h-10 sm:h-auto"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleConsult(rec);
-                                  }}
-                                  data-testid={`button-chat-${rec.expertId}`}
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                  Conversar
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant={councilExperts.includes(rec.expertId) ? "default" : "outline"}
-                                  className="flex-1 gap-2 h-10 sm:h-auto"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleCouncilExpert(rec.expertId);
-                                  }}
-                                  data-testid={`button-council-${rec.expertId}`}
-                                >
-                                  <Users className="h-4 w-4" />
-                                  {councilExperts.includes(rec.expertId) ? "Adicionado" : "Conselho"}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                {semanticRecs.map((rec, index) => (
+                  <ExpertCard
+                    key={rec.expertId}
+                    expert={hydrateRecommendation(rec)}
+                    variant="compact"
+                    index={index}
+                    onChat={() => handleConsult(rec)}
+                    onAddToCouncil={toggleCouncilExpert}
+                    councilAdded={councilExperts.includes(rec.expertId)}
+                    showStars={true}
+                    stars={rec.stars}
+                    recommendationScore={rec.relevanceScore}
+                    justification={rec.justification}
+                  />
+                ))}
               </div>
 
               <div className="text-center mt-4 sm:mt-6">
