@@ -299,7 +299,7 @@ class MemStorage:
         """Get a specific persona by ID"""
         conn = await self._get_db_connection()
         try:
-            row = await conn.fetchrow("SELECT * FROM personas WHERE id = $1", persona_id)
+            row = await conn.fetchrow("SELECT * FROM user_personas WHERE id = $1", persona_id)
             if not row:
                 return None
             
@@ -328,7 +328,7 @@ class MemStorage:
         conn = await self._get_db_connection()
         try:
             rows = await conn.fetch(
-                "SELECT * FROM personas WHERE user_id = $1 ORDER BY created_at DESC",
+                "SELECT * FROM user_personas WHERE user_id = $1 ORDER BY created_at DESC",
                 user_id
             )
             
@@ -422,7 +422,7 @@ class MemStorage:
         """Delete a persona"""
         conn = await self._get_db_connection()
         try:
-            result = await conn.execute("DELETE FROM personas WHERE id = $1", persona_id)
+            result = await conn.execute("DELETE FROM user_personas WHERE id = $1", persona_id)
             return result == "DELETE 1"
         finally:
             await conn.close()
