@@ -44,6 +44,14 @@ The platform features an Apple-style minimalist design with a professional dark-
   - **Python Backend Enhancement**: Added `include_system_prompt` parameter to `get_expert_by_id()` helper - returns empty systemPrompt for API responses, full systemPrompt for AI generation
   - **Endpoints Updated**: POST `/api/conversations` validates seed experts via `get_expert_by_id()`, POST `/api/conversations/:id/messages` retrieves systemPrompt for AI responses
   - **Testing**: E2E test confirmed complete chat flow - conversation auto-creates, user messages send, AI responds with proper seed expert persona
+- **Proxy Body Handling Fix (2025-11-08)**: Fixed POST/PUT/PATCH requests failing due to express.json() consuming request bodies
+  - **Issue**: express.json() middleware (line 144 in server/index.ts) parses request bodies before proxy middleware, consuming the body stream and causing Python backend to receive empty payloads
+  - **Solution**: Added content-type-aware body re-serialization in proxy's onProxyReq hook (lines 791-800)
+    - Only re-sends body when Content-Type is application/json
+    - Preserves multipart/form-data for avatar uploads and other file operations
+    - Re-serializes parsed body as JSON string and sets correct Content-Length header
+  - **Critical Pattern**: All JSON POST/PUT/PATCH requests now work correctly without breaking non-JSON payloads
+  - **Testing**: curl test confirmed POST /api/conversations returns 201 Created, E2E test verified full chat flow with AI responses
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client`, `/server`, `/python_backend`, `/shared`.
