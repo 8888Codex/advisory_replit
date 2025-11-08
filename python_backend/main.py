@@ -602,6 +602,45 @@ CATEGORY_METADATA = {
     }
 }
 
+# Helper function to get a single expert by ID (seed or custom)
+async def get_expert_by_id(expert_id: str) -> Optional[Expert]:
+    """
+    Get a specific expert by ID, supporting both seed and custom experts.
+    Returns None if expert not found.
+    """
+    # Check if it's a seed expert (format: seed-expert-name)
+    if expert_id.startswith("seed-"):
+        # Extract expert name from ID (e.g., "seed-claude-hopkins" -> "Claude Hopkins")
+        expert_name_slug = expert_id.replace("seed-", "")
+        expert_name = " ".join(word.capitalize() for word in expert_name_slug.split("-"))
+        
+        # Get clone from CloneRegistry
+        clone_registry = CloneRegistry()
+        clone_instance = clone_registry.get_clone(expert_name)
+        
+        if clone_instance:
+            # Get category from mapping
+            category = EXPERT_CATEGORY_MAP.get(expert_name, CategoryType.MARKETING)
+            
+            # Get avatar path from clone instance (handles .png, .jpg, etc.)
+            avatar_path = getattr(clone_instance, 'avatar', None)
+            
+            return Expert(
+                id=expert_id,
+                name=expert_name,
+                title=clone_instance.title,
+                bio=clone_instance.bio,
+                expertise=clone_instance.expertise,
+                systemPrompt="",  # Not exposed for seed experts
+                avatar=avatar_path,
+                expertType=ExpertType.HIGH_FIDELITY,
+                category=category,
+            )
+        return None
+    
+    # Otherwise, try to get from PostgreSQL (custom expert)
+    return await storage.get_expert(expert_id)
+
 # Helper function to get all experts (seed + custom)
 async def get_all_experts_combined() -> List[Expert]:
     """
@@ -1259,8 +1298,8 @@ Responda APENAS com o ID da categoria (ex: "growth"), nada mais."""
 
 @app.get("/api/experts/{expert_id}", response_model=Expert)
 async def get_expert(expert_id: str):
-    """Get a specific expert by ID"""
-    expert = await storage.get_expert(expert_id)
+    """Get a specific expert by ID (supports both seed and custom experts)"""
+    expert = await get_expert_by_id(expert_id)
     if not expert:
         raise HTTPException(status_code=404, detail="Expert not found")
     return expert
@@ -3022,8 +3061,8 @@ async def get_suggested_questions(expert_id: str):
     try:
         from perplexity_research import perplexity_research
         
-        # Get expert
-        expert = await storage.get_expert(expert_id)
+        # Get expert (supports both seed and custom experts)
+        expert = await get_expert_by_id(expert_id)
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
