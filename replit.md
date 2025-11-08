@@ -38,6 +38,12 @@ The platform features an Apple-style minimalist design with a professional dark-
   - **Solution**: Created `EXPERT_CATEGORY_MAP` to map all 18 seed experts to 9 categories, implemented shared helper `get_all_experts_combined()` to eliminate code duplication between `/api/experts` and `/api/categories`
   - **Distribution**: Direct Response (4), Marketing (4), Content (3), Product (2), Creative (1), Growth (1), Positioning (1), SEO (1), Social (1)
   - **Testing**: E2E tests confirmed UI displays all 9 categories with correct expert counts and sorting
+- **Seed Expert Chat Fix (2025-11-08)**: Fixed conversation creation and message sending for seed experts by removing duplicate Express routes
+  - **Issue**: Express routes in `server/routes.ts` for `/api/conversations*` intercepted requests before they could proxy to Python backend, preventing seed expert validation
+  - **Solution**: Commented out ALL conversation/message routes in Express (lines 57-174), allowing existing proxy middleware (server/index.ts:772-814) to forward requests to Python backend
+  - **Python Backend Enhancement**: Added `include_system_prompt` parameter to `get_expert_by_id()` helper - returns empty systemPrompt for API responses, full systemPrompt for AI generation
+  - **Endpoints Updated**: POST `/api/conversations` validates seed experts via `get_expert_by_id()`, POST `/api/conversations/:id/messages` retrieves systemPrompt for AI responses
+  - **Testing**: E2E test confirmed complete chat flow - conversation auto-creates, user messages send, AI responds with proper seed expert persona
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client`, `/server`, `/python_backend`, `/shared`.
