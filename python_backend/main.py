@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Body
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Body, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
@@ -2760,21 +2760,23 @@ async def get_current_persona():
         print(f"Error fetching persona: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch persona: {str(e)}")
 
-async def _background_enrichment_task(persona_id: str, level: str):
+async def _async_enrichment_task(persona_id: str, level: str):
     """
-    Background task to enrich persona without blocking HTTP response.
-    Updates enrichmentStatus as it progresses.
+    Async worker that performs the actual enrichment.
     """
+    print(f"[BACKGROUND] ⚡ Async enrichment task STARTED for persona {persona_id} with level {level}")
     try:
         # Mark as processing
+        print(f"[BACKGROUND] Updating status to 'processing'...")
         await storage.update_user_persona(persona_id, {
             "enrichmentStatus": "processing"
         })
-        print(f"[BACKGROUND] Starting {level} enrichment for persona {persona_id}...")
+        print(f"[BACKGROUND] Status updated. Starting {level} enrichment for persona {persona_id}...")
         
         from persona_enrichment import enrich_persona_with_deep_modules
         
         # Execute enrichment
+        print(f"[BACKGROUND] Calling enrich_persona_with_deep_modules...")
         persona = await enrich_persona_with_deep_modules(
             persona_id=persona_id,
             level=level,
@@ -2783,6 +2785,7 @@ async def _background_enrichment_task(persona_id: str, level: str):
         )
         
         # Mark as completed
+        print(f"[BACKGROUND] Enrichment completed, marking as 'completed'...")
         await storage.update_user_persona(persona_id, {
             "enrichmentStatus": "completed"
         })
@@ -2790,6 +2793,7 @@ async def _background_enrichment_task(persona_id: str, level: str):
         
     except Exception as e:
         # Mark as failed
+        print(f"[BACKGROUND] ❌ Exception caught in background task!")
         await storage.update_user_persona(persona_id, {
             "enrichmentStatus": "failed"
         })
@@ -2797,24 +2801,44 @@ async def _background_enrichment_task(persona_id: str, level: str):
         import traceback
         traceback.print_exc()
 
+def _background_enrichment_task(persona_id: str, level: str):
+    """
+    Synchronous wrapper for BackgroundTasks that runs async enrichment.
+    This is necessary because FastAPI's BackgroundTasks executes sync functions better.
+    """
+    print(f"[BACKGROUND] 🔧 Sync wrapper called for persona {persona_id}")
+    import asyncio
+    
+    try:
+        # Create new event loop for background task
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(_async_enrichment_task(persona_id, level))
+        loop.close()
+    except Exception as e:
+        print(f"[BACKGROUND] ❌ Sync wrapper failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 @app.post("/api/persona/enrich/background", status_code=202)
-async def enrich_persona_background(data: PersonaEnrichmentRequest):
+async def enrich_persona_background(data: PersonaEnrichmentRequest, background_tasks: BackgroundTasks):
     """
     Start persona enrichment in background without blocking.
     Returns immediately (202 Accepted) while enrichment runs asynchronously.
     
     User can check status via GET /api/persona/enrichment-status
     """
-    import asyncio
-    
     try:
+        print(f"[ENRICH_ENDPOINT] Received enrichment request for persona {data.personaId} with mode {data.mode}")
         # Verify persona exists
         persona = await storage.get_user_persona_by_id(data.personaId)
         if not persona:
             raise HTTPException(status_code=404, detail="Persona not found")
         
-        # Dispatch background task (fire and forget)
-        asyncio.create_task(_background_enrichment_task(data.personaId, data.mode))
+        print(f"[ENRICH_ENDPOINT] Persona found. Adding background task...")
+        # Dispatch background task using FastAPI's BackgroundTasks
+        background_tasks.add_task(_background_enrichment_task, data.personaId, data.mode)
+        print(f"[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.")
         
         return {
             "message": "Enrichment started in background",
@@ -2825,7 +2849,7 @@ async def enrich_persona_background(data: PersonaEnrichmentRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error starting background enrichment: {str(e)}")
+        print(f"[ENRICH_ENDPOINT] Error starting background enrichment: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to start enrichment: {str(e)}")
 
 @app.get("/api/persona/enrichment-status")
