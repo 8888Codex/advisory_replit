@@ -33,6 +33,11 @@ The platform features an Apple-style minimalist design with a professional dark-
   - **Frontend Pages**: `/personas` grid view with persona cards, `/personas/:id` detailed view with enrichment modules, active persona summary card on `/home` with "Manage Personas" navigation
   - **Critical Bug Fixes**: (1) Relocated PostgresStorage methods from module scope to class body - initial attempt placed them after class definition at line 2078 instead of inside class which ends at 1312; (2) Fixed connection pattern from `_get_db_connection()` to `async with self.pool.acquire() as conn:`; (3) Fixed user_id migration issue where personas had `user_id: "default_user"` instead of actual user IDs
   - **Testing**: Comprehensive E2E tests verify login → home → persona list → detail view → back navigation flow works correctly
+- **Categories Page Fix (2025-11-08)**: Fixed empty categories list by including seed experts from CloneRegistry
+  - **Issue**: `/api/categories` endpoint only counted custom experts from PostgreSQL, excluding 18 seed experts
+  - **Solution**: Created `EXPERT_CATEGORY_MAP` to map all 18 seed experts to 9 categories, implemented shared helper `get_all_experts_combined()` to eliminate code duplication between `/api/experts` and `/api/categories`
+  - **Distribution**: Direct Response (4), Marketing (4), Content (3), Product (2), Creative (1), Growth (1), Positioning (1), SEO (1), Social (1)
+  - **Testing**: E2E tests confirmed UI displays all 9 categories with correct expert counts and sorting
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `/client`, `/server`, `/python_backend`, `/shared`.
