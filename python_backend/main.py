@@ -516,6 +516,28 @@ async def complete_onboarding(user_id: str):
     
     return {"message": "Onboarding completado com sucesso"}
 
+# Expert to Category mapping (manual override for seed experts)
+EXPERT_CATEGORY_MAP = {
+    "Al Ries": CategoryType.POSITIONING,
+    "Ann Handley": CategoryType.CONTENT,
+    "Claude Hopkins": CategoryType.DIRECT_RESPONSE,
+    "Dan Kennedy": CategoryType.DIRECT_RESPONSE,
+    "Daniel Kahneman": CategoryType.PRODUCT,  # Psychology -> Product (behavioral design)
+    "David Aaker": CategoryType.MARKETING,  # Brand strategy -> Marketing
+    "David Ogilvy": CategoryType.CREATIVE,
+    "Donald Miller": CategoryType.CONTENT,
+    "Drayton Bird": CategoryType.DIRECT_RESPONSE,
+    "Eugene Schwartz": CategoryType.DIRECT_RESPONSE,
+    "Gary Vaynerchuk": CategoryType.SOCIAL,
+    "Jay Abraham": CategoryType.MARKETING,
+    "Jay Levinson": CategoryType.GROWTH,
+    "Neil Patel": CategoryType.SEO,
+    "Philip Kotler": CategoryType.MARKETING,
+    "Robert Cialdini": CategoryType.PRODUCT,  # Psychology -> Product (persuasion/behavioral)
+    "Seth Godin": CategoryType.CONTENT,  # Modern marketing -> Content
+    "Simon Sinek": CategoryType.MARKETING  # Leadership/branding -> Marketing
+}
+
 # Category metadata mapping
 CATEGORY_METADATA = {
     CategoryType.MARKETING: {
@@ -580,15 +602,11 @@ CATEGORY_METADATA = {
     }
 }
 
-# Expert endpoints
-@app.get("/api/experts", response_model=List[Expert])
-async def get_experts(category: Optional[str] = None):
+# Helper function to get all experts (seed + custom)
+async def get_all_experts_combined() -> List[Expert]:
     """
-    Get all marketing legend experts, optionally filtered by category.
-    Combines HIGH_FIDELITY seed experts from CloneRegistry + CUSTOM experts from PostgreSQL.
-    
-    Query params:
-    - category: Filter by category ID (e.g., "growth", "marketing", "content")
+    Helper function to combine seed experts from CloneRegistry with custom experts from PostgreSQL.
+    Eliminates code duplication between /api/experts and /api/categories endpoints.
     """
     # Get seed experts from CloneRegistry (HIGH_FIDELITY)
     clone_registry = CloneRegistry()
@@ -600,10 +618,8 @@ async def get_experts(category: Optional[str] = None):
         # Generate unique ID for seed expert (stable across restarts)
         expert_id = f"seed-{clone_name.lower().replace(' ', '-')}"
         
-        # Infer category from expert (default to marketing if not specified)
-        expert_category = CategoryType.MARKETING
-        if hasattr(clone_instance, 'category'):
-            expert_category = clone_instance.category
+        # Get category from manual mapping or use marketing as default
+        expert_category = EXPERT_CATEGORY_MAP.get(clone_instance.name, CategoryType.MARKETING)
         
         # Get avatar path if exists
         avatar_path = getattr(clone_instance, 'avatar', None)
@@ -626,7 +642,20 @@ async def get_experts(category: Optional[str] = None):
     custom_experts = await storage.get_experts()
     
     # Combine both sources
-    all_experts = seed_experts + custom_experts
+    return seed_experts + custom_experts
+
+# Expert endpoints
+@app.get("/api/experts", response_model=List[Expert])
+async def get_experts(category: Optional[str] = None):
+    """
+    Get all marketing legend experts, optionally filtered by category.
+    Combines HIGH_FIDELITY seed experts from CloneRegistry + CUSTOM experts from PostgreSQL.
+    
+    Query params:
+    - category: Filter by category ID (e.g., "growth", "marketing", "content")
+    """
+    # Get all experts using shared helper
+    all_experts = await get_all_experts_combined()
     
     # Filter by category if provided
     if category:
@@ -636,12 +665,13 @@ async def get_experts(category: Optional[str] = None):
 
 @app.get("/api/categories", response_model=List[CategoryInfo])
 async def get_categories():
-    """Get all available categories with expert counts"""
-    experts = await storage.get_experts()
+    """Get all available categories with expert counts, sorted by count (descending)"""
+    # Get all experts using shared helper
+    all_experts = await get_all_experts_combined()
     
     # Count experts per category
     category_counts = {}
-    for expert in experts:
+    for expert in all_experts:
         cat = expert.category
         category_counts[cat] = category_counts.get(cat, 0) + 1
     
