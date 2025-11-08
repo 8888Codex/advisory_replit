@@ -665,6 +665,107 @@ app.get('/api/persona/current', async (req, res) => {
   }
 });
 
+app.get('/api/persona/list', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Get all personas for this user
+    const response = await fetch(`http://localhost:5001/api/persona/list?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] List error:', error);
+    res.status(500).json({ detail: 'Erro ao listar personas' });
+  }
+});
+
+app.post('/api/persona/set-active', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Set active persona
+    const response = await fetch(`http://localhost:5001/api/persona/set-active?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] Set active error:', error);
+    res.status(500).json({ detail: 'Erro ao definir persona ativa' });
+  }
+});
+
+app.delete('/api/persona/:id', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Delete persona
+    const response = await fetch(`http://localhost:5001/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] Delete error:', error);
+    res.status(500).json({ detail: 'Erro ao deletar persona' });
+  }
+});
+
+app.get('/api/persona/:id', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Get specific persona
+    const response = await fetch(`http://localhost:5001/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] Get by ID error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar persona' });
+  }
+});
+
 // Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, and persona handled above)
 // This ensures the request body is not consumed by express.json()
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))

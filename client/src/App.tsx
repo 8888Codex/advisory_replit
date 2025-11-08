@@ -25,6 +25,7 @@ import AdminLogs from "@/pages/AdminLogs";
 import Onboarding from "@/pages/Onboarding";
 import TestCouncil from "@/pages/TestCouncil";
 import Personas from "@/pages/Personas";
+import PersonaDetail from "@/pages/PersonaDetail";
 import CouncilRoom from "@/pages/CouncilRoom";
 import PersonaDashboard from "@/pages/PersonaDashboard";
 import Analytics from "@/pages/Analytics";
@@ -147,6 +148,11 @@ function Router() {
         <Route path="/personas">
           <ProtectedRoute>
             <Personas />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/personas/:id">
+          <ProtectedRoute>
+            <PersonaDetail />
           </ProtectedRoute>
         </Route>
         <Route path="/council-room/:sessionId">

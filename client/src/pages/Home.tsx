@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, TrendingUp, Users, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, TrendingUp, Users, ArrowRight, Building2, CheckCircle2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 import { ExpertCard, type Expert as ExpertCardType } from "@/components/ExpertCard";
@@ -31,6 +32,10 @@ export default function Home() {
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
     queryKey: ["/api/experts"],
+  });
+
+  const { data: activePersona } = useQuery<any>({
+    queryKey: ["/api/persona/current"],
   });
 
   // Get top 6 experts for quick access
@@ -65,6 +70,70 @@ export default function Home() {
               450+ anos de expertise em marketing esperando por você
             </p>
           </motion.div>
+
+          {/* Active Persona Card */}
+          {activePersona && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="mb-8 sm:mb-10"
+            >
+              <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-background to-primary/5">
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 sm:p-3 rounded-xl bg-primary/10 shrink-0">
+                        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                          {activePersona.companyName}
+                          <Badge variant="default" className="text-xs">Ativa</Badge>
+                        </CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">{activePersona.industry}</CardDescription>
+                      </div>
+                    </div>
+                    <Link href="/personas">
+                      <Button variant="outline" size="sm" data-testid="button-manage-personas">
+                        Gerenciar
+                      </Button>
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Público</p>
+                      <p className="text-sm font-medium">{activePersona.targetAudience}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Objetivo</p>
+                      <p className="text-sm font-medium">{activePersona.primaryGoal}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Status</p>
+                      {activePersona.enrichmentStatus === "completed" ? (
+                        <Badge variant="default" className="text-xs gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Completo
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <Clock className="w-3 h-3" />
+                          {activePersona.enrichmentStatus === "processing" ? "Processando" : "Pendente"}
+                        </Badge>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Completude</p>
+                      <p className="text-sm font-medium">{activePersona.researchCompleteness || 0}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10 md:mb-12">
             {/* Quick Actions */}

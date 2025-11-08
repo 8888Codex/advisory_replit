@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("user"), // user | admin | superadmin
   availableInvites: integer("available_invites").notNull().default(5),
+  activePersonaId: varchar("active_persona_id"), // ID of the currently active persona for this user
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
