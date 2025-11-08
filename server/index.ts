@@ -696,14 +696,24 @@ app.post('/api/persona/set-active', async (req, res) => {
   }
 
   try {
+    console.log('[Persona] Set active - req.body:', JSON.stringify(req.body));
+    const bodyData = JSON.stringify(req.body);
+    console.log('[Persona] Set active - bodyData:', bodyData);
+    console.log('[Persona] Set active - Content-Length:', Buffer.byteLength(bodyData));
+    
     // Set active persona
     const response = await fetch(`http://localhost:5001/api/persona/set-active?user_id=${req.session.userId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
+      headers: { 
+        'Content-Type': 'application/json',
+        'Content-Length': String(Buffer.byteLength(bodyData))
+      },
+      body: bodyData
     });
 
     const data = await response.json();
+    console.log('[Persona] Set active - response status:', response.status);
+    console.log('[Persona] Set active - response data:', JSON.stringify(data));
     
     if (!response.ok) {
       return res.status(response.status).json(data);
