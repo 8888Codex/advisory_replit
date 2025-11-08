@@ -1312,6 +1312,16 @@ class PostgresStorage:
     
     async def list_user_personas(self, user_id: str) -> List[UserPersona]:
         """Get all personas for a specific user"""
+        def safe_json_parse(value, default):
+            """Safely parse JSON - handles both strings and already-parsed objects from asyncpg"""
+            if value is None:
+                return default
+            if isinstance(value, (dict, list)):
+                return value  # Already parsed by asyncpg for JSONB columns
+            if isinstance(value, str):
+                return json.loads(value)
+            return default
+        
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
                 SELECT * FROM user_personas 
@@ -1329,36 +1339,36 @@ class PostgresStorage:
                     companySize=row["company_size"],
                     targetAudience=row["target_audience"],
                     mainProducts=row.get("main_products"),
-                    channels=json.loads(row["channels"]) if row.get("channels") else [],
+                    channels=safe_json_parse(row.get("channels"), []),
                     budgetRange=row.get("budget_range"),
                     primaryGoal=row["primary_goal"],
                     mainChallenge=row["main_challenge"],
                     timeline=row.get("timeline"),
-                    demographics=json.loads(row["demographics"]) if row.get("demographics") else {},
-                    psychographics=json.loads(row["psychographics"]) if row.get("psychographics") else {},
-                    painPoints=json.loads(row["pain_points"]) if row.get("pain_points") else [],
-                    goals=json.loads(row["goals"]) if row.get("goals") else [],
-                    values=json.loads(row["values"]) if row.get("values") else [],
-                    communities=json.loads(row["communities"]) if row.get("communities") else [],
-                    behavioralPatterns=json.loads(row["behavioral_patterns"]) if row.get("behavioral_patterns") else {},
-                    contentPreferences=json.loads(row["content_preferences"]) if row.get("content_preferences") else {},
-                    youtubeResearch=json.loads(row["youtube_research"]) if row.get("youtube_research") else [],
-                    videoInsights=json.loads(row["video_insights"]) if row.get("video_insights") else [],
-                    campaignReferences=json.loads(row["campaign_references"]) if row.get("campaign_references") else [],
-                    inspirationVideos=json.loads(row["inspiration_videos"]) if row.get("inspiration_videos") else [],
+                    demographics=safe_json_parse(row.get("demographics"), {}),
+                    psychographics=safe_json_parse(row.get("psychographics"), {}),
+                    painPoints=safe_json_parse(row.get("pain_points"), []),
+                    goals=safe_json_parse(row.get("goals"), []),
+                    values=safe_json_parse(row.get("values"), []),
+                    communities=safe_json_parse(row.get("communities"), []),
+                    behavioralPatterns=safe_json_parse(row.get("behavioral_patterns"), {}),
+                    contentPreferences=safe_json_parse(row.get("content_preferences"), {}),
+                    youtubeResearch=safe_json_parse(row.get("youtube_research"), []),
+                    videoInsights=safe_json_parse(row.get("video_insights"), []),
+                    campaignReferences=safe_json_parse(row.get("campaign_references"), []),
+                    inspirationVideos=safe_json_parse(row.get("inspiration_videos"), []),
                     researchMode=row.get("research_mode", "strategic"),
                     enrichmentLevel=row.get("enrichment_level"),
                     enrichmentStatus=row.get("enrichment_status", "pending"),
                     researchCompleteness=row["research_completeness"],
                     lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
-                    psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                    buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                    behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                    languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                    strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                    jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                    decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                    copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                    psychographicCore=safe_json_parse(row.get("psychographic_core"), None),
+                    buyerJourney=safe_json_parse(row.get("buyer_journey"), None),
+                    behavioralProfile=safe_json_parse(row.get("behavioral_profile"), None),
+                    languageCommunication=safe_json_parse(row.get("language_communication"), None),
+                    strategicInsights=safe_json_parse(row.get("strategic_insights"), None),
+                    jobsToBeDone=safe_json_parse(row.get("jobs_to_be_done"), None),
+                    decisionProfile=safe_json_parse(row.get("decision_profile"), None),
+                    copyExamples=safe_json_parse(row.get("copy_examples"), None),
                     createdAt=_parse_timestamp(row["created_at"]),
                     updatedAt=_parse_timestamp(row["updated_at"])
                 ))
