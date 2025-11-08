@@ -157,8 +157,8 @@ export default function Experts() {
     setLocation('/experts');
   };
 
-  const handleConsult = async (expert: Expert) => {
-    setLocation(`/chat/${expert.id}`);
+  const handleConsult = async (expertId: string) => {
+    setLocation(`/chat/${expertId}`);
   };
 
   return (
@@ -327,11 +327,12 @@ export default function Experts() {
                   >
                     <ExpertCard 
                       expert={expert} 
-                      onConsult={handleConsult}
-                      showRecommendation={hasProfile}
+                      variant="compact"
+                      onChat={handleConsult}
+                      showStars={hasProfile}
+                      stars={recommendation?.stars}
+                      justification={recommendation?.justification}
                       recommendationScore={recommendation?.score}
-                      recommendationStars={recommendation?.stars}
-                      recommendationJustification={recommendation?.justification}
                     />
                   </motion.div>
                 ))}
