@@ -603,9 +603,15 @@ CATEGORY_METADATA = {
 }
 
 # Helper function to get a single expert by ID (seed or custom)
-async def get_expert_by_id(expert_id: str) -> Optional[Expert]:
+async def get_expert_by_id(expert_id: str, include_system_prompt: bool = False) -> Optional[Expert]:
     """
     Get a specific expert by ID, supporting both seed and custom experts.
+    
+    Args:
+        expert_id: Expert ID (seed-* or custom UUID)
+        include_system_prompt: If True, includes the full system prompt (for backend use).
+                               If False, returns empty systemPrompt (for API responses).
+    
     Returns None if expert not found.
     """
     # Check if it's a seed expert (format: seed-expert-name)
@@ -625,13 +631,16 @@ async def get_expert_by_id(expert_id: str) -> Optional[Expert]:
             # Get avatar path from clone instance (handles .png, .jpg, etc.)
             avatar_path = getattr(clone_instance, 'avatar', None)
             
+            # Get system prompt only if requested (for internal backend use)
+            system_prompt = clone_instance.get_system_prompt() if include_system_prompt else ""
+            
             return Expert(
                 id=expert_id,
                 name=expert_name,
                 title=clone_instance.title,
                 bio=clone_instance.bio,
                 expertise=clone_instance.expertise,
-                systemPrompt="",  # Not exposed for seed experts
+                systemPrompt=system_prompt,
                 avatar=avatar_path,
                 expertType=ExpertType.HIGH_FIDELITY,
                 category=category,
@@ -2564,8 +2573,8 @@ async def get_conversation(conversation_id: str):
 async def create_conversation(data: ConversationCreate):
     """Create a new conversation with an expert"""
     try:
-        # Verify expert exists
-        expert = await storage.get_expert(data.expertId)
+        # Verify expert exists (supports both seed and custom experts)
+        expert = await get_expert_by_id(data.expertId)
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
@@ -2592,8 +2601,9 @@ async def send_message(conversation_id: str, data: MessageSend):
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
         
-        # Get expert
-        expert = await storage.get_expert(conversation.expertId)
+        # Get expert (supports both seed and custom experts)
+        # Include system prompt for AI response generation
+        expert = await get_expert_by_id(conversation.expertId, include_system_prompt=True)
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
