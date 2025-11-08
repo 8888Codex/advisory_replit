@@ -785,8 +785,11 @@ app.use('/api', createProxyMiddleware({
   // SSE-specific configuration for streaming endpoints
   on: {
     proxyReq: (proxyReq, req, res) => {
-      // Re-send body if it was already parsed by express.json()
-      if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') && req.body) {
+      // Re-send body if it was already parsed by express.json() (only for JSON content-type)
+      const contentType = req.headers['content-type'] || '';
+      if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') && 
+          req.body && 
+          contentType.includes('application/json')) {
         const bodyData = JSON.stringify(req.body);
         proxyReq.setHeader('Content-Type', 'application/json');
         proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));

@@ -40,30 +40,17 @@ export default function Chat() {
 
   const createConversationMutation = useMutation({
     mutationFn: async (data: { expertId: string; title: string }) => {
-      console.log("[Chat] Creating conversation with data:", data);
-      try {
-        const response = await apiRequestJson<Conversation>("/api/conversations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        console.log("[Chat] Conversation created successfully (raw response):", response);
-        return response;
-      } catch (error) {
-        console.error("[Chat] Error in mutationFn:", error);
-        console.error("[Chat] Error type:", typeof error);
-        console.error("[Chat] Error message:", error instanceof Error ? error.message : 'Unknown error');
-        console.error("[Chat] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        throw error;
-      }
+      return await apiRequestJson<Conversation>("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: (conversation) => {
-      console.log("[Chat] Conversation created successfully (onSuccess):", conversation);
       setConversationId(conversation.id);
     },
     onError: (error) => {
-      console.error("[Chat] Error creating conversation (onError):", error);
-      console.error("[Chat] Error stack:", error instanceof Error ? error.stack : 'No stack');
+      console.error("[Chat] Error creating conversation:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar conversa",
@@ -97,9 +84,7 @@ export default function Chat() {
   });
 
   useEffect(() => {
-    console.log("[Chat] useEffect triggered - expert:", expert?.id, "conversationId:", conversationId, "isPending:", createConversationMutation.isPending);
     if (expert && !conversationId && !createConversationMutation.isPending) {
-      console.log("[Chat] Attempting to create conversation for expert:", expert.id);
       createConversationMutation.mutate({
         expertId: expert.id,
         title: `Conversa com ${expert.name}`,
