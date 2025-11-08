@@ -888,7 +888,8 @@ class PostgresStorage:
         
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
-                SELECT id, username, email, password, role, available_invites as "availableInvites", created_at as "createdAt"
+                SELECT id, username, email, password, role, available_invites as "availableInvites", 
+                       active_persona_id as "activePersonaId", created_at as "createdAt"
                 FROM users
                 WHERE id = $1
             """, user_id)
@@ -903,6 +904,7 @@ class PostgresStorage:
                 "password": row['password'],
                 "role": row['role'],
                 "availableInvites": row['availableInvites'],
+                "activePersonaId": row['activePersonaId'],
                 "createdAt": row['createdAt']
             }
     
@@ -1377,12 +1379,28 @@ class PostgresStorage:
     async def set_active_persona(self, user_id: str, persona_id: str) -> bool:
         """Set a persona as the active one for a user"""
         async with self.pool.acquire() as conn:
+            # First verify the persona exists and belongs to the user
+            persona_check = await conn.fetchrow("""
+                SELECT id FROM user_personas 
+                WHERE id = $1 AND user_id = $2
+            """, persona_id, user_id)
+            
+            if not persona_check:
+                print(f"[set_active_persona] Persona {persona_id} not found for user {user_id}")
+                return False
+            
+            # Update the user's active persona
             result = await conn.execute("""
                 UPDATE users 
                 SET active_persona_id = $1 
                 WHERE id = $2
             """, persona_id, user_id)
-            return result == "UPDATE 1"
+            
+            print(f"[set_active_persona] Update result: '{result}' (type: {type(result)})")
+            # asyncpg returns "UPDATE 1" for successful single-row updates
+            success = "UPDATE" in str(result) and "1" in str(result)
+            print(f"[set_active_persona] Success: {success}")
+            return success
 
 class MemStorage:
     """In-memory storage compatible with frontend API expectations"""

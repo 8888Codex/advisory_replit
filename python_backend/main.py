@@ -119,6 +119,7 @@ class UserResponse(BaseModel):
     availableInvites: int
     role: str
     createdAt: datetime
+    activePersonaId: Optional[str] = None
 
 # ============================================
 # AUTHENTICATION ENDPOINTS
@@ -162,7 +163,8 @@ async def register_user(data: RegisterRequest):
         email=user["email"],
         availableInvites=user["availableInvites"],
         role=user.get("role", "user"),
-        createdAt=user["createdAt"]
+        createdAt=user["createdAt"],
+        activePersonaId=user.get("activePersonaId")
     )
 
 @app.post("/api/auth/login", response_model=UserResponse)
@@ -185,7 +187,8 @@ async def login_user(data: LoginRequest):
         email=user["email"],
         availableInvites=user["availableInvites"],
         role=user.get("role", "user"),  # Default to 'user' for backward compatibility
-        createdAt=user["createdAt"]
+        createdAt=user["createdAt"],
+        activePersonaId=user.get("activePersonaId")
     )
 
 @app.post("/api/auth/logout")
@@ -206,7 +209,8 @@ async def get_current_user(user_id: str):
         email=user["email"],
         availableInvites=user["availableInvites"],
         role=user.get("role", "user"),  # Default to 'user' for backward compatibility
-        createdAt=user["createdAt"]
+        createdAt=user["createdAt"],
+        activePersonaId=user.get("activePersonaId")
     )
 
 # ============================================

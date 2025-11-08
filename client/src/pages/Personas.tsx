@@ -51,6 +51,9 @@ export default function Personas() {
     mutationFn: async (personaId: string) => {
       return apiRequest("/api/persona/set-active", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ personaId }),
       });
     },
