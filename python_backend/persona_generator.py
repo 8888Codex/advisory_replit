@@ -124,7 +124,9 @@ class PsychographicCoreGenerator:
     ) -> Dict[str, Any]:
         """Generate psychographic core using expert insights"""
         
-        prompt = f"""Você é uma fusão de Philip Kotler (marketing estratégico) e Daniel Kahneman (psicologia comportamental).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Philip Kotler (marketing estratégico) e Daniel Kahneman (psicologia comportamental).
 
 Contexto da Persona:
 - Empresa: {persona_context.get('companyName')}
@@ -198,7 +200,9 @@ class BuyerJourneyGenerator:
     ) -> Dict[str, Any]:
         """Generate buyer journey mapping"""
         
-        prompt = f"""Você é uma fusão de Eugene Schwartz (5 níveis de consciência) e Jay Abraham (estratégia de vendas).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Eugene Schwartz (5 níveis de consciência) e Jay Abraham (estratégia de vendas).
 
 Contexto da Persona:
 - Empresa: {persona_context.get('companyName')}
@@ -270,7 +274,9 @@ class BehavioralProfileGenerator:
     ) -> Dict[str, Any]:
         """Generate behavioral patterns"""
         
-        prompt = f"""Você é uma fusão de Robert Cialdini (6 princípios de persuasão) e Gary Vaynerchuk (comportamento digital).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Robert Cialdini (6 princípios de persuasão) e Gary Vaynerchuk (comportamento digital).
 
 Contexto:
 - Setor: {persona_context.get('industry')}
@@ -344,7 +350,9 @@ class LanguageCommunicationGenerator:
     ) -> Dict[str, Any]:
         """Generate language & communication strategy"""
         
-        prompt = f"""Você é uma fusão de Ann Handley (content marketing) e Donald Miller (StoryBrand).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Ann Handley (content marketing) e Donald Miller (StoryBrand).
 
 Contexto:
 - Público: {persona_context.get('targetAudience')}
@@ -424,7 +432,9 @@ class StrategicInsightsGenerator:
     ) -> Dict[str, Any]:
         """Generate strategic insights and recommendations"""
         
-        prompt = f"""Você é uma fusão de Seth Godin (marketing estratégico) e Neil Patel (growth marketing).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Seth Godin (marketing estratégico) e Neil Patel (growth marketing).
 
 Contexto Completo:
 {json.dumps(persona_context, ensure_ascii=False, indent=2)}
@@ -494,7 +504,9 @@ class JobsToBeDoneGenerator:
     ) -> Dict[str, Any]:
         """Generate JTBD framework"""
         
-        prompt = f"""Você é um especialista em Jobs-to-be-Done framework (Clayton Christensen).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é um especialista em Jobs-to-be-Done framework (Clayton Christensen).
 
 Contexto:
 - Público: {persona_context.get('targetAudience')}
@@ -562,7 +574,9 @@ class DecisionProfileGenerator:
     ) -> Dict[str, Any]:
         """Generate decision profile"""
         
-        prompt = f"""Você é Dan Kennedy, especialista em perfis de decisão de compra.
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights e recomendações devem ser escritas em português brasileiro.**
+
+Você é Dan Kennedy, especialista em perfis de decisão de compra.
 
 Contexto:
 - Público: {persona_context.get('targetAudience')}
@@ -634,7 +648,9 @@ class CopyExamplesGenerator:
     ) -> Dict[str, Any]:
         """Generate copy examples based on all persona insights"""
         
-        prompt = f"""Você é uma fusão de Ann Handley (copywriting mestre) e Eugene Schwartz (lendas da copy).
+        prompt = f"""**INSTRUÇÃO OBRIGATÓRIA: Você DEVE responder SEMPRE em português brasileiro (PT-BR). Todas as suas análises, insights, recomendações e COPY devem ser escritas em português brasileiro.**
+
+Você é uma fusão de Ann Handley (copywriting mestre) e Eugene Schwartz (lendas da copy).
 
 CONTEXTO COMPLETO DA PERSONA:
 {json.dumps({**persona_context, **all_modules}, ensure_ascii=False, indent=2)}
