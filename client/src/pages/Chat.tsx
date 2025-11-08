@@ -40,6 +40,7 @@ export default function Chat() {
 
   const createConversationMutation = useMutation({
     mutationFn: async (data: { expertId: string; title: string }) => {
+      console.log("[Chat] Creating conversation with data:", data);
       return await apiRequestJson<Conversation>("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,9 +48,11 @@ export default function Chat() {
       });
     },
     onSuccess: (conversation) => {
+      console.log("[Chat] Conversation created successfully:", conversation);
       setConversationId(conversation.id);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("[Chat] Error creating conversation:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar conversa",
@@ -83,13 +86,15 @@ export default function Chat() {
   });
 
   useEffect(() => {
+    console.log("[Chat] useEffect triggered - expert:", expert?.id, "conversationId:", conversationId, "isPending:", createConversationMutation.isPending);
     if (expert && !conversationId && !createConversationMutation.isPending) {
+      console.log("[Chat] Attempting to create conversation for expert:", expert.id);
       createConversationMutation.mutate({
         expertId: expert.id,
         title: `Conversa com ${expert.name}`,
       });
     }
-  }, [expert, conversationId]);
+  }, [expert, conversationId, createConversationMutation.isPending]);
 
   const handleSend = () => {
     if (!input.trim() || !conversationId) return;
