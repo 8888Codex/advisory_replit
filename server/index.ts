@@ -767,12 +767,14 @@ app.get('/api/persona/:id', async (req, res) => {
 });
 
 // Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, and persona handled above)
-// This ensures the request body is not consumed by express.json()
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001',
   pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
+  // Allow proxy to handle already-parsed body from express.json()
+  // @ts-ignore - parseReqBody option exists in runtime
+  parseReqBody: true,
   // Exclude auth, invite, onboarding, and persona endpoints (handled by Express middleware above)
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
   // @ts-ignore - filter option exists in runtime but not in type definitions
@@ -783,6 +785,14 @@ app.use('/api', createProxyMiddleware({
   // SSE-specific configuration for streaming endpoints
   on: {
     proxyReq: (proxyReq, req, res) => {
+      // Re-send body if it was already parsed by express.json()
+      if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') && req.body) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+      
       // Set headers for SSE endpoints
       if (req.url?.includes('/stream') || req.url?.includes('/analyze-stream')) {
         proxyReq.setHeader('Accept', 'text/event-stream');

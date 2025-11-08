@@ -41,22 +41,33 @@ export default function Chat() {
   const createConversationMutation = useMutation({
     mutationFn: async (data: { expertId: string; title: string }) => {
       console.log("[Chat] Creating conversation with data:", data);
-      return await apiRequestJson<Conversation>("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await apiRequestJson<Conversation>("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        console.log("[Chat] Conversation created successfully (raw response):", response);
+        return response;
+      } catch (error) {
+        console.error("[Chat] Error in mutationFn:", error);
+        console.error("[Chat] Error type:", typeof error);
+        console.error("[Chat] Error message:", error instanceof Error ? error.message : 'Unknown error');
+        console.error("[Chat] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        throw error;
+      }
     },
     onSuccess: (conversation) => {
-      console.log("[Chat] Conversation created successfully:", conversation);
+      console.log("[Chat] Conversation created successfully (onSuccess):", conversation);
       setConversationId(conversation.id);
     },
     onError: (error) => {
-      console.error("[Chat] Error creating conversation:", error);
+      console.error("[Chat] Error creating conversation (onError):", error);
+      console.error("[Chat] Error stack:", error instanceof Error ? error.stack : 'No stack');
       toast({
         variant: "destructive",
         title: "Erro ao criar conversa",
-        description: "Não foi possível iniciar a conversa com o especialista.",
+        description: error instanceof Error ? error.message : "Não foi possível iniciar a conversa com o especialista.",
       });
     },
   });
