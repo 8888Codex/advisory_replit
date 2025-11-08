@@ -558,19 +558,126 @@ app.post('/api/onboarding/complete', async (req, res) => {
   }
 });
 
-// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, and onboarding handled above)
+// ============================================
+// PERSONA ROUTES (Protected)
+// ============================================
+// User persona creation and enrichment endpoints
+
+app.post('/api/persona/create', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Forward persona data to Python backend with authenticated user ID
+    const response = await fetch(`http://localhost:5001/api/persona/create?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('[Persona] Create error:', error);
+    res.status(500).json({ detail: 'Erro ao criar persona' });
+  }
+});
+
+app.post('/api/persona/enrich/background', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Trigger background enrichment
+    const response = await fetch(`http://localhost:5001/api/persona/enrich/background?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.status(202).json(data);
+  } catch (error) {
+    console.error('[Persona] Background enrich error:', error);
+    res.status(500).json({ detail: 'Erro ao iniciar enriquecimento' });
+  }
+});
+
+app.get('/api/persona/enrichment-status', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Check enrichment status
+    const response = await fetch(`http://localhost:5001/api/persona/enrichment-status?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] Enrichment status error:', error);
+    res.status(500).json({ detail: 'Erro ao verificar status do enriquecimento' });
+  }
+});
+
+app.get('/api/persona/current', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    // Get current persona
+    const response = await fetch(`http://localhost:5001/api/persona/current?user_id=${req.session.userId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Persona] Get current error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar persona atual' });
+  }
+});
+
+// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, and persona handled above)
 // This ensures the request body is not consumed by express.json()
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001',
   pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
-  // Exclude auth, invite, and onboarding endpoints (handled by Express middleware above)
+  // Exclude auth, invite, onboarding, and persona endpoints (handled by Express middleware above)
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
   // @ts-ignore - filter option exists in runtime but not in type definitions
   filter: (pathname: string, req: any) => {
-    // Block /auth/*, /invites/*, and /onboarding/* from being proxied
-    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites') && !pathname.startsWith('/onboarding');
+    // Block /auth/*, /invites/*, /onboarding/*, and /persona/* from being proxied
+    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites') && !pathname.startsWith('/onboarding') && !pathname.startsWith('/persona');
   },
   // SSE-specific configuration for streaming endpoints
   on: {
