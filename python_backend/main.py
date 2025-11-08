@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
@@ -2887,6 +2887,59 @@ async def delete_user_persona(persona_id: str):
     except Exception as e:
         print(f"Error deleting persona: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete persona: {str(e)}")
+
+@app.get("/api/persona/list", response_model=List[UserPersona])
+async def list_user_personas(user_id: str = Query(...)):
+    """
+    Get all personas for a specific user.
+    """
+    try:
+        personas = await storage.list_user_personas(user_id)
+        return personas
+    except Exception as e:
+        print(f"Error listing personas: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to list personas: {str(e)}")
+
+@app.post("/api/persona/set-active")
+async def set_active_persona(user_id: str = Query(...), request: dict = Body(...)):
+    """
+    Set a persona as the active one for the user.
+    """
+    try:
+        persona_id = request.get("personaId")
+        if not persona_id:
+            raise HTTPException(status_code=400, detail="personaId is required")
+        
+        success = await storage.set_active_persona(user_id, persona_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Persona not found or user not found")
+        
+        return {"success": True, "activePersonaId": persona_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error setting active persona: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to set active persona: {str(e)}")
+
+@app.get("/api/persona/{persona_id}", response_model=UserPersona)
+async def get_persona_by_id(persona_id: str, user_id: str = Query(...)):
+    """
+    Get a specific persona by ID.
+    """
+    try:
+        persona = await storage.get_user_persona_by_id(persona_id)
+        if not persona:
+            raise HTTPException(status_code=404, detail=f"Persona with id {persona_id} not found")
+        
+        if persona.userId != user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        return persona
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting persona by ID: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get persona: {str(e)}")
 
 # Expert Recommendations endpoint (based on business profile)
 @app.get("/api/experts/recommendations")
