@@ -17,6 +17,24 @@ def _parse_timestamp(value):
         return datetime.fromisoformat(value.replace('Z', '+00:00'))
     return value
 
+def _safe_json_parse(value, default=None):
+    """
+    Safely parse JSON from database.
+    JSONB columns return Python objects directly, TEXT/JSON columns return strings.
+    """
+    if value is None:
+        return default
+    # If already a Python object (from JSONB), return as-is
+    if isinstance(value, (dict, list)):
+        return value
+    # If string (from JSON/TEXT), parse it
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError):
+            return default
+    return default
+
 class PostgresStorage:
     """
     PostgreSQL-backed storage for persistent data.
@@ -40,7 +58,8 @@ class PostgresStorage:
             database_url,
             min_size=2,
             max_size=10,
-            command_timeout=60
+            command_timeout=60,
+            statement_cache_size=0  # Disable prepared statement cache to avoid schema change issues
         )
         self._initialized = True
         print("[PostgresStorage] Connection pool initialized")
@@ -182,15 +201,20 @@ class PostgresStorage:
     
     # Conversation operations
     async def create_conversation(self, data: ConversationCreate) -> Conversation:
-        """Create a new conversation in PostgreSQL"""
+        """Create a new conversation in PostgreSQL (legacy - uses default_user)"""
+        return await self.create_conversation_with_user(data, "default_user")
+    
+    async def create_conversation_with_user(self, data: ConversationCreate, user_id: str) -> Conversation:
+        """Create a new conversation in PostgreSQL for specific user"""
         async with self.pool.acquire() as conn:
             conversation_id = str(uuid.uuid4())
+            now = datetime.utcnow()
             
             row = await conn.fetchrow("""
-                INSERT INTO conversations (id, expert_id, title)
-                VALUES ($1, $2, $3)
-                RETURNING id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
-            """, conversation_id, data.expertId, data.title)
+                INSERT INTO conversations (id, "expertId", title, "userId", "createdAt", "updatedAt")
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id, "expertId", title, "userId", "createdAt", "updatedAt"
+            """, conversation_id, data.expertId, data.title, user_id, now, now)
             
             return Conversation(
                 id=row['id'],
@@ -204,7 +228,7 @@ class PostgresStorage:
         """Get conversation by ID from PostgreSQL"""
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
-                SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+                SELECT id, "expertId", title, "createdAt", "updatedAt"
                 FROM conversations WHERE id = $1
             """, conversation_id)
             
@@ -224,16 +248,48 @@ class PostgresStorage:
         async with self.pool.acquire() as conn:
             if expert_id:
                 rows = await conn.fetch("""
-                    SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
-                    FROM conversations WHERE expert_id = $1
-                    ORDER BY updated_at DESC
+                    SELECT id, "expertId", title, "createdAt", "updatedAt"
+                    FROM conversations WHERE "expertId" = $1
+                    ORDER BY "updatedAt" DESC
                 """, expert_id)
             else:
                 rows = await conn.fetch("""
-                    SELECT id, expert_id as "expertId", title, created_at as "createdAt", updated_at as "updatedAt"
+                    SELECT id, "expertId", title, "createdAt", "updatedAt"
                     FROM conversations
-                    ORDER BY updated_at DESC
+                    ORDER BY "updatedAt" DESC
                 """)
+            
+            return [
+                Conversation(
+                    id=row['id'],
+                    expertId=row['expertId'],
+                    title=row['title'],
+                    createdAt=row['createdAt'],
+                    updatedAt=row['updatedAt']
+                )
+                for row in rows
+            ]
+    
+    async def get_user_conversations(self, user_id: str, expert_id: Optional[str] = None) -> List[Conversation]:
+        """Get conversations for a specific user, optionally filtered by expert"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            if expert_id:
+                rows = await conn.fetch("""
+                    SELECT id, "expertId", title, "userId", "createdAt", "updatedAt"
+                    FROM conversations 
+                    WHERE "userId" = $1 AND "expertId" = $2
+                    ORDER BY "updatedAt" DESC
+                """, user_id, expert_id)
+            else:
+                rows = await conn.fetch("""
+                    SELECT id, "expertId", title, "userId", "createdAt", "updatedAt"
+                    FROM conversations 
+                    WHERE "userId" = $1
+                    ORDER BY "updatedAt" DESC
+                """, user_id)
             
             return [
                 Conversation(
@@ -250,21 +306,74 @@ class PostgresStorage:
         """Update conversation's updated_at timestamp"""
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                UPDATE conversations SET updated_at = NOW()
+                UPDATE conversations SET "updatedAt" = NOW()
                 WHERE id = $1
             """, conversation_id)
+    
+    async def get_conversation_user_id(self, conversation_id: str) -> Optional[str]:
+        """Get userId for a conversation"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("""
+                SELECT "userId" FROM conversations WHERE id = $1
+            """, conversation_id)
+            return row['userId'] if row else None
+    
+    async def delete_conversation(self, conversation_id: str) -> bool:
+        """Delete a conversation and all its messages"""
+        async with self.pool.acquire() as conn:
+            # Delete messages first
+            await conn.execute("""
+                DELETE FROM messages WHERE "conversationId" = $1
+            """, conversation_id)
+            
+            # Delete conversation
+            result = await conn.execute("""
+                DELETE FROM conversations WHERE id = $1
+            """, conversation_id)
+            
+            # Check if deleted (result will be like "DELETE 1")
+            return result.split()[-1] != "0"
+    
+    async def delete_all_user_conversations(self, user_id: str) -> int:
+        """Delete all conversations for a user and return count"""
+        async with self.pool.acquire() as conn:
+            # Get all conversation IDs for this user
+            conv_ids = await conn.fetch("""
+                SELECT id FROM conversations WHERE "userId" = $1
+            """, user_id)
+            
+            if not conv_ids:
+                return 0
+            
+            conv_id_list = [row['id'] for row in conv_ids]
+            
+            # Delete all messages for these conversations
+            await conn.execute("""
+                DELETE FROM messages 
+                WHERE "conversationId" = ANY($1::varchar[])
+            """, conv_id_list)
+            
+            # Delete all conversations
+            result = await conn.execute("""
+                DELETE FROM conversations WHERE "userId" = $1
+            """, user_id)
+            
+            # Extract count from result
+            count = int(result.split()[-1])
+            return count
     
     # Message operations
     async def create_message(self, data: MessageCreate) -> Message:
         """Create a new message in PostgreSQL"""
         async with self.pool.acquire() as conn:
             message_id = str(uuid.uuid4())
+            now = datetime.utcnow()
             
             row = await conn.fetchrow("""
-                INSERT INTO messages (id, conversation_id, role, content)
-                VALUES ($1, $2, $3, $4)
-                RETURNING id, conversation_id as "conversationId", role, content, created_at as "createdAt"
-            """, message_id, data.conversationId, data.role, data.content)
+                INSERT INTO messages (id, "conversationId", role, content, "createdAt")
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, "conversationId", role, content, "createdAt"
+            """, message_id, data.conversationId, data.role, data.content, now)
             
             # Update conversation timestamp
             await self.update_conversation_timestamp(data.conversationId)
@@ -281,9 +390,9 @@ class PostgresStorage:
         """Get all messages for a conversation"""
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
-                SELECT id, conversation_id as "conversationId", role, content, created_at as "createdAt"
-                FROM messages WHERE conversation_id = $1
-                ORDER BY created_at ASC
+                SELECT id, "conversationId", role, content, "createdAt"
+                FROM messages WHERE "conversationId" = $1
+                ORDER BY "createdAt" ASC
             """, conversation_id)
             
             return [
@@ -485,9 +594,10 @@ class PostgresStorage:
             user_id = str(uuid.uuid4())
             
             row = await conn.fetchrow("""
-                INSERT INTO users (id, username, email, password, available_invites)
-                VALUES ($1, $2, $3, $4, 5)
-                RETURNING id, username, email, available_invites as "availableInvites", created_at as "createdAt"
+                INSERT INTO users (id, username, email, password, available_invites, role)
+                VALUES ($1, $2, $3, $4, 5, 'user')
+                RETURNING id, username, email, available_invites as "availableInvites", 
+                          role, created_at as "createdAt", active_persona_id as "activePersonaId"
             """, user_id, username, email, password_hash)
             
             return {
@@ -495,7 +605,9 @@ class PostgresStorage:
                 "username": row['username'],
                 "email": row['email'],
                 "availableInvites": row['availableInvites'],
-                "createdAt": row['createdAt']
+                "role": row['role'],
+                "createdAt": row['createdAt'],
+                "activePersonaId": row['activePersonaId']
             }
     
     # ============================================
@@ -503,7 +615,7 @@ class PostgresStorage:
     # ============================================
     
     async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
-        """Create or replace user persona (UPSERT logic to handle unique constraint on user_id)"""
+        """Create a new user persona (multiple personas per user allowed)"""
         if not self.pool:
             raise RuntimeError("PostgresStorage not initialized")
         
@@ -528,30 +640,15 @@ class PostgresStorage:
                     $13, $14, $15, $16, $17, $18, $19, $20,
                     $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
                 )
-                ON CONFLICT (user_id) DO UPDATE SET
-                    company_name = EXCLUDED.company_name,
-                    industry = EXCLUDED.industry,
-                    company_size = EXCLUDED.company_size,
-                    target_audience = EXCLUDED.target_audience,
-                    main_products = EXCLUDED.main_products,
-                    channels = EXCLUDED.channels,
-                    budget_range = EXCLUDED.budget_range,
-                    primary_goal = EXCLUDED.primary_goal,
-                    main_challenge = EXCLUDED.main_challenge,
-                    timeline = EXCLUDED.timeline,
-                    research_mode = EXCLUDED.research_mode,
-                    enrichment_level = EXCLUDED.enrichment_level,
-                    enrichment_status = EXCLUDED.enrichment_status,
-                    updated_at = EXCLUDED.updated_at
                 RETURNING *
                 """,
                 persona_id, user_id,
                 data.companyName, data.industry, data.companySize, data.targetAudience,
-                data.mainProducts, data.channels, data.budgetRange, data.primaryGoal,
+                data.mainProducts, json.dumps(data.channels) if data.channels else json.dumps([]), data.budgetRange, data.primaryGoal,
                 data.mainChallenge, data.timeline,
-                json.dumps({}), json.dumps({}), [], [], [],
-                [], json.dumps({}), json.dumps({}),
-                json.dumps([]), [], json.dumps([]), json.dumps([]),
+                json.dumps({}), json.dumps({}), json.dumps([]), json.dumps([]), json.dumps([]),
+                json.dumps([]), json.dumps({}), json.dumps({}),
+                json.dumps([]), json.dumps([]), json.dumps([]), json.dumps([]),
                 data.researchMode, data.enrichmentLevel or data.researchMode, "pending", 0, None,
                 now, now
             )
@@ -559,42 +656,42 @@ class PostgresStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -615,42 +712,42 @@ class PostgresStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -671,42 +768,42 @@ class PostgresStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -762,6 +859,7 @@ class PostgresStorage:
                 "copyExamples": "copy_examples"
             }
             
+            # JSONB fields - objects/arrays stored as JSON
             json_fields = [
                 "demographics", "psychographics", "behavioral_patterns", 
                 "content_preferences", "youtube_research", "campaign_references", 
@@ -772,10 +870,20 @@ class PostgresStorage:
                 "decision_profile", "copy_examples"
             ]
             
+            # TEXT ARRAY fields (text[]) - lists stored as text arrays need json.dumps
+            text_array_fields = [
+                "pain_points", "goals", "values", "communities", "video_insights", "channels"
+            ]
+            
             for field_camel, field_snake in field_mapping.items():
                 if field_camel in updates:
                     value = updates[field_camel]
+                    
+                    # Convert JSONB objects/arrays to JSON string
                     if field_snake in json_fields:
+                        value = json.dumps(value) if value is not None else None
+                    # Convert text array lists to JSON string
+                    elif field_snake in text_array_fields and isinstance(value, list):
                         value = json.dumps(value)
                     
                     set_clauses.append(f"{field_snake} = ${param_num}")
@@ -792,42 +900,42 @@ class PostgresStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -846,15 +954,6 @@ class PostgresStorage:
         }
         
         return await self.update_user_persona(persona_id, updates)
-    
-    async def delete_user_persona(self, persona_id: str) -> bool:
-        """Delete a user persona"""
-        if not self.pool:
-            raise RuntimeError("PostgresStorage not initialized")
-        
-        async with self.pool.acquire() as conn:
-            result = await conn.execute("DELETE FROM user_personas WHERE id = $1", persona_id)
-            return result == "DELETE 1"
     
     async def get_user_by_email(self, email: str) -> Optional[dict]:
         """Get user by email address"""
@@ -1032,6 +1131,9 @@ class PostgresStorage:
             
             if existing:
                 # Update existing record
+                # Convert goals list to JSONB
+                goals_json = json.dumps(data.get('goals')) if data.get('goals') else None
+                
                 row = await conn.fetchrow("""
                     UPDATE onboarding_status
                     SET current_step = COALESCE($2, current_step),
@@ -1039,7 +1141,7 @@ class PostgresStorage:
                         industry = COALESCE($4, industry),
                         company_size = COALESCE($5, company_size),
                         target_audience = COALESCE($6, target_audience),
-                        goals = COALESCE($7, goals),
+                        goals = COALESCE($7::jsonb, goals),
                         main_challenge = COALESCE($8, main_challenge),
                         enrichment_level = COALESCE($9, enrichment_level),
                         updated_at = NOW()
@@ -1051,16 +1153,19 @@ class PostgresStorage:
                               created_at as "createdAt", updated_at as "updatedAt"
                 """, user_id, data.get('currentStep'), data.get('companyName'), 
                      data.get('industry'), data.get('companySize'), data.get('targetAudience'),
-                     data.get('goals'), data.get('mainChallenge'), data.get('enrichmentLevel'))
+                     goals_json, data.get('mainChallenge'), data.get('enrichmentLevel'))
             else:
                 # Create new record
                 onboarding_id = str(uuid.uuid4())
+                # Convert goals list to JSONB
+                goals_json = json.dumps(data.get('goals')) if data.get('goals') else None
+                
                 row = await conn.fetchrow("""
                     INSERT INTO onboarding_status (
                         id, user_id, current_step, company_name, industry, company_size,
-                        target_audience, goals, main_challenge, enrichment_level
+                        target_audience, goals, main_challenge, enrichment_level, created_at, updated_at
                     )
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, NOW(), NOW())
                     RETURNING id, user_id as "userId", current_step as "currentStep",
                               company_name as "companyName", industry, company_size as "companySize",
                               target_audience as "targetAudience", goals, main_challenge as "mainChallenge",
@@ -1068,8 +1173,16 @@ class PostgresStorage:
                               created_at as "createdAt", updated_at as "updatedAt"
                 """, onboarding_id, user_id, data.get('currentStep', 0), 
                      data.get('companyName'), data.get('industry'), data.get('companySize'),
-                     data.get('targetAudience'), data.get('goals'), data.get('mainChallenge'),
+                     data.get('targetAudience'), goals_json, data.get('mainChallenge'),
                      data.get('enrichmentLevel'))
+            
+            # Parse JSONB goals back to list
+            goals_list = None
+            if row['goals']:
+                if isinstance(row['goals'], str):
+                    goals_list = json.loads(row['goals'])
+                elif isinstance(row['goals'], list):
+                    goals_list = row['goals']
             
             return {
                 "id": row['id'],
@@ -1079,7 +1192,7 @@ class PostgresStorage:
                 "industry": row['industry'],
                 "companySize": row['companySize'],
                 "targetAudience": row['targetAudience'],
-                "goals": row['goals'],
+                "goals": goals_list,
                 "mainChallenge": row['mainChallenge'],
                 "enrichmentLevel": row['enrichmentLevel'],
                 "completedAt": row['completedAt'],
@@ -1106,6 +1219,14 @@ class PostgresStorage:
             if not row:
                 return None
             
+            # Parse JSONB goals back to list
+            goals_list = None
+            if row['goals']:
+                if isinstance(row['goals'], str):
+                    goals_list = json.loads(row['goals'])
+                elif isinstance(row['goals'], list):
+                    goals_list = row['goals']
+            
             return {
                 "id": row['id'],
                 "userId": row['userId'],
@@ -1114,7 +1235,7 @@ class PostgresStorage:
                 "industry": row['industry'],
                 "companySize": row['companySize'],
                 "targetAudience": row['targetAudience'],
-                "goals": row['goals'],
+                "goals": goals_list,
                 "mainChallenge": row['mainChallenge'],
                 "enrichmentLevel": row['enrichmentLevel'],
                 "completedAt": row['completedAt'],
@@ -1813,103 +1934,6 @@ class MemStorage:
             await conn.close()
     
     # UserPersona operations (Unified Persona Model with YouTube enrichment)
-    async def create_user_persona(self, user_id: str, data: UserPersonaCreate) -> UserPersona:
-        """Create or replace user persona (UPSERT logic to handle unique constraint on user_id)"""
-        conn = await self._get_db_connection()
-        try:
-            persona_id = str(uuid.uuid4())
-            now = datetime.utcnow()
-            
-            row = await conn.fetchrow(
-                """
-                INSERT INTO user_personas (
-                    id, user_id,
-                    company_name, industry, company_size, target_audience,
-                    main_products, channels, budget_range, primary_goal,
-                    main_challenge, timeline,
-                    demographics, psychographics, pain_points, goals, values,
-                    communities, behavioral_patterns, content_preferences,
-                    youtube_research, video_insights, campaign_references, inspiration_videos,
-                    research_mode, enrichment_level, enrichment_status, research_completeness, last_enriched_at,
-                    created_at, updated_at
-                ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-                    $13, $14, $15, $16, $17, $18, $19, $20,
-                    $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
-                )
-                ON CONFLICT (user_id) DO UPDATE SET
-                    company_name = EXCLUDED.company_name,
-                    industry = EXCLUDED.industry,
-                    company_size = EXCLUDED.company_size,
-                    target_audience = EXCLUDED.target_audience,
-                    main_products = EXCLUDED.main_products,
-                    channels = EXCLUDED.channels,
-                    budget_range = EXCLUDED.budget_range,
-                    primary_goal = EXCLUDED.primary_goal,
-                    main_challenge = EXCLUDED.main_challenge,
-                    timeline = EXCLUDED.timeline,
-                    research_mode = EXCLUDED.research_mode,
-                    enrichment_level = EXCLUDED.enrichment_level,
-                    enrichment_status = EXCLUDED.enrichment_status,
-                    updated_at = EXCLUDED.updated_at
-                RETURNING *
-                """,
-                persona_id, user_id,
-                data.companyName, data.industry, data.companySize, data.targetAudience,
-                data.mainProducts, data.channels, data.budgetRange, data.primaryGoal,
-                data.mainChallenge, data.timeline,
-                json.dumps({}), json.dumps({}), [], [], [],
-                [], json.dumps({}), json.dumps({}),
-                json.dumps([]), [], json.dumps([]), json.dumps([]),
-                data.researchMode, data.enrichmentLevel or data.researchMode, "pending", 0, None,
-                now, now
-            )
-            
-            return UserPersona(
-                id=str(row["id"]),
-                userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
-                # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
-                createdAt=_parse_timestamp(row["created_at"]),
-                updatedAt=_parse_timestamp(row["updated_at"])
-            )
-        finally:
-            await conn.close()
-    
     async def get_user_persona(self, user_id: str) -> Optional[UserPersona]:
         """Get the user persona for a specific user"""
         conn = await self._get_db_connection()
@@ -1924,42 +1948,42 @@ class MemStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -1980,42 +2004,42 @@ class MemStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )
@@ -2101,42 +2125,42 @@ class MemStorage:
             return UserPersona(
                 id=str(row["id"]),
                 userId=row["user_id"],
-                companyName=row["company_name"],
-                industry=row["industry"],
-                companySize=row["company_size"],
-                targetAudience=row["target_audience"],
-                mainProducts=row["main_products"],
-                channels=list(row["channels"]) if row["channels"] else [],
-                budgetRange=row["budget_range"],
-                primaryGoal=row["primary_goal"],
-                mainChallenge=row["main_challenge"],
-                timeline=row["timeline"],
-                demographics=json.loads(row["demographics"]) if row["demographics"] else {},
-                psychographics=json.loads(row["psychographics"]) if row["psychographics"] else {},
-                painPoints=list(row["pain_points"]) if row["pain_points"] else [],
-                goals=list(row["goals"]) if row["goals"] else [],
-                values=list(row["values"]) if row["values"] else [],
-                communities=list(row["communities"]) if row["communities"] else [],
-                behavioralPatterns=json.loads(row["behavioral_patterns"]) if row["behavioral_patterns"] else {},
-                contentPreferences=json.loads(row["content_preferences"]) if row["content_preferences"] else {},
-                youtubeResearch=json.loads(row["youtube_research"]) if row["youtube_research"] else [],
-                videoInsights=list(row["video_insights"]) if row["video_insights"] else [],
-                campaignReferences=json.loads(row["campaign_references"]) if row["campaign_references"] else [],
-                inspirationVideos=json.loads(row["inspiration_videos"]) if row["inspiration_videos"] else [],
-                researchMode=row["research_mode"],
-                enrichmentLevel=row.get("enrichment_level"),
-                enrichmentStatus=row.get("enrichment_status", "pending"),
-                researchCompleteness=row["research_completeness"],
-                lastEnrichedAt=_parse_timestamp(row["last_enriched_at"]) if row["last_enriched_at"] else None,
+                companyName=row.get("company_name") or "",
+                industry=row.get("industry") or "",
+                companySize=row.get("company_size") or "",
+                targetAudience=row.get("target_audience") or "",
+                mainProducts=row.get("main_products") or "",
+                channels=_safe_json_parse(row.get("channels"), []),
+                budgetRange=row.get("budget_range") or "",
+                primaryGoal=row.get("primary_goal") or "",
+                mainChallenge=row.get("main_challenge") or "",
+                timeline=row.get("timeline") or "",
+                demographics=_safe_json_parse(row.get("demographics"), {}),
+                psychographics=_safe_json_parse(row.get("psychographics"), {}),
+                painPoints=_safe_json_parse(row.get("pain_points"), []),
+                goals=_safe_json_parse(row.get("goals"), []),
+                values=_safe_json_parse(row.get("values"), []),
+                communities=_safe_json_parse(row.get("communities"), []),
+                behavioralPatterns=_safe_json_parse(row.get("behavioral_patterns"), {}),
+                contentPreferences=_safe_json_parse(row.get("content_preferences"), {}),
+                youtubeResearch=_safe_json_parse(row.get("youtube_research"), []),
+                videoInsights=_safe_json_parse(row.get("video_insights"), []),
+                campaignReferences=_safe_json_parse(row.get("campaign_references"), []),
+                inspirationVideos=_safe_json_parse(row.get("inspiration_videos"), []),
+                researchMode=row.get("research_mode") or "quick",
+                enrichmentLevel=row.get("enrichment_level") or "quick",
+                enrichmentStatus=row.get("enrichment_status") or "pending",
+                researchCompleteness=row.get("research_completeness") or 0,
+                lastEnrichedAt=_parse_timestamp(row.get("last_enriched_at")),
                 # 8-Module Deep Persona System
-                psychographicCore=json.loads(row["psychographic_core"]) if row.get("psychographic_core") else None,
-                buyerJourney=json.loads(row["buyer_journey"]) if row.get("buyer_journey") else None,
-                behavioralProfile=json.loads(row["behavioral_profile"]) if row.get("behavioral_profile") else None,
-                languageCommunication=json.loads(row["language_communication"]) if row.get("language_communication") else None,
-                strategicInsights=json.loads(row["strategic_insights"]) if row.get("strategic_insights") else None,
-                jobsToBeDone=json.loads(row["jobs_to_be_done"]) if row.get("jobs_to_be_done") else None,
-                decisionProfile=json.loads(row["decision_profile"]) if row.get("decision_profile") else None,
-                copyExamples=json.loads(row["copy_examples"]) if row.get("copy_examples") else None,
+                psychographicCore=_safe_json_parse(row.get("psychographic_core")),
+                buyerJourney=_safe_json_parse(row.get("buyer_journey")),
+                behavioralProfile=_safe_json_parse(row.get("behavioral_profile")),
+                languageCommunication=_safe_json_parse(row.get("language_communication")),
+                strategicInsights=_safe_json_parse(row.get("strategic_insights")),
+                jobsToBeDone=_safe_json_parse(row.get("jobs_to_be_done")),
+                decisionProfile=_safe_json_parse(row.get("decision_profile")),
+                copyExamples=_safe_json_parse(row.get("copy_examples")),
                 createdAt=_parse_timestamp(row["created_at"]),
                 updatedAt=_parse_timestamp(row["updated_at"])
             )

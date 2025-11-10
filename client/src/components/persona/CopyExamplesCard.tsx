@@ -4,6 +4,14 @@ import { FileText, Mail, Linkedin, MousePointerClick, Globe } from "lucide-react
 
 interface CopyExamplesCardProps {
   data: {
+    // New format (from enrichment) - lists
+    headlines?: string[];
+    emailSubjects?: string[];
+    socialPosts?: string[];
+    ctaButtons?: string[];
+    adCopy?: string[];
+    landingPageHero?: string[];
+    // Old format (fallback) - single values
     headline?: string;
     emailSubject?: string;
     linkedinPost?: string;
@@ -41,6 +49,102 @@ export function CopyExamplesCard({ data }: CopyExamplesCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* New format - Lists of copy examples */}
+        {data.headlines && data.headlines.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <FileText className="w-4 h-4 text-primary" />
+              Headlines
+            </div>
+            <div className="space-y-2">
+              {data.headlines.map((headline, idx) => (
+                <p key={idx} className="text-base font-semibold p-3 bg-gradient-to-r from-muted to-transparent rounded-md border-l-4 border-primary">
+                  {headline}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.emailSubjects && data.emailSubjects.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Mail className="w-4 h-4 text-primary" />
+              Subject Lines de Email
+            </div>
+            <div className="space-y-2">
+              {data.emailSubjects.map((subject, idx) => (
+                <p key={idx} className="text-sm p-3 bg-muted rounded-md font-medium">
+                  {subject}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.ctaButtons && data.ctaButtons.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <MousePointerClick className="w-4 h-4 text-primary" />
+              Call-to-Actions
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {data.ctaButtons.map((cta, idx) => (
+                <Badge key={idx} variant="default" className="text-sm px-4 py-2">
+                  {cta}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.socialPosts && data.socialPosts.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Linkedin className="w-4 h-4 text-primary" />
+              Posts para Redes Sociais
+            </div>
+            <div className="space-y-2">
+              {data.socialPosts.map((post, idx) => (
+                <p key={idx} className="text-sm p-4 bg-muted/50 rounded-md whitespace-pre-line">
+                  {post}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.adCopy && data.adCopy.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold">Ads Copy</div>
+            <div className="space-y-2">
+              {data.adCopy.map((ad, idx) => (
+                <p key={idx} className="text-sm p-3 bg-muted rounded-md">
+                  {ad}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.landingPageHero && data.landingPageHero.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Globe className="w-4 h-4 text-primary" />
+              Hero Section para Landing Page
+            </div>
+            <div className="space-y-3">
+              {data.landingPageHero.map((hero, idx) => (
+                <div key={idx} className="p-4 bg-gradient-to-br from-primary/5 to-transparent rounded-lg border border-primary/20">
+                  <Badge variant="outline" className="mb-2">Versão {idx + 1}</Badge>
+                  <p className="text-sm whitespace-pre-line">{hero}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Old format (fallback) */}
         {data.headline && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-semibold">

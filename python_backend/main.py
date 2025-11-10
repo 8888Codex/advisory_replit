@@ -11,6 +11,10 @@ import io
 import json
 import asyncio
 import httpx
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
 
 from models import (
     Expert, ExpertCreate, ExpertType, CategoryType, CategoryInfo,
@@ -55,8 +59,8 @@ def get_allowed_origins():
             f"https://{replit_domain}.{replit_owner}.repl.co",
         ]
     else:
-        # Development: allow localhost
-        return ["http://localhost:5000", "http://127.0.0.1:5000"]
+        # Development: allow localhost on ports 3000 and 5000
+        return ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5000", "http://127.0.0.1:5000"]
 
 allowed_origins = get_allowed_origins()
 print(f"[CORS] Allowed origins: {allowed_origins}")
@@ -129,43 +133,68 @@ class UserResponse(BaseModel):
 async def register_user(data: RegisterRequest):
     """Register new user with invite code"""
     
-    # Validate invite code
-    invite = await storage.get_invite(data.inviteCode)
-    if not invite:
-        raise HTTPException(status_code=400, detail="Código de convite inválido")
-    
-    if invite["usedBy"]:
-        raise HTTPException(status_code=400, detail="Este código de convite já foi utilizado")
-    
-    # Check if email already exists
-    existing_user = await storage.get_user_by_email(data.email)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email já cadastrado")
-    
-    # Hash password
-    password_hash = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    
-    # Create user
-    user = await storage.create_user(data.username, data.email, password_hash)
-    
-    # Mark invite as used
-    await storage.use_invite(data.inviteCode, user["id"])
-    
-    # Decrement creator's available invites
-    creator = await storage.get_user_by_id(invite["creatorId"])
-    if creator and creator["availableInvites"] > 0:
-        await storage.update_user_invites(invite["creatorId"], creator["availableInvites"] - 1)
-    
-    # Return user with default role (backward compatibility)
-    return UserResponse(
-        id=user["id"],
-        username=user["username"],
-        email=user["email"],
-        availableInvites=user["availableInvites"],
-        role=user.get("role", "user"),
-        createdAt=user["createdAt"],
-        activePersonaId=user.get("activePersonaId")
-    )
+    try:
+        print(f"[DEBUG] Starting registration for {data.email}")
+        
+        # Validate invite code
+        print(f"[DEBUG] Validating invite code: {data.inviteCode}")
+        invite = await storage.get_invite(data.inviteCode)
+        if not invite:
+            raise HTTPException(status_code=400, detail="Código de convite inválido")
+        print(f"[DEBUG] Invite valid, creator: {invite['creatorId']}")
+        
+        if invite["usedBy"]:
+            raise HTTPException(status_code=400, detail="Este código de convite já foi utilizado")
+        
+        # Check if email already exists
+        print(f"[DEBUG] Checking if email exists...")
+        existing_user = await storage.get_user_by_email(data.email)
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email já cadastrado")
+        print(f"[DEBUG] Email is available")
+        
+        # Hash password
+        print(f"[DEBUG] Hashing password...")
+        password_hash = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Create user
+        print(f"[DEBUG] Creating user...")
+        user = await storage.create_user(data.username, data.email, password_hash)
+        print(f"[DEBUG] User created: {user['id']}")
+        
+        # Mark invite as used
+        print(f"[DEBUG] Marking invite as used...")
+        await storage.use_invite(data.inviteCode, user["id"])
+        
+        # Decrement creator's available invites (skip if creator is system)
+        if invite["creatorId"] != "system":
+            print(f"[DEBUG] Decrementing creator invites...")
+            creator = await storage.get_user_by_id(invite["creatorId"])
+            if creator and creator["availableInvites"] > 0:
+                await storage.update_user_invites(invite["creatorId"], creator["availableInvites"] - 1)
+        else:
+            print(f"[DEBUG] Skipping decrement for system invite")
+        
+        print(f"[DEBUG] Registration successful!")
+        
+        # Return user with default role (backward compatibility)
+        return UserResponse(
+            id=user["id"],
+            username=user["username"],
+            email=user["email"],
+            availableInvites=user["availableInvites"],
+            role=user.get("role", "user"),
+            createdAt=user["createdAt"],
+            activePersonaId=user.get("activePersonaId")
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Registration failed: {str(e)}")
+        print(f"[ERROR] Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao registrar usuário: {str(e)}")
 
 @app.post("/api/auth/login", response_model=UserResponse)
 async def login_user(data: LoginRequest):
@@ -477,38 +506,58 @@ class OnboardingStatusResponse(BaseModel):
     id: str
     userId: str
     currentStep: int
-    companyName: Optional[str]
-    industry: Optional[str]
-    companySize: Optional[str]
-    targetAudience: Optional[str]
-    goals: Optional[List[str]]
-    mainChallenge: Optional[str]
-    enrichmentLevel: Optional[str]
-    completedAt: Optional[datetime]
-    createdAt: datetime
-    updatedAt: datetime
+    companyName: Optional[str] = None
+    industry: Optional[str] = None
+    companySize: Optional[str] = None
+    targetAudience: Optional[str] = None
+    goals: Optional[List[str]] = None
+    mainChallenge: Optional[str] = None
+    enrichmentLevel: Optional[str] = None
+    completedAt: Optional[datetime] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
 
 @app.post("/api/onboarding/save", response_model=OnboardingStatusResponse)
 async def save_onboarding(data: OnboardingSaveRequest, user_id: str):
     """Save onboarding progress for authenticated user"""
-    
-    # Convert Pydantic model to dict
-    onboarding_data = data.model_dump(exclude_unset=True)
-    
-    # Save to database
-    result = await storage.save_onboarding_progress(user_id, onboarding_data)
-    
-    return OnboardingStatusResponse(**result)
+    try:
+        print(f"[DEBUG] Saving onboarding for user: {user_id}")
+        print(f"[DEBUG] Data received: {data}")
+        
+        # Convert Pydantic model to dict
+        onboarding_data = data.model_dump(exclude_unset=True)
+        print(f"[DEBUG] Onboarding data dict: {onboarding_data}")
+        
+        # Save to database
+        result = await storage.save_onboarding_progress(user_id, onboarding_data)
+        print(f"[DEBUG] Save result: {result}")
+        
+        return OnboardingStatusResponse(**result)
+    except Exception as e:
+        print(f"[ERROR] save_onboarding failed: {str(e)}")
+        print(f"[ERROR] Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar progresso: {str(e)}")
 
 @app.get("/api/onboarding/status", response_model=Optional[OnboardingStatusResponse])
 async def get_onboarding_status(user_id: str):
     """Get onboarding status for authenticated user"""
-    result = await storage.get_onboarding_status(user_id)
-    
-    if not result:
-        return None
-    
-    return OnboardingStatusResponse(**result)
+    try:
+        print(f"[DEBUG] Getting onboarding status for user: {user_id}")
+        result = await storage.get_onboarding_status(user_id)
+        
+        if not result:
+            print(f"[DEBUG] No onboarding status found for user {user_id}")
+            return None
+        
+        print(f"[DEBUG] Onboarding status found: {result}")
+        return OnboardingStatusResponse(**result)
+    except Exception as e:
+        print(f"[ERROR] get_onboarding_status failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar status: {str(e)}")
 
 @app.post("/api/onboarding/complete")
 async def complete_onboarding(user_id: str):
@@ -693,8 +742,23 @@ async def get_all_experts_combined() -> List[Expert]:
     # Get custom experts from PostgreSQL (CUSTOM)
     custom_experts = await storage.get_experts()
     
-    # Combine both sources
-    return seed_experts + custom_experts
+    # Combine both sources, but remove duplicates by name
+    # Priority: SEED experts (HIGH_FIDELITY) take precedence over DB experts
+    seed_names = {expert.name.lower() for expert in seed_experts}
+    
+    # Filter out custom experts that duplicate seed experts
+    unique_custom_experts = [
+        expert for expert in custom_experts 
+        if expert.name.lower() not in seed_names
+    ]
+    
+    print(f"[DEDUP] SEED experts: {len(seed_experts)}, DB experts: {len(custom_experts)}, Unique DB: {len(unique_custom_experts)}")
+    if len(custom_experts) > len(unique_custom_experts):
+        removed = len(custom_experts) - len(unique_custom_experts)
+        print(f"[DEDUP] Removed {removed} duplicate(s) from DB (already in SEED)")
+    
+    # Return combined list without duplicates
+    return seed_experts + unique_custom_experts
 
 # Expert endpoints
 @app.get("/api/experts", response_model=List[Expert])
@@ -706,14 +770,23 @@ async def get_experts(category: Optional[str] = None):
     Query params:
     - category: Filter by category ID (e.g., "growth", "marketing", "content")
     """
-    # Get all experts using shared helper
-    all_experts = await get_all_experts_combined()
-    
-    # Filter by category if provided
-    if category:
-        all_experts = [e for e in all_experts if e.category.value == category]
-    
-    return all_experts
+    try:
+        print("[DEBUG] Getting experts, category filter:", category)
+        # Get all experts using shared helper
+        all_experts = await get_all_experts_combined()
+        print(f"[DEBUG] Total experts loaded: {len(all_experts)}")
+        
+        # Filter by category if provided
+        if category:
+            all_experts = [e for e in all_experts if e.category.value == category]
+            print(f"[DEBUG] After category filter: {len(all_experts)}")
+        
+        return all_experts
+    except Exception as e:
+        print(f"[ERROR] Failed to get experts: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar experts: {str(e)}")
 
 @app.get("/api/categories", response_model=List[CategoryInfo])
 async def get_categories():
@@ -1308,6 +1381,43 @@ Responda APENAS com o ID da categoria (ex: "growth"), nada mais."""
         }
     )
 
+
+# Expert Recommendations endpoint (MUST be BEFORE /api/experts/{expert_id})
+@app.get("/api/experts/recommendations")
+async def get_expert_recommendations():
+    """
+    Get expert recommendations based on user's business profile.
+    Returns experts with relevance scores, star ratings, and justifications.
+    """
+    try:
+        from recommendation import recommendation_engine
+        
+        # Get user's business profile
+        user_id = "default_user"
+        profile = await storage.get_business_profile(user_id)
+        
+        # Get all experts
+        experts = await storage.get_experts()
+        if not experts:
+            raise HTTPException(status_code=404, detail="No experts available")
+        
+        # Get recommendations
+        recommendations = recommendation_engine.get_recommendations(experts, profile)
+        
+        # Format response
+        return {
+            "hasProfile": profile is not None,
+            "recommendations": recommendations
+        }
+    
+    except Exception as e:
+        print(f"Error getting recommendations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get recommendations: {str(e)}"
+        )
 
 @app.get("/api/experts/{expert_id}", response_model=Expert)
 async def get_expert(expert_id: str):
@@ -2560,10 +2670,100 @@ async def upload_expert_avatar(expert_id: str, file: UploadFile = File(...)):
         await file.close()
 
 # Conversation endpoints
+class ConversationWithDetails(BaseModel):
+    """Conversation with expert details and message count"""
+    id: str
+    expertId: str
+    expertName: str
+    expertAvatar: Optional[str]
+    expertCategory: str
+    title: str
+    messageCount: int
+    lastMessage: Optional[str] = None
+    createdAt: datetime
+    updatedAt: datetime
+
+# IMPORTANT: Specific routes MUST come BEFORE parameterized routes
+@app.get("/api/conversations/history/user", response_model=List[ConversationWithDetails])
+async def get_user_conversation_history(user_id: str, limit: int = Query(50)):
+    """Get conversation history for user with expert details and preview"""
+    try:
+        print(f"[HISTORY] Getting conversation history for user: {user_id}, limit: {limit}")
+        
+        # Get user's conversations
+        conversations = await storage.get_user_conversations(user_id)
+        print(f"[HISTORY] Found {len(conversations)} conversations")
+        
+        # Enrich with expert details and message info
+        result = []
+        for conv in conversations[:limit]:
+            # Get expert info
+            expert = await get_expert_by_id(conv.expertId, include_system_prompt=False)
+            if not expert:
+                print(f"[HISTORY] Expert {conv.expertId} not found, skipping")
+                continue
+            
+            # Get message count and last message
+            messages = await storage.get_messages(conv.id)
+            message_count = len(messages)
+            last_message = messages[-1].content[:100] if messages else None
+            
+            result.append(ConversationWithDetails(
+                id=conv.id,
+                expertId=conv.expertId,
+                expertName=expert.name,
+                expertAvatar=expert.avatar,
+                expertCategory=expert.category.value,
+                title=conv.title,
+                messageCount=message_count,
+                lastMessage=last_message,
+                createdAt=conv.createdAt,
+                updatedAt=conv.updatedAt
+            ))
+        
+        print(f"[HISTORY] Returning {len(result)} conversations with details")
+        return result
+    except Exception as e:
+        print(f"[ERROR] Failed to get history: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar histórico: {str(e)}")
+
 @app.get("/api/conversations", response_model=List[Conversation])
-async def get_conversations(expertId: Optional[str] = None):
-    """Get conversations, optionally filtered by expert"""
-    return await storage.get_conversations(expertId)
+async def get_conversations(user_id: str, expertId: Optional[str] = None):
+    """Get conversations for a user, optionally filtered by expert"""
+    try:
+        print(f"[DEBUG] Getting conversations for user: {user_id}, expertId: {expertId}")
+        conversations = await storage.get_user_conversations(user_id, expertId)
+        print(f"[DEBUG] Found {len(conversations)} conversations")
+        return conversations
+    except Exception as e:
+        print(f"[ERROR] Failed to get conversations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar conversas: {str(e)}")
+
+@app.delete("/api/conversations/user/clear-all")
+async def clear_all_conversations(user_id: str = Query(...)):
+    """Clear all conversations for a user (delete everything)"""
+    try:
+        print(f"[CLEAR-ALL] User {user_id} clearing all conversations")
+        
+        # Delete all conversations for this user
+        deleted_count = await storage.delete_all_user_conversations(user_id)
+        
+        print(f"[CLEAR-ALL] Deleted {deleted_count} conversations for user {user_id}")
+        return {
+            "success": True, 
+            "message": f"Deleted {deleted_count} conversations",
+            "deletedCount": deleted_count
+        }
+    
+    except Exception as e:
+        print(f"[ERROR] Failed to clear conversations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to clear conversations: {str(e)}")
 
 @app.get("/api/conversations/{conversation_id}", response_model=Conversation)
 async def get_conversation(conversation_id: str):
@@ -2573,21 +2773,96 @@ async def get_conversation(conversation_id: str):
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conversation
 
-@app.post("/api/conversations", response_model=Conversation, status_code=201)
-async def create_conversation(data: ConversationCreate):
-    """Create a new conversation with an expert"""
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, user_id: str = Query(...)):
+    """Delete a conversation and all its messages (only owner can delete)"""
     try:
+        print(f"[DELETE] User {user_id} deleting conversation {conversation_id}")
+        
+        # Verify conversation exists and belongs to user
+        conversation = await storage.get_conversation(conversation_id)
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        # Verify ownership (prevent users from deleting others' conversations)
+        conv_user_id = await storage.get_conversation_user_id(conversation_id)
+        if conv_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
+        
+        # Delete conversation (will cascade to messages)
+        success = await storage.delete_conversation(conversation_id)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to delete conversation")
+        
+        print(f"[DELETE] Conversation {conversation_id} deleted successfully")
+        return {"success": True, "message": "Conversation deleted"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Failed to delete conversation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
+
+@app.post("/api/conversations", response_model=Conversation, status_code=201)
+async def create_conversation(data: ConversationCreate, user_id: str = Query("default_user")):
+    """Create a new conversation with an expert for authenticated user"""
+    try:
+        print(f"[DEBUG] Creating conversation for user {user_id} with data: {data}")
+        
         # Verify expert exists (supports both seed and custom experts)
+        print(f"[DEBUG] Getting expert: {data.expertId}")
         expert = await get_expert_by_id(data.expertId)
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
-        conversation = await storage.create_conversation(data)
+        print(f"[DEBUG] Expert found: {expert.name}")
+        print(f"[DEBUG] Calling storage.create_conversation...")
+        conversation = await storage.create_conversation_with_user(data, user_id)
+        print(f"[DEBUG] Conversation created: {conversation.id}")
         return conversation
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[ERROR] Failed to create conversation: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create conversation: {str(e)}")
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, user_id: str = Query(...)):
+    """Delete a conversation and all its messages (only owner can delete)"""
+    try:
+        print(f"[DELETE] User {user_id} deleting conversation {conversation_id}")
+        
+        # Verify conversation exists and belongs to user
+        conversation = await storage.get_conversation(conversation_id)
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        # Verify ownership (prevent users from deleting others' conversations)
+        conv_user_id = await storage.get_conversation_user_id(conversation_id)
+        if conv_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
+        
+        # Delete conversation (will cascade to messages)
+        success = await storage.delete_conversation(conversation_id)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to delete conversation")
+        
+        print(f"[DELETE] Conversation {conversation_id} deleted successfully")
+        return {"success": True, "message": "Conversation deleted"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Failed to delete conversation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
 
 # Message endpoints
 @app.get("/api/conversations/{conversation_id}/messages", response_model=List[Message])
@@ -2727,7 +3002,7 @@ async def get_profile():
 
 # UserPersona endpoints (Unified Persona Intelligence Hub)
 @app.post("/api/persona/create", response_model=UserPersona, status_code=201)
-async def create_user_persona(data: UserPersonaCreate):
+async def create_user_persona(data: UserPersonaCreate, user_id: str = Query(...)):
     """
     Create a new unified user persona with optional Reddit research.
     
@@ -2737,7 +3012,6 @@ async def create_user_persona(data: UserPersonaCreate):
     - Initial research mode configuration
     """
     print(f"[PERSONA CREATE] Endpoint called with data: {data}")
-    user_id = "default_user"
     print(f"[PERSONA CREATE] Using user_id: {user_id}")
     try:
         print(f"[PERSONA CREATE] Calling storage.create_user_persona...")
@@ -2751,12 +3025,12 @@ async def create_user_persona(data: UserPersonaCreate):
         raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
 
 @app.get("/api/persona/current", response_model=Optional[UserPersona])
-async def get_current_persona():
+async def get_current_persona(user_id: str = Query(...)):
     """
     Get the current user's persona.
-    Returns the most recent persona for user_id="default_user".
+    Returns the most recent persona for the authenticated user.
     """
-    user_id = "default_user"
+    print(f"[PERSONA CURRENT] Fetching persona for user_id: {user_id}")
     try:
         persona = await storage.get_user_persona(user_id)
         return persona
@@ -2767,43 +3041,107 @@ async def get_current_persona():
 async def _async_enrichment_task(persona_id: str, level: str):
     """
     Async worker that performs the actual enrichment.
+    IMPORTANT: This runs in a new event loop, so it needs its own DB connection.
     """
     print(f"[BACKGROUND] ⚡ Async enrichment task STARTED for persona {persona_id} with level {level}")
+    
+    # Import here to avoid circular dependencies
+    import asyncpg
+    from pathlib import Path
+    
     try:
-        # Mark as processing
-        print(f"[BACKGROUND] Updating status to 'processing'...")
-        await storage.update_user_persona(persona_id, {
-            "enrichmentStatus": "processing"
-        })
-        print(f"[BACKGROUND] Status updated. Starting {level} enrichment for persona {persona_id}...")
+        # Create NEW database connection for this background task
+        print(f"[BACKGROUND] Creating database connection...")
+        db_url = os.getenv("DATABASE_URL")
+        conn = await asyncpg.connect(db_url)
         
-        from persona_enrichment import enrich_persona_with_deep_modules
-        
-        # Execute enrichment
-        print(f"[BACKGROUND] Calling enrich_persona_with_deep_modules...")
-        persona = await enrich_persona_with_deep_modules(
-            persona_id=persona_id,
-            level=level,
-            storage=storage,
-            existing_modules=None
-        )
-        
-        # Mark as completed
-        print(f"[BACKGROUND] Enrichment completed, marking as 'completed'...")
-        await storage.update_user_persona(persona_id, {
-            "enrichmentStatus": "completed"
-        })
-        print(f"[BACKGROUND] ✅ Enrichment completed for persona {persona_id}")
+        try:
+            # Mark as processing
+            print(f"[BACKGROUND] Updating status to 'processing'...")
+            await conn.execute("""
+                UPDATE user_personas
+                SET enrichment_status = 'processing'
+                WHERE id = $1
+            """, persona_id)
+            print(f"[BACKGROUND] Status updated. Starting {level} enrichment...")
+            
+            # Get persona data from database
+            print(f"[BACKGROUND] Fetching persona data...")
+            persona_row = await conn.fetchrow("""
+                SELECT * FROM user_personas WHERE id = $1
+            """, persona_id)
+            
+            if not persona_row:
+                raise Exception(f"Persona {persona_id} not found")
+            
+            print(f"[BACKGROUND] Persona found. Starting COMPLETE enrichment...")
+            print(f"[BACKGROUND] Company: {persona_row['company_name']}")
+            print(f"[BACKGROUND] Industry: {persona_row['industry']}")
+            print(f"[BACKGROUND] Level: {level}")
+            
+            # Import standalone enrichment (works with dedicated connection)
+            import sys
+            import importlib
+            
+            # Reload to avoid cache
+            if 'persona_enrichment_standalone' in sys.modules:
+                importlib.reload(sys.modules['persona_enrichment_standalone'])
+            
+            from persona_enrichment_standalone import enrich_persona_complete_standalone
+            
+            # Execute COMPLETE enrichment
+            print(f"[BACKGROUND] Calling COMPLETE enrichment (YouTube + 8 modules)...")
+            enriched_data = await enrich_persona_complete_standalone(
+                conn=conn,
+                persona_id=persona_id,
+                persona_data={
+                    'company_name': persona_row['company_name'],
+                    'industry': persona_row['industry'],
+                    'target_audience': persona_row['target_audience'],
+                    'primary_goal': persona_row['primary_goal'],
+                    'main_challenge': persona_row['main_challenge'],
+                },
+                level=level
+            )
+            
+            print(f"[BACKGROUND] ✅ Enrichment COMPLETE!")
+            print(f"[BACKGROUND] Generated modules: {list(enriched_data.keys())}")
+            print(f"[BACKGROUND] YouTube videos: {len(enriched_data.get('youtube', {}).get('videos', []))}")
+            
+            # Mark as completed
+            print(f"[BACKGROUND] Enrichment completed, marking as 'completed'...")
+            await conn.execute("""
+                UPDATE user_personas
+                SET enrichment_status = 'completed',
+                    last_enriched_at = NOW()
+                WHERE id = $1
+            """, persona_id)
+            print(f"[BACKGROUND] ✅ Enrichment completed successfully!")
+            
+        finally:
+            # Close the dedicated connection
+            await conn.close()
+            print(f"[BACKGROUND] Database connection closed")
         
     except Exception as e:
         # Mark as failed
         print(f"[BACKGROUND] ❌ Exception caught in background task!")
-        await storage.update_user_persona(persona_id, {
-            "enrichmentStatus": "failed"
-        })
-        print(f"[BACKGROUND] ❌ Enrichment failed for persona {persona_id}: {str(e)}")
+        print(f"[BACKGROUND] Error: {str(e)}")
         import traceback
         traceback.print_exc()
+        
+        # Try to mark as failed (with new connection if needed)
+        try:
+            db_url = os.getenv("DATABASE_URL")
+            conn_fail = await asyncpg.connect(db_url)
+            await conn_fail.execute("""
+                UPDATE user_personas
+                SET enrichment_status = 'failed'
+                WHERE id = $1
+            """, persona_id)
+            await conn_fail.close()
+        except:
+            print(f"[BACKGROUND] Could not mark as failed in DB")
 
 def _background_enrichment_task(persona_id: str, level: str):
     """
@@ -2840,9 +3178,14 @@ async def enrich_persona_background(data: PersonaEnrichmentRequest, background_t
             raise HTTPException(status_code=404, detail="Persona not found")
         
         print(f"[ENRICH_ENDPOINT] Persona found. Adding background task...")
+        print(f"[ENRICH_ENDPOINT] Persona ID: {data.personaId}, Mode: {data.mode}")
+        print(f"[ENRICH_ENDPOINT] background_tasks object: {background_tasks}")
+        
         # Dispatch background task using FastAPI's BackgroundTasks
         background_tasks.add_task(_background_enrichment_task, data.personaId, data.mode)
+        
         print(f"[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.")
+        print(f"[ENRICH_ENDPOINT] Task should execute after response is sent...")
         
         return {
             "message": "Enrichment started in background",
@@ -2857,12 +3200,12 @@ async def enrich_persona_background(data: PersonaEnrichmentRequest, background_t
         raise HTTPException(status_code=500, detail=f"Failed to start enrichment: {str(e)}")
 
 @app.get("/api/persona/enrichment-status")
-async def get_enrichment_status():
+async def get_enrichment_status(user_id: str = Query(...)):
     """
     Get current persona enrichment status.
     Returns: { status: 'pending' | 'processing' | 'completed' | 'failed' }
     """
-    user_id = "default_user"
+    print(f"[ENRICHMENT STATUS] Fetching for user_id: {user_id}")
     try:
         persona = await storage.get_user_persona(user_id)
         if not persona:
@@ -2979,20 +3322,43 @@ async def upgrade_persona(persona_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to upgrade persona: {str(e)}")
 
 @app.delete("/api/persona/{persona_id}", status_code=204)
-async def delete_user_persona(persona_id: str):
+async def delete_user_persona(persona_id: str, user_id: str = Query(...)):
     """
     Delete a user persona by ID.
     Returns 204 No Content on success.
     """
     try:
-        deleted = await storage.delete_user_persona(persona_id)
-        if not deleted:
+        print(f"[DELETE PERSONA] persona_id={persona_id}, user_id={user_id}")
+        
+        # Verify ownership before deleting
+        persona = await storage.get_user_persona_by_id(persona_id)
+        print(f"[DELETE PERSONA] Found persona: {persona is not None}")
+        
+        if not persona:
+            print(f"[DELETE PERSONA] ERROR: Persona not found")
             raise HTTPException(status_code=404, detail=f"Persona with id {persona_id} not found")
+        
+        print(f"[DELETE PERSONA] Persona userId: {persona.userId}, requesting user_id: {user_id}")
+        
+        if persona.userId != user_id:
+            print(f"[DELETE PERSONA] ERROR: Access denied")
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        deleted = await storage.delete_user_persona(persona_id)
+        print(f"[DELETE PERSONA] Deleted result: {deleted}")
+        
+        if not deleted:
+            print(f"[DELETE PERSONA] ERROR: Delete returned False")
+            raise HTTPException(status_code=404, detail=f"Persona with id {persona_id} not found")
+        
+        print(f"[DELETE PERSONA] SUCCESS")
         return None
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error deleting persona: {str(e)}")
+        print(f"[DELETE PERSONA] EXCEPTION: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to delete persona: {str(e)}")
 
 @app.get("/api/persona/list", response_model=List[UserPersona])
@@ -3047,43 +3413,6 @@ async def get_persona_by_id(persona_id: str, user_id: str = Query(...)):
     except Exception as e:
         print(f"Error getting persona by ID: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get persona: {str(e)}")
-
-# Expert Recommendations endpoint (based on business profile)
-@app.get("/api/experts/recommendations")
-async def get_expert_recommendations():
-    """
-    Get expert recommendations based on user's business profile.
-    Returns experts with relevance scores, star ratings, and justifications.
-    """
-    try:
-        from recommendation import recommendation_engine
-        
-        # Get user's business profile
-        user_id = "default_user"
-        profile = await storage.get_business_profile(user_id)
-        
-        # Get all experts
-        experts = await storage.get_experts()
-        if not experts:
-            raise HTTPException(status_code=404, detail="No experts available")
-        
-        # Get recommendations
-        recommendations = recommendation_engine.get_recommendations(experts, profile)
-        
-        # Format response
-        return {
-            "hasProfile": profile is not None,
-            "recommendations": recommendations
-        }
-    
-    except Exception as e:
-        print(f"Error getting recommendations: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get recommendations: {str(e)}"
-        )
 
 # Suggested Questions endpoint (personalized based on profile + expert expertise)
 @app.get("/api/experts/{expert_id}/suggested-questions")
@@ -3482,19 +3811,22 @@ async def create_council_analysis(data: CouncilAnalysisCreate):
         # Get user's business profile (optional)
         profile = await storage.get_business_profile(user_id)
         
-        # Get experts to consult (all 8 if not specified)
+        # Get experts to consult (all if not specified)
         if data.expertIds:
             experts = []
             for expert_id in data.expertIds:
-                expert = await storage.get_expert(expert_id)
+                # Use get_expert_by_id to support both SEED and DB experts
+                expert = await get_expert_by_id(expert_id, include_system_prompt=True)
                 if not expert:
                     raise HTTPException(status_code=404, detail=f"Expert {expert_id} not found")
                 experts.append(expert)
         else:
-            # Use all available experts
-            experts = await storage.get_experts()
+            # Use all available experts (combined SEED + DB)
+            experts = await get_all_experts_combined()
             if not experts:
                 raise HTTPException(status_code=400, detail="No experts available for analysis")
+            # Limit to top 8 experts for performance
+            experts = experts[:8]
         
         # Run council analysis
         analysis = await council_orchestrator.analyze(
@@ -3554,16 +3886,20 @@ async def create_council_analysis_stream(data: CouncilAnalysisCreate):
             if data.expertIds:
                 experts = []
                 for expert_id in data.expertIds:
-                    expert = await storage.get_expert(expert_id)
+                    # Use get_expert_by_id to support both SEED and DB experts
+                    expert = await get_expert_by_id(expert_id, include_system_prompt=True)
                     if not expert:
                         yield sse_event("error", {"message": f"Expert {expert_id} not found"})
                         return
                     experts.append(expert)
             else:
-                experts = await storage.get_experts()
+                # Use all available experts (combined SEED + DB)
+                experts = await get_all_experts_combined()
                 if not experts:
                     yield sse_event("error", {"message": "No experts available"})
                     return
+                # Limit to top 8 experts for performance
+                experts = experts[:8]
             
             # Emit initial event with expert list
             yield sse_event("analysis_started", {
@@ -3784,7 +4120,8 @@ async def council_chat_stream(session_id: str, message: str):
             print(f"[SSE] Getting {len(expert_ids)} experts...")
             experts = []
             for expert_id in expert_ids:
-                expert = await storage.get_expert(expert_id)
+                # Use get_expert_by_id to support both SEED and DB experts
+                expert = await get_expert_by_id(expert_id, include_system_prompt=True)
                 if expert:
                     experts.append(expert)
             

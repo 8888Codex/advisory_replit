@@ -1,3 +1,7 @@
+// Load environment variables first
+import { config } from 'dotenv';
+config();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { spawn } from 'child_process';
@@ -484,10 +488,14 @@ app.get('/api/audit/logs', async (req, res) => {
 
 app.post('/api/onboarding/save', async (req, res) => {
   if (!req.session.userId) {
+    console.error('[Onboarding] User not authenticated - no session.userId');
     return res.status(401).json({ detail: 'Não autenticado' });
   }
 
   try {
+    console.log('[Onboarding] Save request - userId:', req.session.userId);
+    console.log('[Onboarding] Save request - body:', JSON.stringify(req.body));
+    
     // Call Python with authenticated user ID and onboarding data
     const response = await fetch(`http://localhost:5001/api/onboarding/save?user_id=${req.session.userId}`, {
       method: 'POST',
@@ -496,14 +504,18 @@ app.post('/api/onboarding/save', async (req, res) => {
     });
 
     const data = await response.json();
+    console.log('[Onboarding] Python response status:', response.status);
+    console.log('[Onboarding] Python response data:', JSON.stringify(data));
     
     if (!response.ok) {
+      console.error('[Onboarding] Python returned error:', response.status, data);
       return res.status(response.status).json(data);
     }
 
     res.json(data);
   } catch (error) {
     console.error('[Onboarding] Save error:', error);
+    console.error('[Onboarding] Error stack:', (error as Error).stack);
     res.status(500).json({ detail: 'Erro ao salvar progresso do onboarding' });
   }
 });
@@ -738,6 +750,11 @@ app.delete('/api/persona/:id', async (req, res) => {
       headers: { 'Content-Type': 'application/json' }
     });
 
+    // Status 204 não tem corpo de resposta
+    if (response.status === 204) {
+      return res.status(204).send();
+    }
+    
     const data = await response.json();
     
     if (!response.ok) {
@@ -776,7 +793,151 @@ app.get('/api/persona/:id', async (req, res) => {
   }
 });
 
-// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, and persona handled above)
+// ============================================
+// CONVERSATION ROUTES (Protected)
+// ============================================
+// Handle conversation endpoints to inject userId from session
+
+// Get conversation history with details (expert info, message count, preview)
+app.get('/api/conversations/history/user', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const { limit = '50' } = req.query;
+    const response = await fetch(`http://localhost:5001/api/conversations/history/user?user_id=${req.session.userId}&limit=${limit}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Conversations] History error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar histórico' });
+  }
+});
+
+app.get('/api/conversations', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const { expertId } = req.query;
+    let url = `http://localhost:5001/api/conversations?user_id=${req.session.userId}`;
+    if (expertId) {
+      url += `&expertId=${expertId}`;
+    }
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Conversations] List error:', error);
+    res.status(500).json({ detail: 'Erro ao buscar conversas' });
+  }
+});
+
+app.post('/api/conversations', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const response = await fetch(`http://localhost:5001/api/conversations?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('[Conversations] Create error:', error);
+    res.status(500).json({ detail: 'Erro ao criar conversa' });
+  }
+});
+
+// Delete single conversation (MUST be BEFORE proxy)
+app.delete('/api/conversations/:conversationId', async (req, res) => {
+  console.log('[EXPRESS DELETE] Route hit:', req.params.conversationId);
+  console.log('[EXPRESS DELETE] Session userId:', req.session?.userId);
+  
+  if (!req.session.userId) {
+    console.log('[EXPRESS DELETE] No userId in session - returning 401');
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const { conversationId } = req.params;
+    console.log(`[EXPRESS DELETE] Calling Python backend for ${conversationId}`);
+    
+    const response = await fetch(`http://localhost:5001/api/conversations/${conversationId}?user_id=${req.session.userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    console.log('[EXPRESS DELETE] Python response:', response.status, data);
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Conversations] Delete error:', error);
+    res.status(500).json({ detail: 'Erro ao deletar conversa' });
+  }
+});
+
+// Clear all conversations
+app.delete('/api/conversations/user/clear-all', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ detail: 'Não autenticado' });
+  }
+
+  try {
+    const response = await fetch(`http://localhost:5001/api/conversations/user/clear-all?user_id=${req.session.userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[Conversations] Clear all error:', error);
+    res.status(500).json({ detail: 'Erro ao limpar conversas' });
+  }
+});
+
+// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, persona, and conversations handled above)
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:5001',
@@ -789,8 +950,12 @@ app.use('/api', createProxyMiddleware({
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
   // @ts-ignore - filter option exists in runtime but not in type definitions
   filter: (pathname: string, req: any) => {
-    // Block /auth/*, /invites/*, /onboarding/*, and /persona/* from being proxied
-    return !pathname.startsWith('/auth') && !pathname.startsWith('/invites') && !pathname.startsWith('/onboarding') && !pathname.startsWith('/persona');
+    // Block /auth/*, /invites/*, /onboarding/*, /persona/*, and /conversations from being proxied
+    return !pathname.startsWith('/auth') && 
+           !pathname.startsWith('/invites') && 
+           !pathname.startsWith('/onboarding') && 
+           !pathname.startsWith('/persona') &&
+           !pathname.startsWith('/conversations');
   },
   // SSE-specific configuration for streaming endpoints
   on: {
@@ -900,11 +1065,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

@@ -2,8 +2,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Users, MessageSquare, TrendingUp, Radio } from "lucide-react";
 
+// Helper function to render nested objects
+function renderNestedObject(obj: any, depth: number = 0): JSX.Element {
+  if (!obj) return <></>;
+  
+  if (Array.isArray(obj)) {
+    return (
+      <ul className="space-y-1 text-sm">
+        {obj.map((item, idx) => (
+          <li key={idx} className="p-2 bg-muted/30 rounded-md">
+            {typeof item === 'object' ? renderNestedObject(item, depth + 1) : String(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  
+  if (typeof obj === 'object') {
+    return (
+      <div className={`space-y-2 ${depth > 0 ? 'pl-4 border-l-2 border-muted' : ''}`}>
+        {Object.entries(obj).map(([key, value]) => (
+          <div key={key}>
+            <p className="text-xs font-medium text-muted-foreground mb-1 capitalize">
+              {key.replace(/([A-Z])/g, ' $1').trim()}:
+            </p>
+            {Array.isArray(value) ? (
+              <div className="flex flex-wrap gap-1.5">
+                {value.map((item, idx) => (
+                  <Badge key={idx} variant="outline" className="text-xs">
+                    {String(item)}
+                  </Badge>
+                ))}
+              </div>
+            ) : typeof value === 'object' && value !== null ? (
+              renderNestedObject(value, depth + 1)
+            ) : (
+              <p className="text-sm">{String(value)}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  return <p className="text-sm">{String(obj)}</p>;
+}
+
 interface BehavioralProfileCardProps {
   data: {
+    // New format (from enrichment)
+    onlineBehavior?: any;
+    purchaseBehavior?: any;
+    decisionMaking?: any;
+    engagement?: any;
+    // Old format (fallback)
     cialdiniPrinciples?: Array<string | { principle: string; priority?: string }>;
     preferredChannels?: Array<string | { channel: string; usage?: string }>;
     influencerTypes?: string[];
@@ -44,6 +96,36 @@ export function BehavioralProfileCard({ data }: BehavioralProfileCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* New format - render all nested objects */}
+        {data.onlineBehavior && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold text-blue-500">Online Behavior</div>
+            {renderNestedObject(data.onlineBehavior)}
+          </div>
+        )}
+
+        {data.purchaseBehavior && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold text-green-500">Purchase Behavior</div>
+            {renderNestedObject(data.purchaseBehavior)}
+          </div>
+        )}
+
+        {data.decisionMaking && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold text-purple-500">Decision Making</div>
+            {renderNestedObject(data.decisionMaking)}
+          </div>
+        )}
+
+        {data.engagement && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold text-orange-500">Engagement</div>
+            {renderNestedObject(data.engagement)}
+          </div>
+        )}
+
+        {/* Old format (fallback) */}
         {data.cialdiniPrinciples && data.cialdiniPrinciples.length > 0 && (
           <div className="space-y-2">
             <div className="text-sm font-semibold">Princípios de Cialdini Ativos</div>

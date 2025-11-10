@@ -127,12 +127,34 @@ export default function Onboarding() {
   const { data: onboardingStatus, isLoading: isLoadingStatus } = useQuery<OnboardingStatus | null>({
     queryKey: ["/api/onboarding/status"],
     retry: false, // Don't retry if user hasn't started onboarding yet
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/onboarding/status", {
+          credentials: "include",
+        });
+        
+        // Se não autenticado ou não encontrado, retorna null (não é erro)
+        if (res.status === 401 || res.status === 404) {
+          return null;
+        }
+        
+        if (!res.ok) {
+          throw new Error(`${res.status}: ${await res.text()}`);
+        }
+        
+        return await res.json();
+      } catch (error) {
+        console.log("[ONBOARDING] Failed to load status, starting fresh:", error);
+        return null;
+      }
+    },
   });
 
   // Populate form and step when onboarding status is loaded
   useEffect(() => {
     if (onboardingStatus && onboardingStatus.completedAt === null) {
-      // Resume onboarding from saved progress
+      // Resume onboarding from saved progress (incomplete onboarding)
+      console.log("[ONBOARDING] Resuming incomplete onboarding...");
       form.reset({
         userId: "default_user",
         companyName: onboardingStatus.companyName || "",
@@ -146,10 +168,22 @@ export default function Onboarding() {
       // Resume from next step after last saved
       setStep(Math.min((onboardingStatus.currentStep || 0) + 1, 4));
     } else if (onboardingStatus && onboardingStatus.completedAt) {
-      // Already completed - redirect to home
-      navigate("/home");
+      // Onboarding already completed - start fresh for new persona
+      console.log("[ONBOARDING] Onboarding completed. Starting fresh for new persona.");
+      form.reset({
+        userId: "default_user",
+        companyName: "",
+        industry: "",
+        companySize: "",
+        targetAudience: "",
+        primaryGoal: "",
+        mainChallenge: "",
+        enrichmentLevel: "quick",
+      });
+      setStep(1);
     }
-  }, [onboardingStatus, form, navigate]);
+    // NOTA: Permite criar múltiplas personas mesmo após onboarding completo
+  }, [onboardingStatus, form]);
 
   // Save onboarding progress mutation (called on each step)
   const saveProgressMutation = useMutation({
@@ -188,15 +222,17 @@ export default function Onboarding() {
   const saveMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
       console.log("[ONBOARDING] saveMutation.mutationFn called, posting to /api/persona/create");
-      const result = await apiRequest("/api/persona/create", {
+      console.log("[ONBOARDING] Data being sent:", data);
+      const response = await apiRequest("/api/persona/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
-      console.log("[ONBOARDING] Persona created successfully:", result);
-      return result;
+      const persona = await response.json();
+      console.log("[ONBOARDING] Persona created successfully:", persona);
+      return persona;
     },
     onSuccess: async (persona: any, data: OnboardingFormData) => {
       try {

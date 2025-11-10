@@ -26,7 +26,7 @@ class Expert(BaseModel):
     title: str
     expertise: List[str]
     bio: str
-    systemPrompt: str
+    systemPrompt: Optional[str] = None
     avatar: Optional[str] = None
     expertType: ExpertType = ExpertType.HIGH_FIDELITY
     category: CategoryType = CategoryType.MARKETING  # Default to marketing
@@ -280,7 +280,7 @@ class UserPersona(BaseModel):
     
     # YouTube Research Enrichment
     youtubeResearch: List[dict] = []  # Raw Perplexity results
-    videoInsights: List[str] = []  # Extracted insights
+    videoInsights: List[dict] = []  # Extracted insights (changed from List[str] to List[dict])
     campaignReferences: List[dict] = []  # Structured campaign data
     inspirationVideos: List[dict] = []  # Top curated videos
     

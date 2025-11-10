@@ -517,9 +517,10 @@ export type UserProfileExtended = typeof userProfilesExtended.$inferSelect;
 // ============================================
 
 // User Personas - Unified persona system (Business Context + Psychographics + YouTube Research)
+// NOTE: userId is NOT unique - users can have multiple personas
 export const userPersonas = pgTable("user_personas", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().unique(),
+  userId: varchar("user_id").notNull(),
   
   // Business Context (from Onboarding)
   companyName: text("company_name"),
