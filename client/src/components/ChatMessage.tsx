@@ -29,8 +29,8 @@ export function ChatMessage({ message, expertName, expertAvatar }: ChatMessagePr
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: isUser ? 20 : -20, y: 10 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
+      initial={{ opacity: 0, x: isUser ? 20 : -20, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
       transition={{ 
         duration: 0.3, 
         ease: [0.4, 0, 0.2, 1]
@@ -41,33 +41,40 @@ export function ChatMessage({ message, expertName, expertAvatar }: ChatMessagePr
       )}
       data-testid={`message-${message.id}`}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
+      {/* Avatar for expert/user */}
+      <Avatar className={cn(
+        "h-10 w-10 flex-shrink-0 transition-all duration-300",
+        isUser 
+          ? "ring-2 ring-accent/20" 
+          : "ring-2 ring-primary/30 shadow-md shadow-primary/20"
+      )}>
         {isUser ? (
-          <>
-            <AvatarFallback>
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </>
+          <AvatarFallback className="bg-accent/10">
+            <User className="h-5 w-5" />
+          </AvatarFallback>
         ) : (
           <>
             <AvatarImage src={expertAvatar} alt={expertName} />
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            <AvatarFallback className="text-xs bg-accent/10 text-accent">{initials}</AvatarFallback>
           </>
         )}
       </Avatar>
 
-      <div className={cn("flex flex-col gap-1 max-w-[80%]", isUser ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col gap-1 max-w-[75%]", isUser ? "items-end" : "items-start")}>
         {!isUser && expertName && (
           <span className="text-xs font-medium text-muted-foreground px-3">
             {expertName}
           </span>
         )}
-        <div
+        <motion.div
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
           className={cn(
-            "rounded-xl px-4 py-3 text-sm",
+            "rounded-2xl px-4 py-3 text-sm shadow-md",
             isUser
-              ? "bg-primary text-primary-foreground"
-              : "bg-card border"
+              ? "bg-gradient-to-br from-primary to-accent text-white shadow-primary/30"
+              : "glass-premium"
           )}
         >
           {isUser ? (
@@ -128,6 +135,58 @@ export function ChatMessage({ message, expertName, expertAvatar }: ChatMessagePr
               </ReactMarkdown>
             </div>
           )}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Typing Indicator Component
+export function TypingIndicator({ expertName, expertAvatar }: { expertName?: string; expertAvatar?: string }) {
+  const initials = expertName
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "AI";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="flex gap-3 mb-4"
+    >
+      <Avatar className="h-10 w-10 flex-shrink-0 ring-2 ring-primary/30 shadow-md shadow-primary/20">
+        <AvatarImage src={expertAvatar} alt={expertName} />
+        <AvatarFallback className="text-xs bg-accent/10 text-accent">{initials}</AvatarFallback>
+      </Avatar>
+      
+      <div className="flex flex-col gap-1">
+        {expertName && (
+          <span className="text-xs font-medium text-muted-foreground px-3">
+            {expertName}
+          </span>
+        )}
+        <div className="rounded-2xl px-5 py-3 glass-premium">
+          <div className="flex gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  delay: i * 0.15,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </motion.div>

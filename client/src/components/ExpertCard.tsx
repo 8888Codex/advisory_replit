@@ -68,30 +68,48 @@ export function ExpertCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 * index }}
-        className={className}
+        whileHover={{ y: -8 }}
+        className={cn("group", className)}
       >
         <Card
-          className="rounded-2xl hover-elevate cursor-pointer transition-all relative"
+          className="rounded-2xl cursor-pointer transition-all duration-300 relative overflow-hidden hover:shadow-2xl hover:border-accent/30"
           onClick={handleChatClick}
           data-testid={`card-expert-${expert.id}`}
         >
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          
           {isHighlyRecommended && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <Badge className="gap-1 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 bg-accent text-white shadow-sm text-xs">
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 260, 
+                damping: 20,
+                delay: 0.2 + (index * 0.1)
+              }}
+              className="absolute -top-2 -right-2 z-10"
+            >
+              <Badge className="gap-1 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-accent to-primary text-white shadow-lg shadow-accent/50 animate-pulse-glow text-xs">
                 <Sparkles className="h-3 w-3" />
                 Top
               </Badge>
-            </div>
+            </motion.div>
           )}
           
-          <CardContent className="p-4 sm:p-5 md:p-6">
+          <CardContent className="p-4 sm:p-5 md:p-6 relative z-10">
             <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 ring-2 ring-border shrink-0 rounded-full">
-                <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
-                <AvatarFallback className="bg-accent/10 text-accent font-semibold text-sm sm:text-base rounded-full">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              {/* Avatar with gradient border effect */}
+              <div className="relative inline-block shrink-0">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent via-primary to-accent opacity-75 blur-sm group-hover:opacity-100 transition-opacity duration-300" />
+                <Avatar className="relative w-12 h-12 sm:w-14 sm:h-14 border-4 border-card ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300 rounded-full">
+                  <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
+                  <AvatarFallback className="bg-accent/10 text-accent font-semibold text-sm sm:text-base rounded-full">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-base sm:text-lg mb-1">{expert.name}</h3>
                 <p className="text-xs sm:text-sm text-accent line-clamp-1">{expert.title}</p>
@@ -171,30 +189,52 @@ export function ExpertCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 * index }}
-      className={className}
+      whileHover={{ y: -8 }}
+      className={cn("group", className)}
     >
       <Card
-        className="rounded-2xl hover-elevate cursor-pointer transition-all relative"
+        className="rounded-2xl cursor-pointer transition-all duration-300 relative overflow-hidden hover:shadow-2xl hover:border-accent/30"
         onClick={handleChatClick}
         data-testid={`card-expert-${expert.id}`}
       >
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        
         {isHighlyRecommended && (
-          <div className="absolute -top-2 -right-2 z-10">
-            <Badge className="gap-1 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 bg-accent text-white shadow-sm text-xs sm:text-sm">
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 260, 
+              damping: 20,
+              delay: 0.2 + (index * 0.1)
+            }}
+            className="absolute -top-2 -right-2 z-10"
+          >
+            <Badge className="gap-1.5 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-accent to-primary text-white shadow-xl shadow-accent/50 animate-pulse-glow text-xs sm:text-sm">
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
               Altamente Recomendado
             </Badge>
-          </div>
+          </motion.div>
         )}
         
-        <CardContent className="p-4 sm:p-6 md:p-8">
+        <CardContent className="p-4 sm:p-6 md:p-8 relative z-10">
           <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 md:space-y-6">
-            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-3 sm:border-4 border-accent/20 ring-2 ring-offset-2 ring-accent/10 rounded-full">
-              <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
-              <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10 text-accent rounded-full">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            {/* Avatar with gradient border and glow effect */}
+            <div className="relative inline-block">
+              <motion.div
+                className="absolute inset-0 rounded-full bg-gradient-to-br from-accent via-primary to-accent opacity-75 blur-md"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              />
+              <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 border-4 sm:border-[5px] border-card ring-2 ring-accent/20 group-hover:ring-accent/50 transition-all duration-300 rounded-full shadow-xl shadow-accent/20 group-hover:shadow-2xl group-hover:shadow-accent/30">
+                <AvatarImage src={expert.avatar || undefined} alt={expert.name} className="rounded-full" />
+                <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-semibold bg-accent/10 text-accent rounded-full">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
             <div className="space-y-2 sm:space-y-3 w-full">
               <h3 className="text-xl sm:text-2xl font-semibold">{expert.name}</h3>

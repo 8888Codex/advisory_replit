@@ -1,0 +1,67 @@
+{
+  "name": "o-conselho",
+  "description": "Marketing Advisory Platform with AI-powered expert consultants",
+  "version": "1.0.0",
+  "type": "docker-compose",
+  "deployment": {
+    "source": "git",
+    "branch": "main",
+    "buildCommand": "docker-compose build",
+    "startCommand": "docker-compose up -d"
+  },
+  "services": {
+    "app": {
+      "type": "web",
+      "port": 3001,
+      "healthCheck": "/api/health",
+      "scaling": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "postgres": {
+      "type": "database",
+      "backup": {
+        "enabled": true,
+        "schedule": "0 2 * * *",
+        "retention": 30
+      }
+    },
+    "redis": {
+      "type": "cache",
+      "optional": true
+    }
+  },
+  "env": {
+    "required": [
+      "DATABASE_URL",
+      "ANTHROPIC_API_KEY",
+      "SESSION_SECRET",
+      "NODE_ENV"
+    ],
+    "optional": [
+      "PERPLEXITY_API_KEY",
+      "YOUTUBE_API_KEY",
+      "UNSPLASH_ACCESS_KEY",
+      "REDIS_URL",
+      "REDIS_ENABLED",
+      "SENTRY_DSN"
+    ]
+  },
+  "volumes": [
+    "./attached_assets:/app/attached_assets",
+    "./logs:/app/logs",
+    "./backups:/app/backups"
+  ],
+  "domains": {
+    "primary": "o-conselho.example.com",
+    "ssl": true
+  },
+  "monitoring": {
+    "enabled": true,
+    "endpoints": [
+      "/api/health"
+    ]
+  }
+}
+

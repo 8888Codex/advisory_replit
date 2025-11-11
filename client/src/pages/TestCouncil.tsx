@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Users, Sparkles, TrendingUp, Zap, Star, Lightbulb, MessageSquare } from "lucide-react";
+import { Loader2, Users, Sparkles, TrendingUp, Zap, Star, Lightbulb, MessageSquare, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,6 +17,7 @@ import { useCouncilStream } from "@/hooks/useCouncilStream";
 import { useDebounce } from "@/hooks/useDebounce";
 import { CouncilAnimation } from "@/components/council/CouncilAnimation";
 import { motion } from "framer-motion";
+import { AIEnhanceButton } from "@/components/AIEnhanceButton";
 
 interface Expert {
   id: string;
@@ -170,46 +171,114 @@ export default function TestCouncil() {
   const isAnalyzing = useStreaming ? streamState.isStreaming : analyzeMutation.isPending;
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 px-4 sm:px-6 max-w-6xl">
+      {/* Premium Hero Section */}
       <motion.div 
-        className="mb-8"
+        className="mb-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 p-6 sm:p-8 border border-primary/20"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <h1 className="text-4xl font-semibold mb-2 flex items-center gap-3">
-          <Users className="h-10 w-10 text-muted-foreground" />
-          Teste de Análise do Conselho
-        </h1>
-        <p className="text-muted-foreground">
-          Teste a funcionalidade do conselho de IA com lendas do marketing
-        </p>
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <motion.div
+              className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-xl shadow-primary/30"
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            </motion.div>
+            
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2 text-gradient-primary">
+                Conselho Estratégico
+              </h1>
+              <p className="text-muted-foreground text-xs sm:text-sm md:text-base">
+                18 Lendas do Marketing analisando seu desafio em tempo real
+              </p>
+            </div>
+          </div>
+          
+          <motion.div
+            className="flex items-center gap-2 w-full md:w-auto justify-end"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          >
+            <Badge className="bg-gradient-to-r from-accent to-primary text-white px-3 sm:px-4 py-1.5 sm:py-2 shadow-lg shadow-accent/30 animate-pulse-subtle text-xs sm:text-sm">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+              {selectedExperts.length} Expert{selectedExperts.length !== 1 ? 's' : ''} Selecionado{selectedExperts.length !== 1 ? 's' : ''}
+            </Badge>
+          </motion.div>
+        </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6">
+        <div className="space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <CardTitle className="font-semibold">Seu Desafio de Negócio</CardTitle>
-                <CardDescription>
-                  Descreva o problema que você gostaria que o conselho analisasse
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Exemplo: Estamos lançando uma marca de moda sustentável para a Geração Z. Como devemos nos posicionar contra gigantes do fast fashion mantendo valores autênticos?"
-                  value={problem}
-                  onChange={(e) => setProblem(e.target.value)}
-                  className="min-h-[150px] text-base"
-                  disabled={analyzeMutation.isPending}
-                  data-testid="input-problem"
-                />
-              </CardContent>
+            <Card className="rounded-2xl overflow-hidden border-primary/20 hover:border-primary/40 transition-all shadow-lg hover:shadow-xl">
+              <div className="relative overflow-hidden">
+                {/* Decorative gradient */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl" />
+                
+                <CardHeader className="relative z-10">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-primary/10 ring-2 ring-primary/20">
+                        <Lightbulb className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="font-semibold text-lg">Seu Desafio de Negócio</CardTitle>
+                        <CardDescription>
+                          Descreva o problema estratégico que você gostaria que o conselho analisasse
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <AIEnhanceButton
+                      currentText={problem}
+                      fieldType="challenge"
+                      context={{}}
+                      onEnhanced={(enhanced) => setProblem(enhanced)}
+                      disabled={isAnalyzing}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <Textarea
+                    placeholder="Exemplo: Estamos lançando uma marca de moda sustentável para a Geração Z. Como devemos nos posicionar contra gigantes do fast fashion mantendo valores autênticos?"
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
+                    className="min-h-[150px] text-base backdrop-blur-sm bg-background/50 border-2 border-border/50 focus:border-primary/50 transition-all"
+                    disabled={analyzeMutation.isPending}
+                    data-testid="input-problem"
+                  />
+                  {problem.trim().length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 flex items-center gap-2"
+                    >
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className={problem.trim().length >= 10 ? "text-primary" : "text-muted-foreground"}>
+                          {problem.trim().length} caracteres
+                        </span>
+                        {problem.trim().length >= 10 && (
+                          <Badge variant="outline" className="text-xs px-2 py-0 bg-primary/10 text-primary border-primary/30">
+                            ✓ Pronto
+                          </Badge>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </div>
             </Card>
           </motion.div>
 
@@ -269,15 +338,19 @@ export default function TestCouncil() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <Card className="rounded-2xl">
+            <Card className="rounded-2xl glass-premium-strong">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="font-semibold">Selecionar Especialistas</CardTitle>
-                    <CardDescription>
-                      Escolha quais lendas do marketing consultar ({selectedExperts.length}{" "}
-                      selecionado{selectedExperts.length !== 1 ? 's' : ''})
-                    </CardDescription>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-accent/10 ring-2 ring-accent/20">
+                      <Users className="h-5 w-5 text-accent" />
+                    </div>
+                    <div>
+                      <CardTitle className="font-semibold">Selecionar Especialistas</CardTitle>
+                      <CardDescription>
+                        Escolha quais lendas do marketing consultar
+                      </CardDescription>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
@@ -285,10 +358,21 @@ export default function TestCouncil() {
                     onClick={handleSelectAll}
                     disabled={loadingExperts || analyzeMutation.isPending}
                     data-testid="button-select-all"
+                    className="hover-scale-sm"
                   >
                     {selectedExperts.length === experts.length ? "Desmarcar Todos" : "Selecionar Todos"}
                   </Button>
                 </div>
+                
+                {/* Progress bar */}
+                {selectedExperts.length > 0 && (
+                  <motion.div
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    className="mt-3 h-1 bg-gradient-to-r from-accent to-primary rounded-full origin-left"
+                    style={{ width: `${(selectedExperts.length / experts.length) * 100}%` }}
+                  />
+                )}
               </CardHeader>
             <CardContent>
               {loadingExperts ? (
@@ -302,6 +386,8 @@ export default function TestCouncil() {
                       const recommendation = recommendations.find(r => r.expertId === expert.id);
                       const isRecommended = !!recommendation;
                       
+                      const isSelected = selectedExperts.includes(expert.id);
+                      
                       return (
                         <Tooltip key={expert.id}>
                           <TooltipTrigger asChild>
@@ -309,32 +395,62 @@ export default function TestCouncil() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
-                              className={`flex items-start space-x-3 p-3 rounded-xl border hover-elevate active-elevate-2 cursor-pointer transition-all ${
-                                isRecommended ? 'border-accent/30 bg-muted/40' : ''
+                              whileHover={{ y: -4, scale: 1.02 }}
+                              className={`group relative flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all overflow-hidden ${
+                                isRecommended ? 'border-accent/40 bg-gradient-to-br from-accent/5 to-transparent shadow-colored' : 
+                                isSelected ? 'border-primary/40 bg-primary/5' : 
+                                'border-border hover:border-accent/30 hover:shadow-lg'
                               }`}
                               onClick={() => handleToggleExpert(expert.id)}
                               data-testid={`expert-card-${expert.id}`}
                             >
+                              {/* Selected gradient overlay */}
+                              {isSelected && (
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 pointer-events-none" />
+                              )}
+                              
+                              {/* Recommended glow */}
+                              {isRecommended && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                              )}
+                              
                               <Checkbox
-                                checked={selectedExperts.includes(expert.id)}
+                                checked={isSelected}
                                 disabled={analyzeMutation.isPending}
                                 data-testid={`checkbox-expert-${expert.id}`}
+                                className="mt-1 z-10"
                               />
-                              <Avatar className="h-10 w-10 flex-shrink-0 ring-2 ring-accent/20">
-                                <AvatarImage src={expert.avatar} alt={expert.name} className="object-cover" />
-                                <AvatarFallback className="text-xs font-semibold">
-                                  {expert.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
+                              
+                              {/* Avatar with conditional gradient */}
+                              <div className="relative inline-block shrink-0">
+                                {isSelected && (
+                                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent to-primary opacity-75 blur-sm group-hover:opacity-100 transition-opacity" />
+                                )}
+                                <Avatar className={`relative h-12 w-12 transition-all ${
+                                  isSelected ? 'ring-2 ring-accent/40 shadow-md shadow-accent/30' : 'ring-2 ring-accent/20'
+                                }`}>
+                                  <AvatarImage src={expert.avatar} alt={expert.name} className="object-cover" />
+                                  <AvatarFallback className="text-xs font-semibold bg-accent/10 text-accent">
+                                    {expert.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              </div>
+                              
+                              <div className="flex-1 min-w-0 relative z-10">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Label className="font-semibold cursor-pointer">
                                     {expert.name}
                                   </Label>
                                   {isRecommended && (
-                                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                                      Recomendado
-                                    </Badge>
+                                    <motion.div
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      transition={{ type: "spring", stiffness: 300 }}
+                                    >
+                                      <Badge className="text-xs px-2 py-0.5 bg-gradient-to-r from-accent to-primary text-white shadow-md shadow-accent/40">
+                                        Recomendado
+                                      </Badge>
+                                    </motion.div>
                                   )}
                                 </div>
                                 {isRecommended && recommendation && (
@@ -354,7 +470,7 @@ export default function TestCouncil() {
                                 <p className="text-sm text-muted-foreground line-clamp-2">
                                   {expert.tagline}
                                 </p>
-                                <Badge variant="secondary" className="mt-1 text-xs">
+                                <Badge variant="secondary" className="mt-2 text-xs">
                                   {expert.specialty}
                                 </Badge>
                               </div>
@@ -409,29 +525,36 @@ export default function TestCouncil() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Button
               onClick={handleSubmit}
-            disabled={
-              !problem.trim() ||
-              selectedExperts.length === 0 ||
-              isAnalyzing
-            }
-            className="w-full"
-            size="lg"
-            data-testid="button-analyze"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Analisando... (pode levar 1-3 minutos)
-              </>
-            ) : (
-              <>
-                {useStreaming ? <Zap className="mr-2 h-5 w-5" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                Consultar Conselho ({selectedExperts.length} especialista{selectedExperts.length !== 1 ? 's' : ''})
-              </>
-            )}
+              disabled={
+                !problem.trim() ||
+                selectedExperts.length === 0 ||
+                isAnalyzing
+              }
+              className="w-full h-14 rounded-xl bg-gradient-to-r from-primary to-accent hover:shadow-xl hover:shadow-primary/30 transition-all text-base font-semibold relative overflow-hidden group"
+              size="lg"
+              data-testid="button-analyze"
+            >
+              {!isAnalyzing && (
+                <div className="absolute inset-0 shimmer" />
+              )}
+              <span className="relative z-10 flex items-center justify-center">
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Analisando... (pode levar 1-3 minutos)
+                  </>
+                ) : (
+                  <>
+                    {useStreaming ? <Zap className="mr-2 h-5 w-5" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                    Consultar Conselho ({selectedExperts.length} especialista{selectedExperts.length !== 1 ? 's' : ''})
+                  </>
+                )}
+              </span>
             </Button>
           </motion.div>
 
@@ -446,19 +569,8 @@ export default function TestCouncil() {
           )}
         </div>
 
-        {/* Show CouncilAnimation when streaming */}
-        {useStreaming && (streamState.isStreaming || streamState.expertStatusArray.length > 0) && (
-          <div className="lg:col-span-3">
-            <CouncilAnimation
-              expertStatuses={streamState.expertStatusArray}
-              activityFeed={streamState.activityFeed}
-              isStreaming={streamState.isStreaming}
-            />
-          </div>
-        )}
-
-        {/* Show results (for both streaming and non-streaming after completion) */}
-        <div className={`lg:col-span-1 ${useStreaming && (streamState.isStreaming || !streamState.finalAnalysis) ? "hidden" : ""}`}>
+        {/* Show results - fixed sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-8 lg:self-start">
           {analysis ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -478,60 +590,119 @@ export default function TestCouncil() {
               <CardContent>
                 <ScrollArea className="h-[600px] pr-4">
                   <div className="space-y-6">
-                    <Card className="border-primary/30 bg-primary/10 rounded-xl">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Users className="w-5 h-5 text-primary" />
-                          🎯 Consenso da Mesa
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-foreground whitespace-pre-wrap">
-                          {analysis.consensus}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, type: "spring" }}
+                    >
+                      <Card className="rounded-2xl overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 shadow-xl shadow-primary/20">
+                        <div className="relative">
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/20 to-transparent rounded-full blur-2xl" />
+                          
+                          <CardHeader className="pb-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                              <motion.div
+                                className="p-3 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg"
+                                animate={{ rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                              >
+                                <Users className="w-6 h-6 text-white" />
+                              </motion.div>
+                              <div>
+                                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                                  🎯 Consenso do Conselho
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                  Síntese estratégica de {analysis.contributions.length} lenda{analysis.contributions.length !== 1 ? 's' : ''} do marketing
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="relative z-10">
+                            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-primary/20">
+                              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                                {analysis.consensus}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
+                    </motion.div>
 
                     <div className="space-y-4">
-                      <h3 className="font-semibold">💡 Contribuições dos Especialistas</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-5 w-5 text-accent" />
+                        <h3 className="font-semibold text-base">Contribuições dos Especialistas</h3>
+                      </div>
                       {analysis.contributions.map((contrib: { expertName: string; keyInsights: string[]; recommendations: string[] }, idx: number) => (
-                        <Card key={idx} className="rounded-xl">
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-base font-semibold">
-                              {contrib.expertName}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {contrib.keyInsights.length > 0 && (
-                              <div>
-                                <p className="text-sm font-medium mb-1">Principais Insights:</p>
-                                <ul className="text-sm text-muted-foreground space-y-1">
-                                  {contrib.keyInsights.map((insight: string, i: number) => (
-                                    <li key={i} className="flex gap-2">
-                                      <span>•</span>
-                                      <span>{insight}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          whileHover={{ x: 4 }}
+                        >
+                          <Card className="rounded-xl hover:shadow-lg hover:border-accent/30 transition-all group">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-accent/10 ring-1 ring-accent/20 group-hover:ring-accent/40 transition-all">
+                                  <Brain className="h-4 w-4 text-accent" />
+                                </div>
+                                <CardTitle className="text-base font-semibold">
+                                  {contrib.expertName}
+                                </CardTitle>
                               </div>
-                            )}
-                            {contrib.recommendations.length > 0 && (
-                              <div>
-                                <p className="text-sm font-medium mb-1">
-                                  Recomendações:
-                                </p>
-                                <ul className="text-sm text-muted-foreground space-y-1">
-                                  {contrib.recommendations.map((rec: string, i: number) => (
-                                    <li key={i} className="flex gap-2">
-                                      <span>→</span>
-                                      <span>{rec}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              {contrib.keyInsights.length > 0 && (
+                                <div className="bg-muted/30 rounded-lg p-3">
+                                  <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                                    <Lightbulb className="h-4 w-4 text-accent" />
+                                    Principais Insights:
+                                  </p>
+                                  <ul className="text-sm text-muted-foreground space-y-2">
+                                    {contrib.keyInsights.map((insight: string, i: number) => (
+                                      <motion.li
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex gap-2 items-start"
+                                      >
+                                        <span className="text-accent mt-0.5">•</span>
+                                        <span>{insight}</span>
+                                      </motion.li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {contrib.recommendations.length > 0 && (
+                                <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                                  <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-primary" />
+                                    Recomendações:
+                                  </p>
+                                  <ul className="text-sm text-muted-foreground space-y-2">
+                                    {contrib.recommendations.map((rec: string, i: number) => (
+                                      <motion.li
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex gap-2 items-start"
+                                      >
+                                        <span className="text-primary mt-0.5">→</span>
+                                        <span>{rec}</span>
+                                      </motion.li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
                       ))}
                     </div>
                   </div>
@@ -571,6 +742,24 @@ export default function TestCouncil() {
           )}
         </div>
       </div>
+
+      {/* CouncilAnimation Overlay */}
+      {useStreaming && streamState.isStreaming && (
+        <motion.div
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="container max-w-6xl mx-auto py-8 px-4 sm:px-6">
+            <CouncilAnimation
+              expertStatuses={streamState.expertStatusArray}
+              activityFeed={streamState.activityFeed}
+              isStreaming={streamState.isStreaming}
+            />
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

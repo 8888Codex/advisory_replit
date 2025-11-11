@@ -1,0 +1,25 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (11) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+4:56:56 PM [express] Starting Python backend on port 5001...
+Seeding default experts...
+Seeded 6 experts successfully.
+4:56:57 PM [express] [Python Backend Error] INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+ERROR:    [Errno 48] Address already in use
+4:56:59 PM [express] [Python Backend] Exited with code 1
+4:57:00 PM [express] serving on port 3000
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+(node:99333) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Persona] Set active - req.body: {"personaId":"f6131821-b74f-448b-bfc7-97e739d174e4"}
+[Persona] Set active - bodyData: {"personaId":"f6131821-b74f-448b-bfc7-97e739d174e4"}
+[Persona] Set active - Content-Length: 52
+[Persona] Set active - response status: 200
+[Persona] Set active - response data: {"success":true,"activePersonaId":"f6131821-b74f-448b-bfc7-97e739d174e4"}

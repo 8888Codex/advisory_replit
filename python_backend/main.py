@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Body, BackgroundTasks
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Body, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
@@ -10,11 +10,33 @@ from PIL import Image
 import io
 import json
 import asyncio
+import asyncpg
 import httpx
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
+
+# Validate environment variables before proceeding
+from env_validator import validate_env, EnvValidationError
+try:
+    validate_env()
+except EnvValidationError as e:
+    print(str(e))
+    import sys
+    sys.exit(1)
+
+# Import structured logger
+from logger import logger, log_with_context
+
+# Import database pool
+from db_pool import db_pool
+
+# Import file validator
+from file_validator import validate_image_file, sanitize_filename, FileValidationError
+
+# Import cache manager
+from cache import cache_manager
 
 from models import (
     Expert, ExpertCreate, ExpertType, CategoryType, CategoryInfo,
@@ -79,10 +101,20 @@ analytics_engine = AnalyticsEngine(storage)
 # Initialize with seeded legends
 @app.on_event("startup")
 async def startup_event():
-    # Initialize PostgreSQL connection pool
-    print("[Startup] Initializing PostgreSQL storage...")
+    # Initialize database connection pool
+    logger.info("Initializing database connection pool")
+    await db_pool.initialize()
+    logger.info("Database pool initialized successfully")
+    
+    # Initialize cache manager
+    logger.info("Initializing cache manager")
+    await cache_manager.initialize()
+    logger.info("Cache manager initialized successfully")
+    
+    # Initialize PostgreSQL storage
+    logger.info("Initializing PostgreSQL storage")
     await storage.initialize()
-    print("[Startup] PostgreSQL storage initialized successfully")
+    logger.info("PostgreSQL storage initialized successfully")
     
     # NOTE: Seed experts are now served from CloneRegistry (18 HIGH_FIDELITY experts with avatars)
     # PostgreSQL only stores CUSTOM experts created by users via /api/experts/auto-clone
@@ -92,15 +124,60 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    # Close PostgreSQL connection pool
-    print("[Shutdown] Closing PostgreSQL storage...")
+    # Close PostgreSQL storage
+    logger.info("Closing PostgreSQL storage")
     await storage.close()
-    print("[Shutdown] PostgreSQL storage closed successfully")
+    logger.info("PostgreSQL storage closed successfully")
+    
+    # Close cache manager
+    logger.info("Closing cache manager")
+    await cache_manager.close()
+    logger.info("Cache manager closed successfully")
+    
+    # Close database connection pool
+    logger.info("Closing database connection pool")
+    await db_pool.close()
+    logger.info("Database pool closed successfully")
 
 # Health check
 @app.get("/")
 async def root():
     return {"message": "O Conselho Marketing Legends API", "status": "running"}
+
+@app.get("/api/health")
+async def health_check():
+    """
+    Health check endpoint for monitoring.
+    Checks database connectivity and pool status.
+    """
+    try:
+        # Check database health
+        db_healthy = await db_pool.health_check()
+        
+        # Get pool stats
+        pool_stats = await db_pool.get_pool_stats()
+        
+        if db_healthy:
+            return {
+                "status": "healthy",
+                "database": "connected",
+                "pool": pool_stats,
+                "timestamp": datetime.now().isoformat(),
+            }
+        else:
+            return {
+                "status": "unhealthy",
+                "database": "disconnected",
+                "pool": pool_stats,
+                "timestamp": datetime.now().isoformat(),
+            }
+    except Exception as e:
+        logger.error("Health check failed", error=str(e))
+        return {
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat(),
+        }
 
 # ============================================
 # AUTHENTICATION MODELS
@@ -134,48 +211,48 @@ async def register_user(data: RegisterRequest):
     """Register new user with invite code"""
     
     try:
-        print(f"[DEBUG] Starting registration for {data.email}")
+        logger.debug("Starting registration for {data.email}")
         
         # Validate invite code
-        print(f"[DEBUG] Validating invite code: {data.inviteCode}")
+        logger.debug("Validating invite code: {data.inviteCode}")
         invite = await storage.get_invite(data.inviteCode)
         if not invite:
             raise HTTPException(status_code=400, detail="Código de convite inválido")
-        print(f"[DEBUG] Invite valid, creator: {invite['creatorId']}")
+        logger.debug("Invite valid, creator: {invite['creatorId']}")
         
         if invite["usedBy"]:
             raise HTTPException(status_code=400, detail="Este código de convite já foi utilizado")
         
         # Check if email already exists
-        print(f"[DEBUG] Checking if email exists...")
+        logger.debug("Checking if email exists...")
         existing_user = await storage.get_user_by_email(data.email)
         if existing_user:
             raise HTTPException(status_code=400, detail="Email já cadastrado")
-        print(f"[DEBUG] Email is available")
+        logger.debug("Email is available")
         
         # Hash password
-        print(f"[DEBUG] Hashing password...")
+        logger.debug("Hashing password...")
         password_hash = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
         # Create user
-        print(f"[DEBUG] Creating user...")
+        logger.debug("Creating user...")
         user = await storage.create_user(data.username, data.email, password_hash)
-        print(f"[DEBUG] User created: {user['id']}")
+        logger.debug("User created: {user['id']}")
         
         # Mark invite as used
-        print(f"[DEBUG] Marking invite as used...")
+        logger.debug("Marking invite as used...")
         await storage.use_invite(data.inviteCode, user["id"])
         
         # Decrement creator's available invites (skip if creator is system)
         if invite["creatorId"] != "system":
-            print(f"[DEBUG] Decrementing creator invites...")
+            logger.debug("Decrementing creator invites...")
             creator = await storage.get_user_by_id(invite["creatorId"])
             if creator and creator["availableInvites"] > 0:
                 await storage.update_user_invites(invite["creatorId"], creator["availableInvites"] - 1)
         else:
-            print(f"[DEBUG] Skipping decrement for system invite")
+            logger.debug("Skipping decrement for system invite")
         
-        print(f"[DEBUG] Registration successful!")
+        logger.debug("Registration successful!")
         
         # Return user with default role (backward compatibility)
         return UserResponse(
@@ -190,8 +267,8 @@ async def register_user(data: RegisterRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] Registration failed: {str(e)}")
-        print(f"[ERROR] Exception type: {type(e).__name__}")
+        logger.error("Registration failed: {str(e)}")
+        logger.error("Exception type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao registrar usuário: {str(e)}")
@@ -239,7 +316,8 @@ async def get_current_user(user_id: str):
         availableInvites=user["availableInvites"],
         role=user.get("role", "user"),  # Default to 'user' for backward compatibility
         createdAt=user["createdAt"],
-        activePersonaId=user.get("activePersonaId")
+        activePersonaId=user.get("activePersonaId"),
+        avatarUrl=user.get("avatarUrl")
     )
 
 # ============================================
@@ -403,6 +481,279 @@ async def reset_password(data: ResetPasswordRequest):
     
     return {"message": "Senha redefinida com sucesso"}
 
+
+class ChangePasswordRequest(BaseModel):
+    """Request model for changing password"""
+    currentPassword: str
+    newPassword: str
+    user_id: str  # Injected by Express middleware
+
+
+@app.post("/api/auth/change-password")
+async def change_password(data: ChangePasswordRequest):
+    """
+    Change password for authenticated user.
+    Requires current password for verification.
+    """
+    import bcrypt
+    
+    if not data.currentPassword or not data.newPassword:
+        raise HTTPException(status_code=400, detail="Senha atual e nova senha são obrigatórias")
+    
+    if len(data.newPassword) < 6:
+        raise HTTPException(status_code=400, detail="Nova senha deve ter pelo menos 6 caracteres")
+    
+    # Get database connection
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    
+    try:
+        # Get user from database
+        user = await conn.fetchrow(
+            'SELECT id, password FROM users WHERE id = $1',
+            data.user_id
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Verify current password
+        if not bcrypt.checkpw(data.currentPassword.encode('utf-8'), user['password'].encode('utf-8')):
+            raise HTTPException(status_code=400, detail="Senha atual incorreta")
+        
+        # Hash new password
+        new_password_hash = bcrypt.hashpw(data.newPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update password
+        await conn.execute(
+            'UPDATE users SET password = $1 WHERE id = $2',
+            new_password_hash, data.user_id
+        )
+        
+        logger.info(f"[AUTH] Password changed for user {data.user_id}")
+        
+        # Log password change
+        await log_audit(
+            action="password_change",
+            user_id=data.user_id,
+            success=True,
+            conn=conn
+        )
+        
+        return {"success": True, "message": "Senha atualizada com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[AUTH] Error changing password: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao atualizar senha")
+    finally:
+        await conn.close()
+
+
+# ============================================
+# SUPERADMIN ENDPOINTS
+# ============================================
+
+async def require_superadmin(user_id: str = Query(...)):
+    """Dependency to verify superadmin role"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        user = await conn.fetchrow("SELECT role FROM users WHERE id = $1", user_id)
+        if not user or user['role'] != 'superadmin':
+            raise HTTPException(status_code=403, detail="Acesso negado: apenas superadmins")
+        return user_id
+    finally:
+        await conn.close()
+
+@app.get("/api/superadmin/metrics")
+async def get_global_metrics(user_id: str = Depends(require_superadmin)):
+    """Get global system metrics"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        total_users = await conn.fetchval("SELECT COUNT(*) FROM users") or 0
+        total_admins = await conn.fetchval("SELECT COUNT(*) FROM users WHERE role IN ('admin', 'superadmin')") or 0
+        total_superadmins = await conn.fetchval("SELECT COUNT(*) FROM users WHERE role = 'superadmin'") or 0
+        total_personas = await conn.fetchval("SELECT COUNT(*) FROM user_personas") or 0
+        total_experts = await conn.fetchval("SELECT COUNT(*) FROM experts WHERE expert_type = 'custom'") or 0
+        total_conversations = await conn.fetchval("SELECT COUNT(*) FROM conversations") or 0
+        total_councils = await conn.fetchval("SELECT COUNT(*) FROM council_analyses") or 0
+        total_council_messages = await conn.fetchval("SELECT COUNT(*) FROM council_messages") or 0
+        
+        # Calculate system health (simple metric)
+        system_health = 95
+        
+        # Average enrichment level
+        avg_enrichment_row = await conn.fetchrow("""
+            SELECT enrichment_level, COUNT(*) as count
+            FROM user_personas
+            GROUP BY enrichment_level
+            ORDER BY count DESC
+            LIMIT 1
+        """)
+        avg_enrichment = avg_enrichment_row['enrichment_level'] if avg_enrichment_row else "quick"
+        
+        return {
+            "totalUsers": total_users,
+            "totalAdmins": total_admins,
+            "totalSuperAdmins": total_superadmins,
+            "totalPersonas": total_personas,
+            "totalExperts": total_experts,
+            "totalConversations": total_conversations,
+            "totalCouncilAnalyses": total_councils,
+            "totalCouncilMessages": total_council_messages,
+            "systemHealthScore": system_health,
+            "avgEnrichmentLevel": avg_enrichment
+        }
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error fetching metrics: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar métricas")
+    finally:
+        await conn.close()
+
+@app.get("/api/superadmin/personas")
+async def get_all_personas(
+    user_id: str = Depends(require_superadmin),
+    limit: int = Query(50),
+    offset: int = Query(0)
+):
+    """Get all personas in the system (paginated)"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        rows = await conn.fetch("""
+            SELECT 
+                up.id, up.user_id, up.company_name, up.industry,
+                up.enrichment_level, up.created_at,
+                u.username, u.email
+            FROM user_personas up
+            LEFT JOIN users u ON up.user_id = u.id
+            ORDER BY up.created_at DESC
+            LIMIT $1 OFFSET $2
+        """, limit, offset)
+        
+        return [dict(row) for row in rows]
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error fetching personas: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar personas")
+    finally:
+        await conn.close()
+
+@app.delete("/api/superadmin/personas/{persona_id}")
+async def delete_persona_admin(
+    persona_id: str,
+    user_id: str = Depends(require_superadmin)
+):
+    """Delete any persona (soft delete)"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        await conn.execute("""
+            UPDATE user_personas
+            SET deleted_at = NOW()
+            WHERE id = $1
+        """, persona_id)
+        
+        logger.info(f"[SUPERADMIN] Persona {persona_id} soft deleted by {user_id}")
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error deleting persona: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao deletar persona")
+    finally:
+        await conn.close()
+
+@app.get("/api/superadmin/analytics/top-experts")
+async def get_global_top_experts(
+    user_id: str = Depends(require_superadmin),
+    limit: int = Query(20)
+):
+    """Get most consulted experts across ALL users"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        rows = await conn.fetch("""
+            SELECT 
+                ua.metadata->>'expertName' as expert_name,
+                COUNT(*) as consultations,
+                MAX(ua.created_at) as last_consulted
+            FROM user_activity ua
+            WHERE ua.metadata->>'expertName' IS NOT NULL
+            GROUP BY ua.metadata->>'expertName'
+            ORDER BY consultations DESC
+            LIMIT $1
+        """, limit)
+        
+        return [dict(row) for row in rows]
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error fetching top experts: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar experts")
+    finally:
+        await conn.close()
+
+@app.get("/api/superadmin/export/user/{userId}")
+async def export_user_data(
+    userId: str,
+    admin_user_id: str = Depends(require_superadmin)
+):
+    """Export all data for a specific user (GDPR compliance)"""
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        # Get user
+        user = await conn.fetchrow("SELECT * FROM users WHERE id = $1", userId)
+        
+        # Get personas
+        personas = await conn.fetch("SELECT * FROM user_personas WHERE user_id = $1", userId)
+        
+        # Get conversations
+        conversations = await conn.fetch("SELECT * FROM conversations WHERE user_id = $1", userId)
+        
+        # Get council analyses
+        councils = await conn.fetch("SELECT * FROM council_analyses WHERE user_id = $1", userId)
+        
+        export_data = {
+            "user": dict(user) if user else None,
+            "personas": [dict(p) for p in personas],
+            "conversations": [dict(c) for c in conversations],
+            "councilAnalyses": [dict(ca) for ca in councils],
+            "exportedAt": datetime.utcnow().isoformat(),
+            "exportedBy": admin_user_id
+        }
+        
+        logger.info(f"[SUPERADMIN] Data export for user {userId} by {admin_user_id}")
+        
+        return export_data
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error exporting user data: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao exportar dados")
+    finally:
+        await conn.close()
+
+@app.post("/api/superadmin/invites/add")
+async def add_invites_to_user(
+    data: dict,
+    user_id: str = Depends(require_superadmin)
+):
+    """Add invite credits to specific user"""
+    target_user_id = data.get("userId")
+    amount = data.get("amount", 0)
+    
+    if not target_user_id or amount <= 0:
+        raise HTTPException(status_code=400, detail="userId e amount são obrigatórios")
+    
+    conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+    try:
+        await conn.execute("""
+            UPDATE users
+            SET available_invites = available_invites + $1
+            WHERE id = $2
+        """, amount, target_user_id)
+        
+        logger.info(f"[SUPERADMIN] Added {amount} invites to user {target_user_id}")
+        
+        return {"success": True, "added": amount}
+    except Exception as e:
+        logger.error(f"[SUPERADMIN] Error adding invites: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao adicionar convites")
+    finally:
+        await conn.close()
+
+
 # ============================================
 # AUDIT LOGGING
 # ============================================
@@ -521,21 +872,21 @@ class OnboardingStatusResponse(BaseModel):
 async def save_onboarding(data: OnboardingSaveRequest, user_id: str):
     """Save onboarding progress for authenticated user"""
     try:
-        print(f"[DEBUG] Saving onboarding for user: {user_id}")
-        print(f"[DEBUG] Data received: {data}")
+        logger.debug("Saving onboarding for user: {user_id}")
+        logger.debug("Data received: {data}")
         
         # Convert Pydantic model to dict
         onboarding_data = data.model_dump(exclude_unset=True)
-        print(f"[DEBUG] Onboarding data dict: {onboarding_data}")
+        logger.debug("Onboarding data dict: {onboarding_data}")
         
         # Save to database
         result = await storage.save_onboarding_progress(user_id, onboarding_data)
-        print(f"[DEBUG] Save result: {result}")
+        logger.debug("Save result: {result}")
         
         return OnboardingStatusResponse(**result)
     except Exception as e:
-        print(f"[ERROR] save_onboarding failed: {str(e)}")
-        print(f"[ERROR] Exception type: {type(e).__name__}")
+        logger.error("save_onboarding failed: {str(e)}")
+        logger.error("Exception type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao salvar progresso: {str(e)}")
@@ -544,17 +895,17 @@ async def save_onboarding(data: OnboardingSaveRequest, user_id: str):
 async def get_onboarding_status(user_id: str):
     """Get onboarding status for authenticated user"""
     try:
-        print(f"[DEBUG] Getting onboarding status for user: {user_id}")
+        logger.debug("Getting onboarding status for user: {user_id}")
         result = await storage.get_onboarding_status(user_id)
         
         if not result:
-            print(f"[DEBUG] No onboarding status found for user {user_id}")
+            logger.debug("No onboarding status found for user {user_id}")
             return None
         
-        print(f"[DEBUG] Onboarding status found: {result}")
+        logger.debug("Onboarding status found: {result}")
         return OnboardingStatusResponse(**result)
     except Exception as e:
-        print(f"[ERROR] get_onboarding_status failed: {str(e)}")
+        logger.error("get_onboarding_status failed: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao buscar status: {str(e)}")
@@ -701,7 +1052,14 @@ async def get_expert_by_id(expert_id: str, include_system_prompt: bool = False) 
         return None
     
     # Otherwise, try to get from PostgreSQL (custom expert)
-    return await storage.get_expert(expert_id)
+    expert = await storage.get_expert(expert_id)
+    
+    # If include_system_prompt is True but expert has no system_prompt, log warning
+    if expert and include_system_prompt:
+        if not expert.systemPrompt or len(expert.systemPrompt.strip()) == 0:
+            print(f"[WARNING] Custom expert {expert.name} (ID: {expert_id}) has empty systemPrompt!")
+    
+    return expert
 
 # Helper function to get all experts (seed + custom)
 async def get_all_experts_combined() -> List[Expert]:
@@ -774,16 +1132,16 @@ async def get_experts(category: Optional[str] = None):
         print("[DEBUG] Getting experts, category filter:", category)
         # Get all experts using shared helper
         all_experts = await get_all_experts_combined()
-        print(f"[DEBUG] Total experts loaded: {len(all_experts)}")
+        logger.debug("Total experts loaded: {len(all_experts)}")
         
         # Filter by category if provided
         if category:
             all_experts = [e for e in all_experts if e.category.value == category]
-            print(f"[DEBUG] After category filter: {len(all_experts)}")
+            logger.debug("After category filter: {len(all_experts)}")
         
         return all_experts
     except Exception as e:
-        print(f"[ERROR] Failed to get experts: {str(e)}")
+        logger.error("Failed to get experts: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao buscar experts: {str(e)}")
@@ -1095,6 +1453,17 @@ Retorne APENAS JSON válido."""
                 return
             
             expert_data = json.loads(json_match.group(0))
+            
+            # CRITICAL: Validate that systemPrompt exists and is not empty
+            if "systemPrompt" not in expert_data or not expert_data["systemPrompt"] or len(expert_data["systemPrompt"].strip()) < 100:
+                print(f"[AUTO-CLONE-STREAM] ERROR: systemPrompt is missing or too short!")
+                print(f"[AUTO-CLONE-STREAM] systemPrompt length: {len(expert_data.get('systemPrompt', ''))}")
+                yield send_event("error", {
+                    "message": "Erro: Clone cognitivo gerado sem prompt válido. Tente novamente."
+                })
+                return
+            
+            print(f"[AUTO-CLONE-STREAM] ✅ systemPrompt generated: {len(expert_data['systemPrompt'])} chars")
             
             yield send_event("step-complete", {
                 "step": "synthesizing",
@@ -1411,7 +1780,7 @@ async def get_expert_recommendations():
         }
     
     except Exception as e:
-        print(f"Error getting recommendations: {str(e)}")
+        logger.error("Error getting recommendations: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -2238,7 +2607,7 @@ RETORNE APENAS O CÓDIGO PYTHON:"""
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error auto-cloning expert: {str(e)}")
+        logger.error("Error auto-cloning expert: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -2295,7 +2664,7 @@ async def test_chat_expert(data: dict):
         return {"response": response_text}
     
     except Exception as e:
-        print(f"Error in test chat: {str(e)}")
+        logger.error("Error in test chat: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process test chat: {str(e)}")
 
 @app.post("/api/experts/generate-samples")
@@ -2359,7 +2728,7 @@ async def generate_sample_conversations(data: dict):
         }
     
     except Exception as e:
-        print(f"Error generating samples: {str(e)}")
+        logger.error("Error generating samples: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to generate samples: {str(e)}")
@@ -2371,8 +2740,8 @@ async def recommend_experts(request: RecommendExpertsRequest):
     Uses Claude to intelligently match problem context with expert specialties.
     """
     try:
-        # Get all available experts
-        experts = await storage.get_experts()
+        # Get all available experts (SEED + custom from DB)
+        experts = await get_all_experts_combined()
         
         if not experts:
             raise HTTPException(status_code=404, detail="No experts available")
@@ -2501,22 +2870,45 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
         # Parse JSON response (already validated in extract function)
         recommendations_data = json.loads(json_str)
         
+        # Create expert lookup maps (by ID and by name for resilience)
+        expert_by_id = {expert.id: expert for expert in experts}
+        expert_by_name = {expert.name.lower(): expert for expert in experts}
+        
         # Enrich recommendations with expert data (avatar, stars)
         enriched_recommendations = []
         for rec in recommendations_data.get("recommendations", []):
-            # Get full expert data from storage
-            expert = await storage.get_expert(rec["expertId"])
+            # Try to find expert by ID first, then by name (fuzzy match)
+            expert = expert_by_id.get(rec["expertId"])
             
-            # Build enriched recommendation
-            enriched_rec = {
-                "expertId": rec["expertId"],
-                "expertName": rec["expertName"],
-                "avatar": expert.avatar if expert else None,
-                "relevanceScore": rec["relevanceScore"],
-                "stars": rec["relevanceScore"],  # Copy relevanceScore to stars
-                "justification": rec["justification"]
-            }
-            enriched_recommendations.append(enriched_rec)
+            if not expert:
+                # ID not found, try fuzzy name matching
+                rec_name = rec["expertName"].lower()
+                expert = expert_by_name.get(rec_name)
+                
+                if not expert:
+                    # Try partial matching
+                    for name, exp in expert_by_name.items():
+                        if rec_name in name or name in rec_name:
+                            expert = exp
+                            break
+            
+            if expert:
+                # Build enriched recommendation with CORRECT expert ID
+                enriched_rec = {
+                    "expertId": expert.id,  # Use real expert ID from database
+                    "expertName": expert.name,  # Use real expert name
+                    "avatar": expert.avatar,
+                    "relevanceScore": rec["relevanceScore"],
+                    "stars": rec["relevanceScore"],  # Copy relevanceScore to stars
+                    "justification": rec["justification"]
+                }
+                enriched_recommendations.append(enriched_rec)
+                print(f"[RECOMMEND] Matched '{rec['expertName']}' -> ID: {expert.id}")
+            else:
+                print(f"[RECOMMEND] ⚠️  Could not find expert: {rec['expertName']} (ID: {rec['expertId']})")
+        
+        if not enriched_recommendations:
+            raise ValueError("No valid expert matches found in recommendations")
         
         # Return enriched response
         return RecommendExpertsResponse(recommendations=enriched_recommendations)
@@ -2553,7 +2945,7 @@ IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois."""
             "type": type(e).__name__,
             "detail": str(e)
         }
-        print(f"Error recommending experts: {json.dumps(error_context, ensure_ascii=False)}")
+        logger.error("Error recommending experts: {json.dumps(error_context, ensure_ascii=False)}")
         raise HTTPException(
             status_code=500, 
             detail="Erro ao processar recomendações. Por favor, tente novamente."
@@ -2663,10 +3055,133 @@ async def upload_expert_avatar(expert_id: str, file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error uploading avatar: {str(e)}")
+        logger.error("Error uploading avatar: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to upload avatar: {str(e)}")
     finally:
         # Ensure file is closed
+        await file.close()
+
+@app.post("/api/upload/expert-avatar")
+async def upload_expert_avatar_temp(
+    file: UploadFile = File(...),
+    expertName: str = Query(...)
+):
+    """
+    Upload avatar for a new expert (before expert is created).
+    Uses secure validation with magic byte checking.
+    """
+    try:
+        # Read file contents
+        contents = await file.read()
+        
+        # Validate image with security checks (magic bytes, size, dimensions)
+        try:
+            image, detected_format = validate_image_file(
+                contents,
+                file.filename or "avatar",
+                max_size_mb=5,
+                max_dimension=2048
+            )
+            
+            # Re-open for processing
+            image = Image.open(io.BytesIO(contents))
+            
+            # Resize to 400x400 for optimal avatar size
+            image = image.resize((400, 400), Image.Resampling.LANCZOS)
+            
+            # Convert to RGB if needed
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid image file: {str(e)}"
+            )
+        
+        # Create custom_experts directory
+        project_root = Path(__file__).parent.parent
+        custom_experts_dir = project_root / "attached_assets" / "custom_experts"
+        custom_experts_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Sanitize filename
+        safe_name = "".join(c for c in expertName if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_name = safe_name.replace(' ', '-').lower()
+        avatar_filename = f"{safe_name}.jpg"
+        avatar_full_path = custom_experts_dir / avatar_filename
+        
+        # Save as JPEG
+        image.save(avatar_full_path, "JPEG", quality=85, optimize=True)
+        
+        # Return relative path for frontend
+        avatar_path = f"custom_experts/{avatar_filename}"
+        
+        print(f"[UPLOAD] ✅ Avatar saved: {avatar_full_path}")
+        
+        return {"avatarPath": avatar_path}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error uploading temporary avatar: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to upload avatar: {str(e)}")
+    finally:
+        await file.close()
+
+@app.post("/api/upload/user-avatar")
+async def upload_user_avatar(
+    file: UploadFile = File(...),
+    user_id: str = Query(...)
+):
+    """Upload and process user profile avatar"""
+    try:
+        # Validate file
+        file_bytes = await file.read()
+        validate_image_file(file_bytes, file.filename, max_size_mb=5)
+        
+        # Open and process image
+        image = Image.open(io.BytesIO(file_bytes))
+        
+        # Resize to 200x200 (square)
+        image = image.resize((200, 200), Image.Resampling.LANCZOS)
+        
+        # Convert to RGB if needed
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        
+        # Create folder
+        project_root = Path(__file__).parent.parent
+        upload_dir = project_root / "attached_assets" / "user_avatars"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save with user_id as filename
+        filename = f"{user_id}.jpg"
+        file_path = upload_dir / filename
+        image.save(file_path, "JPEG", quality=85, optimize=True)
+        
+        # Update user avatar_url in database
+        avatar_url = f"/assets/user_avatars/{filename}"
+        conn = await asyncpg.connect(os.environ.get("DATABASE_URL"), statement_cache_size=0)
+        try:
+            await conn.execute(
+                "UPDATE users SET avatar_url = $1 WHERE id = $2",
+                avatar_url, user_id
+            )
+        finally:
+            await conn.close()
+        
+        logger.info(f"[UPLOAD] User avatar uploaded for {user_id}")
+        
+        return {"success": True, "avatarUrl": avatar_url}
+    
+    except FileValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[UPLOAD] Error uploading user avatar: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao fazer upload")
+    finally:
         await file.close()
 
 # Conversation endpoints
@@ -2724,7 +3239,7 @@ async def get_user_conversation_history(user_id: str, limit: int = Query(50)):
         print(f"[HISTORY] Returning {len(result)} conversations with details")
         return result
     except Exception as e:
-        print(f"[ERROR] Failed to get history: {str(e)}")
+        logger.error("Failed to get history: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao buscar histórico: {str(e)}")
@@ -2733,12 +3248,12 @@ async def get_user_conversation_history(user_id: str, limit: int = Query(50)):
 async def get_conversations(user_id: str, expertId: Optional[str] = None):
     """Get conversations for a user, optionally filtered by expert"""
     try:
-        print(f"[DEBUG] Getting conversations for user: {user_id}, expertId: {expertId}")
+        logger.debug("Getting conversations for user: {user_id}, expertId: {expertId}")
         conversations = await storage.get_user_conversations(user_id, expertId)
-        print(f"[DEBUG] Found {len(conversations)} conversations")
+        logger.debug("Found {len(conversations)} conversations")
         return conversations
     except Exception as e:
-        print(f"[ERROR] Failed to get conversations: {str(e)}")
+        logger.error("Failed to get conversations: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao buscar conversas: {str(e)}")
@@ -2760,7 +3275,7 @@ async def clear_all_conversations(user_id: str = Query(...)):
         }
     
     except Exception as e:
-        print(f"[ERROR] Failed to clear conversations: {str(e)}")
+        logger.error("Failed to clear conversations: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to clear conversations: {str(e)}")
@@ -2801,7 +3316,7 @@ async def delete_conversation(conversation_id: str, user_id: str = Query(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] Failed to delete conversation: {str(e)}")
+        logger.error("Failed to delete conversation: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
@@ -2810,23 +3325,23 @@ async def delete_conversation(conversation_id: str, user_id: str = Query(...)):
 async def create_conversation(data: ConversationCreate, user_id: str = Query("default_user")):
     """Create a new conversation with an expert for authenticated user"""
     try:
-        print(f"[DEBUG] Creating conversation for user {user_id} with data: {data}")
+        logger.debug("Creating conversation for user {user_id} with data: {data}")
         
         # Verify expert exists (supports both seed and custom experts)
-        print(f"[DEBUG] Getting expert: {data.expertId}")
+        logger.debug("Getting expert: {data.expertId}")
         expert = await get_expert_by_id(data.expertId)
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
-        print(f"[DEBUG] Expert found: {expert.name}")
-        print(f"[DEBUG] Calling storage.create_conversation...")
+        logger.debug("Expert found: {expert.name}")
+        logger.debug("Calling storage.create_conversation...")
         conversation = await storage.create_conversation_with_user(data, user_id)
-        print(f"[DEBUG] Conversation created: {conversation.id}")
+        logger.debug("Conversation created: {conversation.id}")
         return conversation
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] Failed to create conversation: {str(e)}")
+        logger.error("Failed to create conversation: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create conversation: {str(e)}")
@@ -2859,12 +3374,161 @@ async def delete_conversation(conversation_id: str, user_id: str = Query(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] Failed to delete conversation: {str(e)}")
+        logger.error("Failed to delete conversation: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
 
 # Message endpoints
+def _build_enriched_persona_context(persona: 'UserPersona') -> str:
+    """
+    Build comprehensive persona context including ALL enriched data modules.
+    This creates a rich context string to inject into expert system prompts.
+    """
+    context = f"""
+---
+[🎯 PERSONA INTELLIGENCE HUB - Público-Alvo Completo]:
+
+📊 DADOS FUNDAMENTAIS:
+• Empresa: {persona.companyName}
+• Indústria: {persona.industry}
+• Tamanho: {persona.companySize} funcionários
+• Público-alvo: {persona.targetAudience}
+• Objetivo Principal: {persona.primaryGoal}
+• Desafio Principal: {persona.mainChallenge}
+"""
+    
+    # 1. REDDIT INSIGHTS (Linguagem autêntica, sentiment, trending)
+    if persona.redditInsights:
+        reddit = persona.redditInsights if isinstance(persona.redditInsights, dict) else {}
+        
+        if reddit.get('communities'):
+            context += f"\n🌐 COMUNIDADES ATIVAS:\n{', '.join(reddit['communities'][:5])}\n"
+        
+        if reddit.get('sentiment'):
+            sentiment = reddit['sentiment']
+            if isinstance(sentiment, dict):
+                context += f"\n💬 SENTIMENT: {sentiment.get('overall', 'neutral').upper()}\n"
+                if sentiment.get('summary'):
+                    context += f"   → {sentiment['summary']}\n"
+        
+        if reddit.get('trendingTopics'):
+            topics = reddit['trendingTopics'][:3]
+            context += "\n📈 TRENDING TOPICS:\n"
+            for topic in topics:
+                if isinstance(topic, dict):
+                    context += f"   • {topic.get('topic')} ({topic.get('trend', 'stable')})\n"
+        
+        if reddit.get('language'):
+            context += f"\n🗣️ LINGUAGEM AUTÊNTICA: {reddit['language']}\n"
+    
+    # 2. PSYCHOGRAPHIC CORE (Valores, motivações, medos)
+    if persona.psychographicCore:
+        psycho = persona.psychographicCore if isinstance(persona.psychographicCore, dict) else {}
+        
+        if psycho.get('values'):
+            values = psycho['values'][:5] if isinstance(psycho['values'], list) else []
+            if values:
+                context += f"\n❤️ VALORES CORE: {', '.join(values)}\n"
+        
+        if psycho.get('motivations'):
+            context += "\n🎯 MOTIVAÇÕES:\n"
+            motivations = psycho['motivations']
+            if isinstance(motivations, dict):
+                if motivations.get('intrinsic'):
+                    intrinsic = motivations['intrinsic'][:3] if isinstance(motivations['intrinsic'], list) else []
+                    if intrinsic:
+                        context += f"   Intrínsecas: {', '.join(intrinsic)}\n"
+        
+        if psycho.get('fears'):
+            fears = psycho['fears'][:3] if isinstance(psycho['fears'], list) else []
+            if fears:
+                context += f"\n😰 MEDOS: {', '.join(fears)}\n"
+    
+    # 3. JOBS-TO-BE-DONE
+    if persona.jobsToBeDone:
+        jtbd = persona.jobsToBeDone if isinstance(persona.jobsToBeDone, dict) else {}
+        
+        if jtbd.get('functionalJobs'):
+            func_jobs = jtbd['functionalJobs'][:3] if isinstance(jtbd['functionalJobs'], list) else []
+            if func_jobs:
+                context += f"\n🔧 FUNCTIONAL JOBS: {', '.join(func_jobs)}\n"
+        
+        if jtbd.get('emotionalJobs'):
+            emot_jobs = jtbd['emotionalJobs'][:3] if isinstance(jtbd['emotionalJobs'], list) else []
+            if emot_jobs:
+                context += f"\n💝 EMOTIONAL JOBS: {', '.join(emot_jobs)}\n"
+        
+        if jtbd.get('socialJobs'):
+            social_jobs = jtbd['socialJobs'][:2] if isinstance(jtbd['socialJobs'], list) else []
+            if social_jobs:
+                context += f"\n👥 SOCIAL JOBS: {', '.join(social_jobs)}\n"
+    
+    # 4. BUYER JOURNEY
+    if persona.buyerJourney:
+        journey = persona.buyerJourney if isinstance(persona.buyerJourney, dict) else {}
+        stages = []
+        for stage_name in ['awareness', 'consideration', 'decision', 'retention', 'advocacy']:
+            if journey.get(stage_name):
+                stages.append(stage_name.capitalize())
+        if stages:
+            context += f"\n🛒 BUYER JOURNEY: {', '.join(stages)}\n"
+    
+    # 5. STRATEGIC INSIGHTS
+    if persona.strategicInsights:
+        strategic = persona.strategicInsights if isinstance(persona.strategicInsights, dict) else {}
+        
+        if strategic.get('opportunities'):
+            opps = strategic['opportunities'][:3] if isinstance(strategic['opportunities'], list) else []
+            if opps:
+                context += "\n⚡ OPORTUNIDADES:\n"
+                for opp in opps:
+                    context += f"   • {opp}\n"
+        
+        if strategic.get('quickWins'):
+            wins = strategic['quickWins'][:2] if isinstance(strategic['quickWins'], list) else []
+            if wins:
+                context += "\n🎯 QUICK WINS:\n"
+                for win in wins:
+                    context += f"   • {win}\n"
+    
+    # 6. PAIN POINTS & GOALS
+    if persona.painPoints:
+        pain_points = persona.painPoints[:5] if isinstance(persona.painPoints, list) else []
+        if pain_points:
+            context += "\n💔 PAIN POINTS:\n"
+            for pain in pain_points:
+                context += f"   • {pain}\n"
+    
+    if persona.goals:
+        goals = persona.goals[:5] if isinstance(persona.goals, list) else []
+        if goals:
+            context += "\n🏆 GOALS:\n"
+            for goal in goals:
+                context += f"   • {goal}\n"
+    
+    context += """
+---
+⚡ INSTRUÇÃO CRÍTICA - PERSONALIZAÇÃO TOTAL:
+
+Você tem acesso à PERSONA COMPLETA do cliente (8 módulos enriquecidos). Use para:
+
+1. 🗣️ Falar a LINGUAGEM AUTÊNTICA (Reddit insights)
+2. 🎯 Endereçar JOBS-TO-BE-DONE específicos
+3. 🛒 Considerar estágio da BUYER JOURNEY
+4. ❤️ Alinhar com VALORES e MOTIVAÇÕES
+5. 💡 Aproveitar OPORTUNIDADES identificadas
+6. 📈 Incorporar TRENDING TOPICS
+7. 😊 Respeitar SENTIMENT das comunidades
+8. 💔 Resolver PAIN POINTS reais
+
+NÃO mencione "recebi dados" ou "vejo que você trabalha com".
+DEMONSTRE conhecimento profundo através de recomendações ultra-específicas e acionáveis.
+---
+"""
+    
+    return context
+
 @app.get("/api/conversations/{conversation_id}/messages", response_model=List[Message])
 async def get_messages(conversation_id: str):
     """Get all messages in a conversation"""
@@ -2886,6 +3550,17 @@ async def send_message(conversation_id: str, data: MessageSend):
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
         
+        # Debug: Check if systemPrompt exists
+        if not expert.systemPrompt or len(expert.systemPrompt.strip()) == 0:
+            print(f"[CHAT ERROR] Expert {expert.name} (ID: {expert.id}) has NO systemPrompt!")
+            print(f"[CHAT ERROR] Expert type: {expert.expertType}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Especialista {expert.name} não possui prompt configurado. Entre em contato com o suporte."
+            )
+        
+        logger.info("Expert {expert.name} systemPrompt length: {len(expert.systemPrompt)} chars")
+        
         # Get conversation history BEFORE saving the new user message
         # This way we pass all previous messages to the agent
         all_messages = await storage.get_messages(conversation_id)
@@ -2895,58 +3570,26 @@ async def send_message(conversation_id: str, data: MessageSend):
         ]
         
         # Get user's persona for context injection (Persona Intelligence Hub)
-        user_id = "default_user"
+        # Use the userId from the conversation (NOT hardcoded "default_user")
+        user_id = conversation.userId
         persona = await storage.get_user_persona(user_id)
         
-        # Enrich system prompt with persona context if available
-        enriched_system_prompt = expert.systemPrompt
+        # Build persona context (to be injected separately)
+        persona_context = None
         if persona:
-            # Build persona context with core business data
-            persona_context = f"""
-
----
-[CONTEXTO DO NEGÓCIO DO CLIENTE - Persona Intelligence Hub]:
-• Empresa: {persona.companyName or 'Não especificado'}
-• Indústria: {persona.industry or 'Não especificado'}
-• Público-alvo: {persona.targetAudience or 'Não especificado'}
-• Objetivo Principal: {persona.primaryGoal or 'Não especificado'}
-• Desafio Principal: {persona.mainChallenge or 'Não especificado'}
-"""
-            
-            # Add YouTube campaign insights if enriched
-            if persona.campaignReferences and len(persona.campaignReferences) > 0:
-                persona_context += "\n🎥 CAMPANHAS DE REFERÊNCIA (YouTube Research):\n"
-                for i, campaign in enumerate(persona.campaignReferences[:5], 1):
-                    # Defensive: handle both dict and Pydantic model access
-                    if isinstance(campaign, dict):
-                        title = campaign.get('title', 'N/A')
-                        channel = campaign.get('channel', 'N/A')
-                        insights = campaign.get('insights', [])
-                    else:
-                        title = getattr(campaign, 'title', 'N/A')
-                        channel = getattr(campaign, 'channel', 'N/A')
-                        insights = getattr(campaign, 'insights', [])
-                    
-                    persona_context += f"  {i}. \"{title}\" por {channel}\n"
-                    if insights:
-                        persona_context += f"     → Insights: {', '.join(insights[:2])}\n"
-            
-            # Add pain points and psychographics if available
-            if persona.painPoints and len(persona.painPoints) > 0:
-                persona_context += "\n💬 INSIGHTS DO PÚBLICO:\n"
-                for i, pain_point in enumerate(persona.painPoints[:3], 1):
-                    persona_context += f"  {i}. {pain_point}\n"
-            
-            persona_context += """
-INSTRUÇÃO IMPORTANTE: Use essas informações para oferecer conselhos personalizados e estratégicos. NÃO mencione explicitamente "recebi informações da sua empresa" - simplesmente use o contexto naturalmente para enriquecer suas análises e recomendações com exemplos relevantes.
----
-"""
-            enriched_system_prompt = expert.systemPrompt + persona_context
+            logger.info("Building ENRICHED persona context for {persona.companyName}")
+            persona_context = _build_enriched_persona_context(persona)
+            logger.info("Persona context ready: {len(persona_context)} chars")
+        else:
+            logger.info("No persona found for user {user_id}")
         
-        # Create agent for this expert with enriched system prompt
+        # Create agent for this expert
+        # Pass expert.systemPrompt as base, and persona_context separately
+        # The factory will handle adding persona_context to the clone's prompt
         agent = LegendAgentFactory.create_agent(
             expert_name=expert.name,
-            system_prompt=enriched_system_prompt
+            system_prompt=expert.systemPrompt,  # Base prompt (may be ignored if clone exists)
+            persona_context=persona_context  # NEW: Pass separately to preserve it!
         )
         
         # Get AI response with original user message
@@ -2977,7 +3620,7 @@ INSTRUÇÃO IMPORTANTE: Use essas informações para oferecer conselhos personal
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error processing message: {str(e)}")
+        logger.error("Error processing message: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
 
 # Business Profile endpoints
@@ -3011,15 +3654,15 @@ async def create_user_persona(data: UserPersonaCreate, user_id: str = Query(...)
     - Psychographic data (from Reddit research - optional)
     - Initial research mode configuration
     """
-    print(f"[PERSONA CREATE] Endpoint called with data: {data}")
-    print(f"[PERSONA CREATE] Using user_id: {user_id}")
+    logger.info("Endpoint called with data: {data}")
+    logger.info("Using user_id: {user_id}")
     try:
-        print(f"[PERSONA CREATE] Calling storage.create_user_persona...")
+        logger.info("Calling storage.create_user_persona...")
         persona = await storage.create_user_persona(user_id, data)
-        print(f"[PERSONA CREATE] Persona created successfully: {persona.id}")
+        logger.info("Persona created successfully: {persona.id}")
         return persona
     except Exception as e:
-        print(f"[PERSONA CREATE] Error creating persona: {str(e)}")
+        logger.info("Error creating persona: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
@@ -3030,12 +3673,12 @@ async def get_current_persona(user_id: str = Query(...)):
     Get the current user's persona.
     Returns the most recent persona for the authenticated user.
     """
-    print(f"[PERSONA CURRENT] Fetching persona for user_id: {user_id}")
+    logger.info("Fetching persona for user_id: {user_id}")
     try:
         persona = await storage.get_user_persona(user_id)
         return persona
     except Exception as e:
-        print(f"Error fetching persona: {str(e)}")
+        logger.error("Error fetching persona: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch persona: {str(e)}")
 
 async def _async_enrichment_task(persona_id: str, level: str):
@@ -3053,7 +3696,7 @@ async def _async_enrichment_task(persona_id: str, level: str):
         # Create NEW database connection for this background task
         print(f"[BACKGROUND] Creating database connection...")
         db_url = os.getenv("DATABASE_URL")
-        conn = await asyncpg.connect(db_url)
+        conn = await asyncpg.connect(db_url, statement_cache_size=0)  # Disable cache to avoid schema change issues
         
         try:
             # Mark as processing
@@ -3133,7 +3776,7 @@ async def _async_enrichment_task(persona_id: str, level: str):
         # Try to mark as failed (with new connection if needed)
         try:
             db_url = os.getenv("DATABASE_URL")
-            conn_fail = await asyncpg.connect(db_url)
+            conn_fail = await asyncpg.connect(db_url, statement_cache_size=0)  # Disable cache
             await conn_fail.execute("""
                 UPDATE user_personas
                 SET enrichment_status = 'failed'
@@ -3218,7 +3861,7 @@ async def get_enrichment_status(user_id: str = Query(...)):
             "researchCompleteness": persona.researchCompleteness or 0
         }
     except Exception as e:
-        print(f"Error fetching enrichment status: {str(e)}")
+        logger.error("Error fetching enrichment status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch status: {str(e)}")
 
 @app.post("/api/persona/enrich/youtube", response_model=UserPersona)
@@ -3251,7 +3894,7 @@ async def enrich_persona_youtube(data: PersonaEnrichmentRequest):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        print(f"Error enriching persona: {str(e)}")
+        logger.error("Error enriching persona: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to enrich persona: {str(e)}")
@@ -3316,7 +3959,7 @@ async def upgrade_persona(persona_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error upgrading persona: {str(e)}")
+        logger.error("Error upgrading persona: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to upgrade persona: {str(e)}")
@@ -3370,7 +4013,7 @@ async def list_user_personas(user_id: str = Query(...)):
         personas = await storage.list_user_personas(user_id)
         return personas
     except Exception as e:
-        print(f"Error listing personas: {str(e)}")
+        logger.error("Error listing personas: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to list personas: {str(e)}")
 
 @app.post("/api/persona/set-active")
@@ -3391,7 +4034,7 @@ async def set_active_persona(user_id: str = Query(...), request: dict = Body(...
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error setting active persona: {str(e)}")
+        logger.error("Error setting active persona: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to set active persona: {str(e)}")
 
 @app.get("/api/persona/{persona_id}", response_model=UserPersona)
@@ -3411,7 +4054,7 @@ async def get_persona_by_id(persona_id: str, user_id: str = Query(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting persona by ID: {str(e)}")
+        logger.error("Error getting persona by ID: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get persona: {str(e)}")
 
 # Suggested Questions endpoint (personalized based on profile + expert expertise)
@@ -3569,7 +4212,7 @@ NÃO numere as perguntas nem adicione prefixos. Apenas retorne 5 perguntas, uma 
                 }
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
-        print(f"Error generating suggested questions: {str(e)}")
+        logger.error("Error generating suggested questions: {str(e)}")
         import traceback
         traceback.print_exc()
         # Return fallback instead of failing
@@ -3767,7 +4410,7 @@ E-mail Marketing: [insight específico aqui]
             return {"hasProfile": False, "insights": []}
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
-        print(f"Error generating business insights: {str(e)}")
+        logger.error("Error generating business insights: {str(e)}")
         import traceback
         traceback.print_exc()
         # Return fallback instead of failing
@@ -3795,7 +4438,7 @@ E-mail Marketing: [insight específico aqui]
 
 # Council Analysis endpoints
 @app.post("/api/council/analyze", response_model=CouncilAnalysis)
-async def create_council_analysis(data: CouncilAnalysisCreate):
+async def create_council_analysis(data: CouncilAnalysisCreate, user_id: str = Query(...)):
     """
     Run collaborative analysis by council of marketing legend experts.
     
@@ -3803,13 +4446,19 @@ async def create_council_analysis(data: CouncilAnalysisCreate):
     1. Conducts Perplexity research (if user has BusinessProfile)
     2. Gets independent analyses from 8 marketing legends
     3. Synthesizes consensus recommendation
+    
+    Args:
+        user_id: User identifier (REQUIRED) - passed as query parameter
     """
-    # For now, use a default user_id until we add authentication
-    user_id = "default_user"
     
     try:
         # Get user's business profile (optional)
         profile = await storage.get_business_profile(user_id)
+        
+        # Get user's persona for deep context (PRIORITY - richer than business profile)
+        persona = await storage.get_user_persona(user_id)
+        if persona:
+            logger.info("Persona loaded: {persona.companyName} (enrichment: {persona.enrichmentStatus})")
         
         # Get experts to consult (all if not specified)
         if data.expertIds:
@@ -3828,12 +4477,13 @@ async def create_council_analysis(data: CouncilAnalysisCreate):
             # Limit to top 8 experts for performance
             experts = experts[:8]
         
-        # Run council analysis
+        # Run council analysis WITH persona context
         analysis = await council_orchestrator.analyze(
             problem=data.problem,
             experts=experts,
             profile=profile,
-            user_id=user_id
+            user_id=user_id,
+            persona=persona  # NEW: Pass enriched persona
         )
         
         # Save analysis
@@ -3853,13 +4503,13 @@ async def create_council_analysis(data: CouncilAnalysisCreate):
             )
         raise
     except Exception as e:
-        print(f"Error creating council analysis: {str(e)}")
+        logger.error("Error creating council analysis: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create council analysis: {str(e)}")
 
 @app.post("/api/council/analyze-stream")
-async def create_council_analysis_stream(data: CouncilAnalysisCreate):
+async def create_council_analysis_stream(data: CouncilAnalysisCreate, user_id: str = Query(...)):
     """
     Run collaborative analysis with Server-Sent Events streaming.
     
@@ -3870,8 +4520,10 @@ async def create_council_analysis_stream(data: CouncilAnalysisCreate):
     - expert_completed: When expert finishes
     - consensus_started: Before synthesis
     - analysis_complete: Final result with full analysis
+    
+    Args:
+        user_id: User identifier (REQUIRED) - passed as query parameter
     """
-    user_id = "default_user"
     
     async def event_generator():
         # Helper to format SSE events (defined outside try block for exception handling)
@@ -3881,6 +4533,11 @@ async def create_council_analysis_stream(data: CouncilAnalysisCreate):
         try:
             # Get user's business profile (optional)
             profile = await storage.get_business_profile(user_id)
+            
+            # Get user's persona for deep context (PRIORITY)
+            persona = await storage.get_user_persona(user_id)
+            if persona:
+                print(f"[COUNCIL STREAM] Persona loaded: {persona.companyName}")
             
             # Get experts to consult
             if data.expertIds:
@@ -3955,7 +4612,8 @@ async def create_council_analysis_stream(data: CouncilAnalysisCreate):
                         expert=expert,
                         problem=data.problem,
                         profile=profile,
-                        research_findings=research_findings
+                        research_findings=research_findings,
+                        persona=persona  # NEW: Pass persona to each expert
                     )
                     contributions.append(contribution)
                     print(f"[Council Stream] Completed analysis for {expert.name}")
@@ -4293,34 +4951,14 @@ async def _build_council_context(
     new_question: str,
     persona: Optional['UserPersona'] = None
 ) -> str:
-    """Build rich context for follow-up including analysis + history + persona"""
+    """Build rich context for follow-up including analysis + history + ENRICHED persona"""
     
-    # Start with persona context if available (Persona Intelligence Hub)
+    # Start with ENRICHED persona context if available
     context = ""
     if persona:
-        context += f"""**CONTEXTO DO NEGÓCIO DO CLIENTE (Persona Intelligence Hub):**
-• Empresa: {persona.companyName or 'Não especificado'}
-• Indústria: {persona.industry or 'Não especificado'}
-• Público-alvo: {persona.targetAudience or 'Não especificado'}
-• Objetivo Principal: {persona.primaryGoal or 'Não especificado'}
-• Desafio Principal: {persona.mainChallenge or 'Não especificado'}
-"""
-        
-        # Add enrichment data if available
-        if persona.campaignReferences and len(persona.campaignReferences) > 0:
-            context += "\n🎥 CAMPANHAS DE REFERÊNCIA (YouTube Research):\n"
-            for i, campaign in enumerate(persona.campaignReferences[:3], 1):
-                # Defensive: handle both dict and Pydantic model access
-                if isinstance(campaign, dict):
-                    title = campaign.get('title', 'N/A')
-                    channel = campaign.get('channel', 'N/A')
-                else:
-                    title = getattr(campaign, 'title', 'N/A')
-                    channel = getattr(campaign, 'channel', 'N/A')
-                
-                context += f"  {i}. \"{title}\" por {channel}\n"
-        
-        context += "\n**INSTRUÇÃO**: Use essas informações do cliente para personalizar suas análises.\n\n---\n\n"
+        print(f"[COUNCIL CONTEXT] Adding ENRICHED persona context for {persona.companyName}")
+        context += _build_enriched_persona_context(persona)
+        context += "\n\n"
     
     context += f"""**CONTEXTO DA ANÁLISE INICIAL:**
 
@@ -4416,7 +5054,7 @@ async def create_persona(data: PersonaCreate):
             )
         raise
     except Exception as e:
-        print(f"Error creating persona: {str(e)}")
+        logger.error("Error creating persona: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
@@ -4602,6 +5240,225 @@ async def clear_analytics():
     except Exception as e:
         print(f"[Analytics] Error clearing data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
+# AI PROMPT ENHANCEMENT
+# ============================================
+
+@app.post("/api/ai/enhance-prompt")
+async def enhance_prompt(
+    data: dict = Body(...),
+    user_id: str = Query(...)
+):
+    """
+    Enhance user prompts using Claude AI.
+    Makes descriptions more detailed, strategic, and professional.
+    
+    Supported field types:
+    - target_audience: Expands buyer persona descriptions
+    - challenge: Expands business challenge descriptions
+    - goal: Expands business goal descriptions
+    """
+    try:
+        # Extract and validate inputs
+        text = data.get("text", "").strip()
+        field_type = data.get("field_type", "")
+        context = data.get("context", {})
+        
+        # Validation
+        if not text or len(text) < 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Texto muito curto para melhorar. Escreva pelo menos uma frase completa."
+            )
+        
+        if len(text) > 500:
+            raise HTTPException(
+                status_code=400,
+                detail="Texto muito longo. Máximo de 500 caracteres."
+            )
+        
+        if field_type not in ["target_audience", "challenge", "goal"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Tipo de campo inválido. Use: target_audience, challenge, ou goal"
+            )
+        
+        # Check cache first (avoid duplicate API calls)
+        from cache import cache_manager, make_cache_key, hash_data
+        cache_key = make_cache_key("ai_enhance", field_type, hash_data(text + str(context)))
+        
+        cached = await cache_manager.get(cache_key)
+        if cached:
+            logger.info("AI enhance cache hit", field_type=field_type, user_id=user_id)
+            return cached
+        
+        # Build system prompt based on field type
+        if field_type == "target_audience":
+            industry = context.get("industry", "")
+            company_size = context.get("companySize", "")
+            
+            system_prompt = """Você é um especialista em marketing estratégico e definição de buyer personas.
+Sua tarefa é expandir descrições básicas de público-alvo em perfis ricos e detalhados."""
+            
+            user_prompt = f"""Expanda esta descrição de público-alvo tornando-a muito mais detalhada e estratégica:
+
+TEXTO ORIGINAL:
+{text}
+
+CONTEXTO:
+- Indústria: {industry or 'Não especificada'}
+- Tamanho da empresa: {company_size or 'Não especificado'}
+
+INSTRUÇÕES:
+Expanda adicionando:
+1. DEMOGRAFIA: idade, gênero, localização, renda, cargo/função
+2. PSICOGRAFIA: valores, crenças, estilo de vida, aspirações, medos
+3. COMPORTAMENTOS: hábitos de compra, canais preferidos, fontes de informação, influenciadores
+4. DORES E MOTIVAÇÕES: principais frustrações, o que os motiva, gatilhos de compra
+5. LINGUAGEM: tom e estilo que ressoam com eles
+
+FORMATO:
+- Seja específico e detalhado (3-5x mais texto)
+- Use estrutura organizada (pode usar seções)
+- Mantenha tom profissional mas acessível
+- Em português brasileiro
+
+IMPORTANTE:
+- Retorne APENAS o texto melhorado
+- Não inclua títulos como "Público-Alvo:" ou "Descrição:"
+- Não adicione explicações sobre o que você fez
+- Seja direto e prático"""
+        
+        elif field_type == "challenge":
+            industry = context.get("industry", "")
+            primary_goal = context.get("primaryGoal", "")
+            
+            system_prompt = """Você é um consultor de marketing estratégico especializado em diagnóstico de problemas de negócio.
+Sua tarefa é expandir descrições superficiais de desafios em análises profundas e acionáveis."""
+            
+            user_prompt = f"""Expanda esta descrição de desafio de negócio tornando-a muito mais estratégica e detalhada:
+
+TEXTO ORIGINAL:
+{text}
+
+CONTEXTO:
+- Indústria: {industry or 'Não especificada'}
+- Objetivo principal: {primary_goal or 'Não especificado'}
+
+INSTRUÇÕES:
+Expanda incluindo:
+1. RAIZ DO PROBLEMA: causas subjacentes, por que está acontecendo
+2. IMPACTO NO NEGÓCIO: métricas afetadas, custo da inação
+3. CONTEXTO DA INDÚSTRIA: particularidades do setor, benchmarks
+4. OBSTÁCULOS RELACIONADOS: problemas conectados, efeitos em cascata
+5. CONSEQUÊNCIAS: o que acontece se não resolver (curto e longo prazo)
+
+FORMATO:
+- Seja específico e estratégico (2-3x mais texto)
+- Use estrutura clara (pode usar seções ou bullets)
+- Quantifique quando possível
+- Em português brasileiro
+
+IMPORTANTE:
+- Retorne APENAS o texto melhorado
+- Não inclua títulos como "Desafio:" ou "Análise:"
+- Não adicione explicações sobre o que você fez
+- Seja direto e prático"""
+        
+        else:  # goal
+            industry = context.get("industry", "")
+            
+            system_prompt = """Você é um estrategista de marketing focado em definição de objetivos SMART.
+Sua tarefa é transformar objetivos vagos em metas claras e acionáveis."""
+            
+            user_prompt = f"""Expanda este objetivo de negócio tornando-o mais específico e estratégico:
+
+TEXTO ORIGINAL:
+{text}
+
+CONTEXTO:
+- Indústria: {industry or 'Não especificada'}
+
+INSTRUÇÕES:
+Expanda adicionando:
+1. ESPECIFICIDADE: o que exatamente quer alcançar
+2. MÉTRICAS: KPIs concretos, números-alvo
+3. TIMELINE: quando espera resultados
+4. ESTRATÉGIA: principais alavancas para atingir o objetivo
+5. RECURSOS: o que precisa estar em place
+
+Retorne APENAS o texto melhorado, sem títulos ou explicações."""
+        
+        # Call Claude API using resilient client
+        from anthropic_client import get_anthropic_client
+        client = get_anthropic_client()
+        
+        logger.info(
+            "Enhancing prompt with AI",
+            user_id=user_id,
+            field_type=field_type,
+            original_length=len(text)
+        )
+        
+        response = await client.create_message(
+            messages=[{"role": "user", "content": user_prompt}],
+            system=system_prompt,
+            max_tokens=800,
+            temperature=0.7
+        )
+        
+        # Extract text from response
+        enhanced_text = response.content[0].text.strip()
+        
+        # Build result
+        result = {
+            "enhanced_text": enhanced_text,
+            "original_length": len(text),
+            "enhanced_length": len(enhanced_text),
+            "field_type": field_type,
+            "improvement_ratio": round(len(enhanced_text) / len(text), 2)
+        }
+        
+        # Cache result for 24 hours
+        await cache_manager.set(cache_key, result, 24 * 60 * 60)
+        
+        # Log analytics
+        logger.info(
+            "AI prompt enhanced successfully",
+            user_id=user_id,
+            field_type=field_type,
+            original_length=len(text),
+            enhanced_length=len(enhanced_text),
+            improvement_ratio=result["improvement_ratio"]
+        )
+        
+        # Optional: Save to analytics table
+        try:
+            await storage.log_activity(
+                user_id=user_id,
+                activity_type="ai_prompt_enhance",
+                metadata={
+                    "field_type": field_type,
+                    "original_length": len(text),
+                    "enhanced_length": len(enhanced_text),
+                    "improvement_ratio": result["improvement_ratio"]
+                }
+            )
+        except Exception as e:
+            logger.warning("Failed to log AI enhance activity", error=str(e))
+        
+        return result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error enhancing prompt", error=str(e), user_id=user_id)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao melhorar texto: {str(e)}"
+        )
 
 
 if __name__ == "__main__":

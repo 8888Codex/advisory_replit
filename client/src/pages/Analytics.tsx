@@ -1,3 +1,34 @@
+/**
+ * ⚠️ ANALYTICS PAGE - DISABLED FOR MVP ⚠️
+ * 
+ * Esta página foi removida do sistema porque não está puxando dados reais.
+ * A tabela user_activity não está sendo populada pelas ações principais:
+ * - Chats 1:1 com especialistas
+ * - Análises do Council
+ * - Mensagens no Council Room
+ * 
+ * Para reativar esta página (estimativa: 2-3 horas):
+ * 1. Implementar log_activity() nos seguintes endpoints:
+ *    - send_message (chat 1:1)
+ *    - create_council_analysis / create_council_analysis_stream
+ *    - council_chat_stream
+ * 2. Descomentar as rotas em App.tsx:
+ *    - <Route path="/analytics">
+ *    - <Route path="/admin/analytics">
+ * 3. Adicionar link de navegação em Header.tsx (opcional)
+ * 4. Testar com dados reais por algumas semanas
+ * 
+ * Endpoints backend (já implementados, retornam dados vazios):
+ * - GET /api/analytics/overview - Métricas gerais
+ * - GET /api/analytics/timeline - Atividade diária
+ * - GET /api/analytics/top-experts - Ranking de especialistas
+ * - GET /api/analytics/categories - Distribuição por categoria
+ * - GET /api/analytics/recommendations - Recomendações AI
+ * 
+ * Motivo da remoção: Foco no MVP (Persona, Council, Chat, AI Enhance)
+ * Data: 2025-11-10
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";

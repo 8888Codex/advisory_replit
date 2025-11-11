@@ -1,0 +1,38 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (10) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+3:32:34 PM [express] Starting Python backend on port 5001...
+Seeding default experts...
+Seeded 6 experts successfully.
+3:32:34 PM [express] serving on port 3000
+3:32:35 PM [express] [Python Backend Error] INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+ERROR:    [Errno 48] Address already in use
+3:32:35 PM [express] [Python Backend] Exited with code 1
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+(node:70022) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+3:33:58 PM [vite] hmr update /src/pages/Create.tsx, /src/index.css?v=vBcUueMfVevM53HhRYKyx
+node:_http_outgoing:700
+    throw new ERR_HTTP_HEADERS_SENT('set');
+    ^
+
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ClientRequest.setHeader (node:_http_outgoing:700:11)
+    at ProxyServer.proxyReq (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:976:18)
+    at ProxyServer.emit (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/eventemitter3/index.js:210:27)
+    at ClientRequest.<anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/http-proxy/lib/http-proxy/passes/web-incoming.js:133:16)
+    at ClientRequest.emit (node:events:518:28)
+    at tickOnSocket (node:_http_client:857:7)
+    at onSocketNT (node:_http_client:920:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:91:21) {
+  code: 'ERR_HTTP_HEADERS_SENT'
+}
+
+Node.js v22.17.0

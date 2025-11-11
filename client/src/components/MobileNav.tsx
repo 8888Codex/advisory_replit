@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, Home, FolderOpen, Users, User, Plus } from "lucide-react";
+import { Menu, Home, FolderOpen, Users, User, Plus, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,6 +17,7 @@ export function MobileNav() {
   const navLinks = [
     { href: "/", label: "Início", icon: Home },
     { href: "/categories", label: "Categorias", icon: FolderOpen },
+    { href: "/conversations", label: "Conversas", icon: MessageSquare },
     { href: "/test-council", label: "Conselho Estratégico", icon: Users },
     { href: "/personas", label: "Persona Builder", icon: User },
     { href: "/create", label: "Criar Especialista", icon: Plus },

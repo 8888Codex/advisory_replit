@@ -1,0 +1,36 @@
+INFO:     Started server process [21745]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+INFO:     127.0.0.1:63930 - "GET / HTTP/1.1" 200 OK
+[PERSONA CURRENT] Fetching persona for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:63952 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICH_ENDPOINT] Received enrichment request for persona 175c9ebf-ae58-4a9c-b5f1-fce88ed26bf9 with mode quick
+[ENRICH_ENDPOINT] Persona found. Adding background task...
+[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.
+INFO:     127.0.0.1:63954 - "POST /api/persona/enrich/background HTTP/1.1" 202 Accepted

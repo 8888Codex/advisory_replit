@@ -5,9 +5,13 @@ import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Ticket, Copy, Check, Plus, User, Calendar, Shield, CheckCircle2, XCircle } from 'lucide-react';
+import { Ticket, Copy, Check, Plus, User, Calendar, Shield, CheckCircle2, XCircle, Lock, Target, Sparkles } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Link } from 'wouter';
+import { extractPersonaSummary } from '@/lib/textUtils';
+import type { UserPersona } from '@shared/schema';
 
 interface InviteCode {
   code: string;
@@ -31,6 +35,14 @@ function SettingsContent() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // Avatar upload states
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const { data: inviteCodes = [], isLoading } = useQuery<InviteCode[]>({
     queryKey: ['/api/invites/my-codes'],
@@ -38,6 +50,11 @@ function SettingsContent() {
 
   const { data: auditLogs = [], isLoading: logsLoading } = useQuery<AuditLog[]>({
     queryKey: ['/api/audit/logs'],
+  });
+  
+  // Fetch active persona
+  const { data: persona } = useQuery<UserPersona | null>({
+    queryKey: ['/api/persona/current'],
   });
 
   const generateMutation = useMutation({
@@ -80,6 +97,98 @@ function SettingsContent() {
       });
     },
   });
+  
+  // Change Password Mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwords: { currentPassword: string; newPassword: string }) => {
+      const response = await apiRequest('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwords),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erro ao atualizar senha');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast({
+        title: 'Senha atualizada',
+        description: 'Sua senha foi alterada com sucesso',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao atualizar senha',
+        description: error instanceof Error ? error.message : 'Tente novamente',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Avatar Upload Mutation
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await apiRequest('/api/upload/user-avatar', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erro ao fazer upload');
+      }
+      return response.json();
+    },
+    onSuccess: async () => {
+      await refreshUser();
+      setAvatarFile(null);
+      toast({
+        title: 'Avatar atualizado',
+        description: 'Sua foto de perfil foi atualizada com sucesso'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro no upload',
+        description: error instanceof Error ? error.message : 'Tente novamente',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Arquivo inválido',
+        description: 'Selecione uma imagem (JPG, PNG, WEBP)',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Arquivo muito grande',
+        description: 'Máximo 5MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setAvatarFile(file);
+    uploadAvatarMutation.mutate(file);
+  };
 
   const copyToClipboard = async (code: string) => {
     await navigator.clipboard.writeText(code);
@@ -100,17 +209,233 @@ function SettingsContent() {
       minute: '2-digit',
     });
   };
+  
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Senhas não conferem',
+        description: 'A nova senha e a confirmação devem ser iguais',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Submit password change
+    changePasswordMutation.mutate({
+      currentPassword,
+      newPassword,
+    });
+  };
 
   if (!user) return null;
+  
+  // Get user initials for avatar
+  const userInitials = user.username.slice(0, 2).toUpperCase();
 
   return (
-    <div className="container max-w-4xl mx-auto px-6 py-12">
-      <div className="mb-8">
-        <h1 className="text-4xl font-semibold tracking-tight mb-2">Configurações</h1>
-        <p className="text-muted-foreground">Gerencie seus códigos de convite</p>
+    <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-2">Configurações</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Gerencie seu perfil e preferências</p>
       </div>
 
       <div className="space-y-6">
+        {/* Profile Section */}
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <User className="w-5 h-5 text-accent" />
+              Perfil
+            </CardTitle>
+            <CardDescription>Suas informações pessoais</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row items-start gap-6">
+              {/* Avatar */}
+              <div className="shrink-0 mx-auto sm:mx-0 relative group">
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="cursor-pointer block"
+                >
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent/10 to-accent/20 flex items-center justify-center ring-2 ring-accent/30 group-hover:ring-accent/50 transition-all relative overflow-hidden">
+                    {user.avatarUrl ? (
+                      <img 
+                        src={user.avatarUrl} 
+                        alt={user.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold text-accent">{userInitials}</span>
+                    )}
+                    
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-xs font-medium">
+                        {uploadAvatarMutation.isPending ? 'Enviando...' : 'Alterar'}
+                      </span>
+                    </div>
+                  </div>
+                </label>
+                
+                {uploadAvatarMutation.isPending && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
+              
+              {/* User Info */}
+              <div className="flex-1 space-y-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome de Usuário</label>
+                    <p className="text-base font-medium mt-1">{user.username}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</label>
+                    <p className="text-base font-medium mt-1">{user.email}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Membro desde</label>
+                    <p className="text-base flex items-center gap-2 mt-1">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      {user.createdAt ? formatDate(user.createdAt) : 'Não disponível'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Função</label>
+                    <div className="mt-1">
+                      <Badge variant="outline" className="capitalize">
+                        {user.role}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Active Persona Card */}
+        <Card className="rounded-2xl bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Target className="w-5 h-5 text-accent" />
+              Sua Persona Ativa
+            </CardTitle>
+            <CardDescription>Contexto estratégico para consultas com especialistas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {persona ? (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg">{persona.companyName || persona.industry || 'Sua Persona'}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                    {persona.targetAudience ? extractPersonaSummary(persona.targetAudience, 150) : 'Sem descrição'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="capitalize">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {persona.enrichmentLevel || 'quick'} enrichment
+                  </Badge>
+                  {persona.industry && (
+                    <Badge variant="outline">
+                      {persona.industry}
+                    </Badge>
+                  )}
+                </div>
+                <Link href={`/personas/${persona.id}`}>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    Ver Persona Completa →
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Target className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground mb-4">Você ainda não tem uma persona ativa</p>
+                <Link href="/onboarding">
+                  <Button className="w-full sm:w-auto">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Criar Persona
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Security / Change Password Section */}
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Lock className="w-5 h-5 text-accent" />
+              Segurança
+            </CardTitle>
+            <CardDescription>
+              Altere sua senha para manter sua conta segura
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Senha Atual</label>
+                <Input 
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Digite sua senha atual"
+                  required
+                  disabled={changePasswordMutation.isPending}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nova Senha</label>
+                <Input 
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                  required
+                  disabled={changePasswordMutation.isPending}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Confirmar Nova Senha</label>
+                <Input 
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Digite novamente"
+                  required
+                  disabled={changePasswordMutation.isPending}
+                />
+              </div>
+              <Button 
+                type="submit" 
+                disabled={changePasswordMutation.isPending}
+                className="w-full sm:w-auto rounded-xl"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                {changePasswordMutation.isPending ? 'Atualizando...' : 'Atualizar Senha'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
         <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

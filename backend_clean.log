@@ -1,0 +1,48 @@
+INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+INFO:     Started reloader process [46369] using WatchFiles
+INFO:     Started server process [46372]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+[DEBUG] Getting experts, category filter: None
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:53148 - "GET /api/experts HTTP/1.1" 200 OK
+[ENRICH_ENDPOINT] Received enrichment request for persona faa07436-f02d-40c7-a990-3c0b5f392c9f with mode strategic
+[ENRICH_ENDPOINT] Persona found. Adding background task...
+[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.
+INFO:     127.0.0.1:53184 - "POST /api/persona/enrich/background?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 202 Accepted
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [46372]
+INFO:     Started server process [47705]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

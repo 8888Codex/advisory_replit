@@ -220,6 +220,7 @@ class PostgresStorage:
                 id=row['id'],
                 expertId=row['expertId'],
                 title=row['title'],
+                userId=row['userId'],  # Include userId
                 createdAt=row['createdAt'],
                 updatedAt=row['updatedAt']
             )
@@ -228,7 +229,7 @@ class PostgresStorage:
         """Get conversation by ID from PostgreSQL"""
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
-                SELECT id, "expertId", title, "createdAt", "updatedAt"
+                SELECT id, "expertId", title, "userId", "createdAt", "updatedAt"
                 FROM conversations WHERE id = $1
             """, conversation_id)
             
@@ -239,6 +240,7 @@ class PostgresStorage:
                 id=row['id'],
                 expertId=row['expertId'],
                 title=row['title'],
+                userId=row['userId'],  # Include userId
                 createdAt=row['createdAt'],
                 updatedAt=row['updatedAt']
             )
@@ -248,13 +250,13 @@ class PostgresStorage:
         async with self.pool.acquire() as conn:
             if expert_id:
                 rows = await conn.fetch("""
-                    SELECT id, "expertId", title, "createdAt", "updatedAt"
+                    SELECT id, "expertId", title, "userId", "createdAt", "updatedAt"
                     FROM conversations WHERE "expertId" = $1
                     ORDER BY "updatedAt" DESC
                 """, expert_id)
             else:
                 rows = await conn.fetch("""
-                    SELECT id, "expertId", title, "createdAt", "updatedAt"
+                    SELECT id, "expertId", title, "userId", "createdAt", "updatedAt"
                     FROM conversations
                     ORDER BY "updatedAt" DESC
                 """)
@@ -264,6 +266,7 @@ class PostgresStorage:
                     id=row['id'],
                     expertId=row['expertId'],
                     title=row['title'],
+                    userId=row.get('userId', 'default_user'),  # Include userId with fallback
                     createdAt=row['createdAt'],
                     updatedAt=row['updatedAt']
                 )
@@ -296,6 +299,7 @@ class PostgresStorage:
                     id=row['id'],
                     expertId=row['expertId'],
                     title=row['title'],
+                    userId=row['userId'],  # Include userId
                     createdAt=row['createdAt'],
                     updatedAt=row['updatedAt']
                 )
@@ -433,34 +437,172 @@ class PostgresStorage:
         """Get business profile - TODO: migrate to PostgreSQL"""
         return None  # Temporary implementation
     
-    # Council Analysis operations (stubbed - TODO: implement full PostgreSQL support)
+    # Council Analysis operations (PostgreSQL implementation)
     async def save_council_analysis(self, analysis: CouncilAnalysis) -> CouncilAnalysis:
-        """Save council analysis - stub for now"""
-        return analysis
+        """Save council analysis to PostgreSQL"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        print(f"[SAVE COUNCIL] Saving analysis {analysis.id} for user {analysis.userId}")
+        
+        async with self.pool.acquire() as conn:
+            # Save main analysis
+            await conn.execute("""
+                INSERT INTO council_analyses 
+                ("id", "user_id", "problem", "profile_id", "market_research", "consensus", "citations", "created_at")
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                ON CONFLICT ("id") DO UPDATE SET
+                    "problem" = EXCLUDED."problem",
+                    "consensus" = EXCLUDED."consensus",
+                    "market_research" = EXCLUDED."market_research"
+            """, 
+                analysis.id,
+                analysis.userId,
+                analysis.problem,
+                analysis.profileId,
+                analysis.marketResearch,
+                analysis.consensus,
+                analysis.citations,
+                analysis.createdAt
+            )
+            
+            # Delete old contributions for this analysis (in case of update)
+            await conn.execute("""
+                DELETE FROM council_contributions WHERE "analysis_id" = $1
+            """, analysis.id)
+            
+            # Save contributions
+            for contrib in analysis.contributions:
+                await conn.execute("""
+                    INSERT INTO council_contributions
+                    ("analysis_id", "expert_id", "expert_name", "analysis", "key_insights", "recommendations")
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                """,
+                    analysis.id,
+                    contrib.expertId,
+                    contrib.expertName,
+                    contrib.analysis,
+                    contrib.keyInsights,
+                    contrib.recommendations
+                )
+            
+            print(f"[SAVE COUNCIL] ✅ Saved analysis with {len(analysis.contributions)} contributions")
+            return analysis
     
     async def get_council_analysis(self, analysis_id: str) -> Optional[CouncilAnalysis]:
-        """Get council analysis - stub for now"""
-        return None
+        """Get a specific council analysis from PostgreSQL"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        print(f"[GET COUNCIL] Loading analysis {analysis_id}")
+        
+        async with self.pool.acquire() as conn:
+            # Get main analysis
+            row = await conn.fetchrow("""
+                SELECT * FROM council_analyses WHERE "id" = $1
+            """, analysis_id)
+            
+            if not row:
+                print(f"[GET COUNCIL] ❌ Analysis {analysis_id} not found in database")
+                return None
+            
+            # Get contributions
+            contrib_rows = await conn.fetch("""
+                SELECT * FROM council_contributions 
+                WHERE "analysis_id" = $1
+                ORDER BY "contributed_at" ASC
+            """, analysis_id)
+            
+            # Build AgentContribution objects
+            from models import AgentContribution
+            contributions = [
+                AgentContribution(
+                    expertId=c['expert_id'],
+                    expertName=c['expert_name'],
+                    analysis=c['analysis'],
+                    keyInsights=list(c['key_insights']) if c['key_insights'] else [],
+                    recommendations=list(c['recommendations']) if c['recommendations'] else []
+                )
+                for c in contrib_rows
+            ]
+            
+            # Build CouncilAnalysis
+            from models import CouncilAnalysis
+            result = CouncilAnalysis(
+                id=row['id'],
+                userId=row['user_id'],
+                problem=row['problem'],
+                profileId=row['profile_id'],
+                marketResearch=row['market_research'],
+                contributions=contributions,
+                consensus=row['consensus'],
+                citations=list(row['citations']) if row['citations'] else [],
+                createdAt=row['created_at']
+            )
+            
+            print(f"[GET COUNCIL] ✅ Loaded analysis with {len(contributions)} contributions")
+            return result
     
     async def get_council_analyses(self, user_id: str) -> List[CouncilAnalysis]:
-        """Get council analyses for user - stub for now"""
-        return []
+        """Get all council analyses for a user"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        print(f"[LIST COUNCIL] Listing analyses for user {user_id}")
+        
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT "id" FROM council_analyses 
+                WHERE "user_id" = $1
+                ORDER BY "created_at" DESC
+            """, user_id)
+            
+            analyses = []
+            for row in rows:
+                analysis = await self.get_council_analysis(row['id'])
+                if analysis:
+                    analyses.append(analysis)
+            
+            print(f"[LIST COUNCIL] ✅ Loaded {len(analyses)} analyses")
+            return analyses
     
     # Council Messages (PostgreSQL implementation)
     async def get_council_messages(self, session_id: str) -> List:
         """Get council messages for a session"""
+        from models import CouncilChatMessage
+        import json
+        
         if not self.pool:
             raise RuntimeError("PostgresStorage not initialized")
         
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
-                SELECT id, session_id as "sessionId", role, content, contributions, created_at as "createdAt"
+                SELECT id, "session_id" as "sessionId", role, content, contributions, created_at as "createdAt"
                 FROM council_messages
-                WHERE session_id = $1
-                ORDER BY created_at ASC
+                WHERE "session_id" = $1
+                ORDER BY "created_at" ASC
             """, session_id)
             
-            return [dict(row) for row in rows]
+            messages = []
+            for row in rows:
+                contributions = None
+                if row['contributions']:
+                    try:
+                        contributions = json.loads(row['contributions'])
+                    except:
+                        contributions = None
+                
+                messages.append(CouncilChatMessage(
+                    id=row['id'],
+                    sessionId=row['sessionId'],
+                    role=row['role'],
+                    content=row['content'],
+                    contributions=contributions,
+                    createdAt=row['createdAt']
+                ))
+            
+            print(f"[STORAGE] ✅ Retrieved {len(messages)} messages for session {session_id}")
+            return messages
     
     async def create_council_message(
         self,
@@ -477,11 +619,39 @@ class PostgresStorage:
             message_id = str(uuid.uuid4())
             
             await conn.execute("""
-                INSERT INTO council_messages (id, session_id, role, content, contributions)
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO council_messages 
+                ("id", "session_id", "role", "content", "contributions", "created_at")
+                VALUES ($1, $2, $3, $4, $5, NOW())
             """, message_id, session_id, role, content, contributions)
             
+            print(f"[SAVE MESSAGE] ✅ Saved council message for session {session_id}")
             return {"id": message_id, "session_id": session_id, "role": role, "content": content}
+    
+    async def log_activity(
+        self,
+        user_id: str,
+        activity_type: str,
+        metadata: Optional[dict] = None
+    ) -> str:
+        """Log user activity for analytics"""
+        if not self.pool:
+            raise RuntimeError("PostgresStorage not initialized")
+        
+        async with self.pool.acquire() as conn:
+            activity_id = str(uuid.uuid4())
+            
+            # Convert metadata to JSON string for JSONB column
+            import json
+            activity_data = json.dumps(metadata) if metadata else None
+            
+            await conn.execute("""
+                INSERT INTO user_activity 
+                ("id", "user_id", "action", "activity_data", "created_at")
+                VALUES ($1, $2, $3, $4::jsonb, NOW())
+            """, activity_id, user_id, activity_type, activity_data)
+            
+            print(f"[ANALYTICS] ✅ Logged activity: {activity_type} for user {user_id}")
+            return activity_id
     
     # Persona operations (stubbed - TODO: implement)
     async def create_persona(self, user_id: str, persona_data: dict) -> Persona:
@@ -988,7 +1158,8 @@ class PostgresStorage:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("""
                 SELECT id, username, email, password, role, available_invites as "availableInvites", 
-                       active_persona_id as "activePersonaId", created_at as "createdAt"
+                       active_persona_id as "activePersonaId", created_at as "createdAt",
+                       avatar_url as "avatarUrl"
                 FROM users
                 WHERE id = $1
             """, user_id)
@@ -1004,7 +1175,8 @@ class PostgresStorage:
                 "role": row['role'],
                 "availableInvites": row['availableInvites'],
                 "activePersonaId": row['activePersonaId'],
-                "createdAt": row['createdAt']
+                "createdAt": row['createdAt'],
+                "avatarUrl": row['avatarUrl']
             }
     
     async def update_user_invites(self, user_id: str, new_count: int) -> bool:
@@ -1390,15 +1562,11 @@ class PostgresStorage:
             params.append(user_id)
             param_count += 1
         
-        if action:
-            conditions.append(f"action = ${param_count}")
-            params.append(action)
-            param_count += 1
+        # Note: login_audit doesn't have 'action' column, so we skip that filter
         
         if success is not None:
-            success_str = "true" if success else "false"
             conditions.append(f"success = ${param_count}")
-            params.append(success_str)
+            params.append(success)
             param_count += 1
         
         where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
@@ -1408,11 +1576,11 @@ class PostgresStorage:
         params.append(offset)
         
         query = f"""
-            SELECT id, user_id as "userId", action, success, ip_address as "ipAddress",
-                   user_agent as "userAgent", metadata, timestamp
+            SELECT id, user_id as "userId", success, ip_address as "ipAddress",
+                   user_agent as "userAgent", attempt_at as timestamp
             FROM login_audit
             {where_clause}
-            ORDER BY timestamp DESC
+            ORDER BY attempt_at DESC
             LIMIT ${param_count} OFFSET ${param_count + 1}
         """
         
@@ -1423,11 +1591,11 @@ class PostgresStorage:
                 {
                     "id": row['id'],
                     "userId": row['userId'],
-                    "action": row['action'],
-                    "success": row['success'] == "true",
+                    "action": "login_attempt",  # Fixed: login_audit doesn't have action column
+                    "success": row['success'],
                     "ipAddress": row['ipAddress'],
                     "userAgent": row['userAgent'],
-                    "metadata": row['metadata'],
+                    "metadata": None,  # Fixed: login_audit doesn't have metadata column
                     "timestamp": row['timestamp']
                 }
                 for row in rows
@@ -1686,8 +1854,8 @@ class MemStorage:
             rows = await conn.fetch(
                 """
                 SELECT * FROM council_messages 
-                WHERE session_id = $1 
-                ORDER BY created_at ASC
+                WHERE "session_id" = $1 
+                ORDER BY "created_at" ASC
                 """,
                 session_id
             )
@@ -1730,11 +1898,12 @@ class MemStorage:
             await conn.execute(
                 """
                 INSERT INTO council_messages (
-                    id, session_id, role, content, contributions
-                ) VALUES ($1, $2, $3, $4, $5)
+                    "id", "session_id", "role", "content", "contributions", "created_at"
+                ) VALUES ($1, $2, $3, $4, $5, NOW())
                 """,
                 message_id, session_id, role, content, contributions
             )
+            print(f"[SAVE MESSAGE] ✅ Saved message {message_id} for session {session_id}")
             return message_id
         finally:
             await conn.close()

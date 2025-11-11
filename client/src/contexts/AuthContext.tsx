@@ -7,6 +7,9 @@ interface User {
   email: string;
   availableInvites: number;
   role: 'user' | 'admin' | 'superadmin';
+  createdAt?: string;
+  activePersonaId?: string | null;
+  avatarUrl?: string | null;
 }
 
 interface AuthContextType {

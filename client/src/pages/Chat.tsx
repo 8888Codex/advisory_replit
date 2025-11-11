@@ -17,11 +17,16 @@ import { PulseLoader } from "@/components/PulseLoader";
 import { PersonaContextBadge } from "@/components/PersonaContextBadge";
 
 export default function Chat() {
-  const [, params] = useRoute("/chat/:id");
+  const [location, params] = useRoute("/chat/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const expertId = params?.id || "";
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  
+  // Check for conversationId in URL query string (for resuming conversations)
+  const urlParams = new URLSearchParams(window.location.search);
+  const resumeConversationId = urlParams.get('conversationId');
+  
+  const [conversationId, setConversationId] = useState<string | null>(resumeConversationId);
   const [input, setInput] = useState("");
 
   const { data: expert, isLoading: expertLoading } = useQuery<Expert>({
@@ -84,6 +89,10 @@ export default function Chat() {
   });
 
   useEffect(() => {
+    // Only create new conversation if:
+    // 1. Expert is loaded
+    // 2. No conversationId exists (not resuming)
+    // 3. Not already creating
     if (expert && !conversationId && !createConversationMutation.isPending) {
       createConversationMutation.mutate({
         expertId: expert.id,

@@ -4,6 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Building2, Target, TrendingUp, Lightbulb } from "lucide-react";
+import { RedditInsightsCard } from "@/components/persona/RedditInsightsCard";
+import { JobsToBeDoneCard } from "@/components/persona/JobsToBeDoneCard";
+import { BehavioralProfileCard } from "@/components/persona/BehavioralProfileCard";
+import { BuyerJourneyCard } from "@/components/persona/BuyerJourneyCard";
+import { StrategicInsightsCard } from "@/components/persona/StrategicInsightsCard";
+import { PsychographicCoreCard } from "@/components/persona/PsychographicCoreCard";
+import { extractPersonaSummary } from "@/lib/textUtils";
 
 interface UserPersona {
   id: string;
@@ -23,6 +30,7 @@ interface UserPersona {
   behavioralProfile: any;
   buyerJourney: any;
   strategicInsights: any;
+  redditInsights: any;
   createdAt: string;
   lastEnrichedAt: string | null;
 }
@@ -81,30 +89,32 @@ export default function PersonaDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <Building2 className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-semibold">Empresa</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-1">Tamanho</p>
-          <p className="font-medium">{persona.companySize} funcionários</p>
+          <p className="font-medium leading-relaxed">{persona.companySize} funcionários</p>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <Target className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-semibold">Público-Alvo</h3>
           </div>
-          <p className="text-sm">{persona.targetAudience}</p>
+          <p className="text-sm line-clamp-4 leading-relaxed">
+            {extractPersonaSummary(persona.targetAudience, 200)}
+          </p>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-semibold">Objetivo Principal</h3>
           </div>
-          <p className="text-sm">{persona.primaryGoal}</p>
+          <p className="text-sm leading-relaxed">{persona.primaryGoal}</p>
         </Card>
       </div>
 
@@ -135,125 +145,18 @@ export default function PersonaDetail() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {persona.psychographicCore && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5" />
-                  Core Psicográfico
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {persona.psychographicCore.values && (
-                  <div>
-                    <h4 className="font-semibold mb-2 text-sm text-muted-foreground">Valores</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {persona.psychographicCore.values.map((value: string, idx: number) => (
-                        <Badge key={idx} variant="secondary">
-                          {value}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {persona.psychographicCore.motivations && (
-                  <div>
-                    <h4 className="font-semibold mb-2 text-sm text-muted-foreground">Motivações</h4>
-                    <p className="text-sm">{persona.psychographicCore.motivations}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          <PsychographicCoreCard data={persona.psychographicCore} />
 
-          {persona.jobsToBeDone && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Jobs to Be Done</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Array.isArray(persona.jobsToBeDone) ? (
-                    persona.jobsToBeDone.map((job: any, idx: number) => (
-                      <div key={idx} className="p-4 bg-muted rounded-lg">
-                        <h4 className="font-semibold mb-1">{job.job || job}</h4>
-                        {job.context && (
-                          <p className="text-sm text-muted-foreground">{job.context}</p>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm">{JSON.stringify(persona.jobsToBeDone)}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <JobsToBeDoneCard data={persona.jobsToBeDone} />
 
-          {persona.behavioralProfile && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Perfil Comportamental</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 text-sm">
-                  {Object.entries(persona.behavioralProfile).map(([key, value]) => (
-                    <div key={key}>
-                      <h4 className="font-semibold mb-1 capitalize">
-                        {key.replace(/([A-Z])/g, " $1").trim()}
-                      </h4>
-                      <p className="text-muted-foreground">
-                        {Array.isArray(value) ? value.join(", ") : String(value)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <BehavioralProfileCard data={persona.behavioralProfile} />
 
-          {persona.buyerJourney && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Jornada do Comprador</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(persona.buyerJourney).map(([stage, details]) => (
-                    <div key={stage} className="p-4 bg-muted rounded-lg">
-                      <h4 className="font-semibold mb-2 capitalize">{stage}</h4>
-                      <p className="text-sm text-muted-foreground">{String(details)}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <BuyerJourneyCard data={persona.buyerJourney} />
 
-          {persona.strategicInsights && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Insights Estratégicos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-sm max-w-none">
-                  {typeof persona.strategicInsights === "string" ? (
-                    <p>{persona.strategicInsights}</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {Object.entries(persona.strategicInsights).map(([key, value]) => (
-                        <div key={key}>
-                          <h4 className="font-semibold capitalize">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </h4>
-                          <p className="text-muted-foreground">{String(value)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <StrategicInsightsCard data={persona.strategicInsights} />
+
+          {persona.redditInsights && (
+            <RedditInsightsCard data={persona.redditInsights} />
           )}
         </div>
       )}

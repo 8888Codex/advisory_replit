@@ -124,30 +124,42 @@ class LegendAgentFactory:
     def create_agent(
         expert_name: str, 
         system_prompt: Optional[str] = None,
-        tools: Optional[Dict[str, Any]] = None
+        tools: Optional[Dict[str, Any]] = None,
+        persona_context: Optional[str] = None  # NEW: Persona context to inject
     ) -> MarketingLegendAgent:
         """
         Create a cognitive clone agent for a marketing legend with custom tools.
         
         Priority:
-        1. Try to load from CloneRegistry (rich clone with Framework EXTRACT)
-        2. Fallback to provided system_prompt (legacy support)
+        1. Load clone from CloneRegistry (if exists)
+        2. Use clone's rich prompt
+        3. ADD persona_context to clone's prompt (if provided)
+        4. Fallback to system_prompt if no clone exists
         
         Args:
             expert_name: Name of the marketing legend
-            system_prompt: Optional fallback prompt if clone not found
-            tools: Optional dict of custom tools (PerplexityTool, UserMemoryTool, StoryBankTool)
+            system_prompt: Fallback system prompt if no clone found
+            tools: Optional dict of custom tools
+            persona_context: Optional persona context to APPEND to any prompt
         """
         # Try to get rich clone from registry
         clone = clone_registry.get_clone(expert_name)
         
         if clone:
-            # Use rich clone's dynamic system prompt
-            system_prompt = clone.get_system_prompt()
-            print(f"[LegendAgentFactory] Loaded rich clone for {expert_name} ({len(clone.story_banks)} story banks)")
+            # Use clone's rich prompt (with stories, frameworks, etc.)
+            base_prompt = clone.get_system_prompt()
+            
+            # ADD persona context if provided
+            if persona_context:
+                final_prompt = base_prompt + persona_context
+                print(f"[LegendAgentFactory] Loaded rich clone for {expert_name} + PERSONA CONTEXT ({len(persona_context)} chars)")
+            else:
+                final_prompt = base_prompt
+                print(f"[LegendAgentFactory] Loaded rich clone for {expert_name} ({len(clone.story_banks)} story banks)")
+            
             return MarketingLegendAgent(
                 name=expert_name,
-                system_prompt=system_prompt,
+                system_prompt=final_prompt,  # Clone prompt + persona context!
                 clone=clone,
                 tools=tools
             )
@@ -156,10 +168,17 @@ class LegendAgentFactory:
             if not system_prompt:
                 raise ValueError(f"No clone found for {expert_name} and no fallback prompt provided")
             
-            print(f"[LegendAgentFactory] Using legacy prompt for {expert_name} (no clone in registry)")
+            # ADD persona context to legacy prompt too
+            if persona_context:
+                final_prompt = system_prompt + persona_context
+                print(f"[LegendAgentFactory] Using legacy prompt for {expert_name} + PERSONA CONTEXT")
+            else:
+                final_prompt = system_prompt
+                print(f"[LegendAgentFactory] Using legacy prompt for {expert_name} (no clone in registry)")
+            
             return MarketingLegendAgent(
                 name=expert_name,
-                system_prompt=system_prompt,
+                system_prompt=final_prompt,  # Legacy prompt + persona context!
                 clone=None,
                 tools=tools
             )

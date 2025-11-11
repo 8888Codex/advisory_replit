@@ -1,0 +1,50 @@
+[build]
+  # Build command para o frontend
+  command = "npm run build"
+  # Diretório de publicação
+  publish = "dist/public"
+  # Instalar dependências Python também
+  
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# Configuração de funções serverless (para o backend Node.js)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Redirecionamentos e rewrites
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache para assets estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Configurações de desenvolvimento
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 5000
+  autoLaunch = false
+

@@ -1,0 +1,151 @@
+INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+INFO:     Uvicorn running on http://0.0.0.0:5002 (Press CTRL+C to quit)
+INFO:     Started reloader process [16224] using WatchFiles
+
+======================================================================
+🔍 VALIDANDO VARIÁVEIS DE AMBIENTE...
+======================================================================
+
+✅ Variáveis obrigatórias: OK
+
+ℹ️  Variáveis opcionais ausentes (funcionalidades limitadas):
+  ℹ️  UNSPLASH_ACCESS_KEY: Unsplash API for avatars (optional, will be skipped)
+  ℹ️  REDIS_URL: Redis connection string (optional, will be skipped)
+  ℹ️  SENTRY_DSN: Sentry error tracking DSN (optional, will be skipped)
+
+⚙️  Configurações: Valores padrão aplicados
+
+======================================================================
+✅ VALIDAÇÃO CONCLUÍDA COM SUCESSO!
+======================================================================
+  🌍 Ambiente: development
+  🗄️  Database: ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+  🤖 Anthropic API: Configurada
+  🔐 Session Secret: ✓
+======================================================================
+
+{"text": "Logger initialized\n", "record": {"elapsed": {"repr": "0:00:00.011031", "seconds": 0.011031}, "exception": null, "extra": {"environment": "development", "level": "INFO", "format": "json", "production": false}, "file": {"name": "logger.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/logger.py"}, "function": "<module>", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 159, "message": "Logger initialized", "module": "logger", "name": "logger", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:12.852123-03:00", "timestamp": 1762825572.852123}}}
+INFO:     Started server process [16227]
+INFO:     Waiting for application startup.
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.235310", "seconds": 0.23531}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 104, "message": "Initializing database connection pool", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.076402-03:00", "timestamp": 1762825573.076402}}}
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.235500", "seconds": 0.2355}, "exception": null, "extra": {"min_size": 5, "max_size": 20, "max_queries": 5000}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 52, "message": "Initializing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.076592-03:00", "timestamp": 1762825573.076592}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.528488", "seconds": 0.528488}, "exception": null, "extra": {"min_size": 5, "max_size": 20}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 75, "message": "Database pool initialized successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.369580-03:00", "timestamp": 1762825573.36958}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.528745", "seconds": 0.528745}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 106, "message": "Database pool initialized successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.369837-03:00", "timestamp": 1762825573.369837}}}
+{"text": "Initializing cache manager\n", "record": {"elapsed": {"repr": "0:00:00.528865", "seconds": 0.528865}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 109, "message": "Initializing cache manager", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.369957-03:00", "timestamp": 1762825573.369957}}}
+{"text": "Using in-memory cache (Redis not configured)\n", "record": {"elapsed": {"repr": "0:00:00.528974", "seconds": 0.528974}, "exception": null, "extra": {}, "file": {"name": "cache.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/cache.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 91, "message": "Using in-memory cache (Redis not configured)", "module": "cache", "name": "cache", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.370066-03:00", "timestamp": 1762825573.370066}}}
+{"text": "Cache manager initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.529065", "seconds": 0.529065}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 111, "message": "Cache manager initialized successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.370157-03:00", "timestamp": 1762825573.370157}}}
+{"text": "Initializing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:00:00.529160", "seconds": 0.52916}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 114, "message": "Initializing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.370252-03:00", "timestamp": 1762825573.370252}}}
+[PostgresStorage] Connection pool initialized
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+{"text": "PostgreSQL storage initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.728809", "seconds": 0.728809}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 116, "message": "PostgreSQL storage initialized successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:13.569901-03:00", "timestamp": 1762825573.569901}}}
+INFO:     Application startup complete.
+INFO:     127.0.0.1:57835 - "GET /api/health HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+{"text": "Closing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:00:46.041584", "seconds": 46.041584}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 127, "message": "Closing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.882676-03:00", "timestamp": 1762825618.882676}}}
+[PostgresStorage] Connection pool closed
+{"text": "PostgreSQL storage closed successfully\n", "record": {"elapsed": {"repr": "0:00:46.055805", "seconds": 46.055805}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 129, "message": "PostgreSQL storage closed successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.896897-03:00", "timestamp": 1762825618.896897}}}
+{"text": "Closing cache manager\n", "record": {"elapsed": {"repr": "0:00:46.055986", "seconds": 46.055986}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 132, "message": "Closing cache manager", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.897078-03:00", "timestamp": 1762825618.897078}}}
+{"text": "Cache manager closed successfully\n", "record": {"elapsed": {"repr": "0:00:46.056119", "seconds": 46.056119}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 134, "message": "Cache manager closed successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.897211-03:00", "timestamp": 1762825618.897211}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:00:46.056202", "seconds": 46.056202}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 137, "message": "Closing database connection pool", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.897294-03:00", "timestamp": 1762825618.897294}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:00:46.056288", "seconds": 46.056288}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 93, "message": "Closing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.897380-03:00", "timestamp": 1762825618.89738}}}
+{"text": "Database pool closed successfully\n", "record": {"elapsed": {"repr": "0:00:46.076456", "seconds": 46.076456}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 98, "message": "Database pool closed successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.917548-03:00", "timestamp": 1762825618.917548}}}
+{"text": "Database pool closed successfully\n", "record": {"elapsed": {"repr": "0:00:46.076715", "seconds": 46.076715}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 139, "message": "Database pool closed successfully", "module": "main", "name": "main", "process": {"id": 16227, "name": "SpawnProcess-1"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:58.917807-03:00", "timestamp": 1762825618.917807}}}
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16227]
+
+======================================================================
+🔍 VALIDANDO VARIÁVEIS DE AMBIENTE...
+======================================================================
+
+✅ Variáveis obrigatórias: OK
+
+ℹ️  Variáveis opcionais ausentes (funcionalidades limitadas):
+  ℹ️  UNSPLASH_ACCESS_KEY: Unsplash API for avatars (optional, will be skipped)
+  ℹ️  REDIS_URL: Redis connection string (optional, will be skipped)
+  ℹ️  SENTRY_DSN: Sentry error tracking DSN (optional, will be skipped)
+
+⚙️  Configurações: Valores padrão aplicados
+
+======================================================================
+✅ VALIDAÇÃO CONCLUÍDA COM SUCESSO!
+======================================================================
+  🌍 Ambiente: development
+  🗄️  Database: ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+  🤖 Anthropic API: Configurada
+  🔐 Session Secret: ✓
+======================================================================
+
+{"text": "Logger initialized\n", "record": {"elapsed": {"repr": "0:00:00.011320", "seconds": 0.01132}, "exception": null, "extra": {"environment": "development", "level": "INFO", "format": "json", "production": false}, "file": {"name": "logger.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/logger.py"}, "function": "<module>", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 159, "message": "Logger initialized", "module": "logger", "name": "logger", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:59.453153-03:00", "timestamp": 1762825619.453153}}}
+INFO:     Started server process [16301]
+INFO:     Waiting for application startup.
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.250070", "seconds": 0.25007}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 104, "message": "Initializing database connection pool", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:59.691903-03:00", "timestamp": 1762825619.691903}}}
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.250294", "seconds": 0.250294}, "exception": null, "extra": {"min_size": 5, "max_size": 20, "max_queries": 5000}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 52, "message": "Initializing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:46:59.692127-03:00", "timestamp": 1762825619.692127}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:01.049711", "seconds": 1.049711}, "exception": null, "extra": {"min_size": 5, "max_size": 20}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 75, "message": "Database pool initialized successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.491544-03:00", "timestamp": 1762825620.491544}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:01.049950", "seconds": 1.04995}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 106, "message": "Database pool initialized successfully", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.491783-03:00", "timestamp": 1762825620.491783}}}
+{"text": "Initializing cache manager\n", "record": {"elapsed": {"repr": "0:00:01.050063", "seconds": 1.050063}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 109, "message": "Initializing cache manager", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.491896-03:00", "timestamp": 1762825620.491896}}}
+{"text": "Using in-memory cache (Redis not configured)\n", "record": {"elapsed": {"repr": "0:00:01.050153", "seconds": 1.050153}, "exception": null, "extra": {}, "file": {"name": "cache.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/cache.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 91, "message": "Using in-memory cache (Redis not configured)", "module": "cache", "name": "cache", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.491986-03:00", "timestamp": 1762825620.491986}}}
+{"text": "Cache manager initialized successfully\n", "record": {"elapsed": {"repr": "0:00:01.050223", "seconds": 1.050223}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 111, "message": "Cache manager initialized successfully", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.492056-03:00", "timestamp": 1762825620.492056}}}
+{"text": "Initializing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:00:01.050303", "seconds": 1.050303}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 114, "message": "Initializing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.492136-03:00", "timestamp": 1762825620.492136}}}
+[PostgresStorage] Connection pool initialized
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+{"text": "PostgreSQL storage initialized successfully\n", "record": {"elapsed": {"repr": "0:00:01.243454", "seconds": 1.243454}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 116, "message": "PostgreSQL storage initialized successfully", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:00.685287-03:00", "timestamp": 1762825620.685287}}}
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+{"text": "Closing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:00:12.071451", "seconds": 12.071451}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 127, "message": "Closing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.513284-03:00", "timestamp": 1762825631.513284}}}
+[PostgresStorage] Connection pool closed
+{"text": "PostgreSQL storage closed successfully\n", "record": {"elapsed": {"repr": "0:00:12.094794", "seconds": 12.094794}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 129, "message": "PostgreSQL storage closed successfully", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.536627-03:00", "timestamp": 1762825631.536627}}}
+{"text": "Closing cache manager\n", "record": {"elapsed": {"repr": "0:00:12.095191", "seconds": 12.095191}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 132, "message": "Closing cache manager", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.537024-03:00", "timestamp": 1762825631.537024}}}
+{"text": "Cache manager closed successfully\n", "record": {"elapsed": {"repr": "0:00:12.095363", "seconds": 12.095363}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 134, "message": "Cache manager closed successfully", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.537196-03:00", "timestamp": 1762825631.537196}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:00:12.095473", "seconds": 12.095473}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 137, "message": "Closing database connection pool", "module": "main", "name": "main", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.537306-03:00", "timestamp": 1762825631.537306}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:00:12.095584", "seconds": 12.095584}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 93, "message": "Closing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.537417-03:00", "timestamp": 1762825631.537417}}}
+{"text": "Database pool closed successfully\n", "record": {"elapsed": {"repr": "0:00:12.110758", "seconds": 12.110758}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 98, "message": "Database pool closed successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 16301, "name": "SpawnProcess-2"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 22:47:11.552591-03:00", "timestamp": 1762825631.552591}}}
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16301]
+INFO:     Stopping reloader process [16224]
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 32 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

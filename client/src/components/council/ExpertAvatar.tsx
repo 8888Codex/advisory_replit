@@ -30,8 +30,8 @@ const statusConfig = {
   },
   completed: {
     icon: Check,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
+    color: "text-green-500",
+    bgColor: "bg-green-500/10",
     label: "Concluído",
   },
   failed: {
@@ -59,17 +59,30 @@ export function ExpertAvatar({ status, index }: ExpertAvatarProps) {
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.1 }}
+      transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+      whileHover={{ y: -4, scale: 1.05 }}
       data-testid={`expert-avatar-${status.expertId}`}
     >
-      <Card className={`p-4 relative overflow-hidden rounded-xl ${isActive ? "ring-2 ring-accent/30" : ""}`}>
-        {/* Animated background pulse for active experts */}
+      <Card className={`p-4 relative overflow-hidden rounded-xl transition-all ${
+        isActive ? "ring-2 ring-accent/40 shadow-lg shadow-accent/20" : 
+        status.status === "completed" ? "ring-2 ring-primary/30 shadow-md shadow-primary/10" :
+        "hover:shadow-md"
+      }`}>
+        {/* Animated background for active experts */}
         {isActive && (
-          <motion.div
-            className="absolute inset-0 bg-accent/5"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          />
+          <>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            />
+            <div className="absolute inset-0 bg-grid-pattern-dense opacity-5" />
+          </>
+        )}
+        
+        {/* Completed glow */}
+        {status.status === "completed" && (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
         )}
 
         <div className="relative space-y-3">
@@ -107,7 +120,7 @@ export function ExpertAvatar({ status, index }: ExpertAvatarProps) {
 
             {/* Avatar circle with photo */}
             <div className="absolute inset-2">
-              <Avatar className="w-full h-full">
+              <Avatar className="w-full h-full ring-2 ring-card">
                 <AvatarImage 
                   src={status.expertAvatar} 
                   alt={status.expertName}
@@ -119,15 +132,25 @@ export function ExpertAvatar({ status, index }: ExpertAvatarProps) {
               </Avatar>
             </div>
 
-            {/* Status icon overlay */}
+            {/* Status icon overlay with animation */}
             {Icon && (
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full ${config.bgColor} ${config.color} flex items-center justify-center border-2 border-background`}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full ${
+                  status.status === "completed" 
+                    ? "bg-green-500 text-white shadow-lg shadow-green-500/50" 
+                    : `${config.bgColor} ${config.color}`
+                } flex items-center justify-center border-3 border-card`}
               >
                 {isActive ? (
-                  <Icon className="w-4 h-4 animate-pulse" />
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </motion.div>
                 ) : (
                   <Icon className="w-4 h-4" />
                 )}

@@ -28,10 +28,11 @@ import Personas from "@/pages/Personas";
 import PersonaDetail from "@/pages/PersonaDetail";
 import CouncilRoom from "@/pages/CouncilRoom";
 import PersonaDashboard from "@/pages/PersonaDashboard";
-import Analytics from "@/pages/Analytics";
+import ConversationHistory from "@/pages/ConversationHistory";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
+import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 
@@ -68,6 +69,12 @@ function Router() {
             <Settings />
           </ProtectedRoute>
         </Route>
+        
+        <Route path="/superadmin">
+          <ProtectedRoute>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        </Route>
         <Route path="/home">
           <ProtectedRoute>
             <Home />
@@ -83,11 +90,6 @@ function Router() {
             <PersonaDashboard />
           </ProtectedRoute>
         </Route>
-        <Route path="/analytics">
-          <ProtectedRoute>
-            <Analytics />
-          </ProtectedRoute>
-        </Route>
         <Route path="/experts">
           <ProtectedRoute>
             <Experts />
@@ -101,6 +103,11 @@ function Router() {
         <Route path="/chat/:id">
           <ProtectedRoute>
             <Chat />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/conversations">
+          <ProtectedRoute>
+            <ConversationHistory />
           </ProtectedRoute>
         </Route>
         <Route path="/create">
@@ -122,11 +129,6 @@ function Router() {
         <Route path="/admin/invites">
           <AdminRoute>
             <AdminInvites />
-          </AdminRoute>
-        </Route>
-        <Route path="/admin/analytics">
-          <AdminRoute>
-            <Analytics />
           </AdminRoute>
         </Route>
         <Route path="/admin/logs">

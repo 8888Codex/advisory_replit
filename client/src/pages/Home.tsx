@@ -9,6 +9,7 @@ import { Sparkles, TrendingUp, Users, ArrowRight, Building2, CheckCircle2, Clock
 import { motion } from "framer-motion";
 import { useOnboardingComplete } from "@/hooks/use-onboarding-complete";
 import { ExpertCard, type Expert as ExpertCardType } from "@/components/ExpertCard";
+import { extractPersonaSummary } from "@/lib/textUtils";
 
 interface Expert {
   id: number;
@@ -105,7 +106,9 @@ export default function Home() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Público</p>
-                      <p className="text-sm font-medium">{activePersona.targetAudience}</p>
+                      <p className="text-sm font-medium line-clamp-2">
+                        {extractPersonaSummary(activePersona.targetAudience, 120)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Objetivo</p>
@@ -289,12 +292,12 @@ export default function Home() {
                       Veja suas estatísticas de uso, experts mais consultados e recomendações personalizadas.
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setLocation("/analytics")}
+                  <Button 
+                    onClick={() => setLocation("/persona-dashboard")}
                     className="rounded-xl bg-accent hover:bg-accent text-white gap-2 px-4 sm:px-6 h-10 sm:h-auto w-full md:w-auto text-sm sm:text-base"
-                    data-testid="button-analytics"
+                    data-testid="button-personas"
                   >
-                    Ver Analytics
+                    Ver Personas
                     <TrendingUp className="w-4 h-4" />
                   </Button>
                 </div>

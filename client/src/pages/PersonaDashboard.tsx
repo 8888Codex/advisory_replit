@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { extractPersonaSummary } from "@/lib/textUtils";
 import { useToast } from "@/hooks/use-toast";
 import EnrichmentModal from "@/components/EnrichmentModal";
 import UpgradePersonaDialog from "@/components/UpgradePersonaDialog";
@@ -274,7 +275,9 @@ export default function PersonaDashboard() {
                       {persona.targetAudience && (
                         <div>
                           <p className="text-sm text-muted-foreground mb-1">Público-Alvo</p>
-                          <p className="font-medium">{persona.targetAudience}</p>
+                          <p className="font-medium line-clamp-3">
+                            {extractPersonaSummary(persona.targetAudience, 180)}
+                          </p>
                         </div>
                       )}
                     </div>

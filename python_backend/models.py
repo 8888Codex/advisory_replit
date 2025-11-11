@@ -46,6 +46,7 @@ class Conversation(BaseModel):
     id: str
     expertId: str
     title: str
+    userId: str  # User who owns this conversation
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: datetime = Field(default_factory=datetime.utcnow)
 
@@ -71,6 +72,17 @@ class MessageSend(BaseModel):
 class MessageResponse(BaseModel):
     userMessage: Message
     assistantMessage: Message
+
+class UserResponse(BaseModel):
+    """Response model for user data"""
+    id: str
+    username: str
+    email: str
+    availableInvites: int
+    role: str = "user"
+    createdAt: datetime
+    activePersonaId: Optional[str] = None
+    avatarUrl: Optional[str] = None
 
 class BusinessProfile(BaseModel):
     id: str
@@ -283,6 +295,9 @@ class UserPersona(BaseModel):
     videoInsights: List[dict] = []  # Extracted insights (changed from List[str] to List[dict])
     campaignReferences: List[dict] = []  # Structured campaign data
     inspirationVideos: List[dict] = []  # Top curated videos
+    
+    # Reddit Insights (via Perplexity AI - Phase 0)
+    redditInsights: Optional[dict] = None  # Communities, sentiment, trending topics, authentic language
     
     # 8-Module Deep Persona System (Quick/Strategic/Complete)
     psychographicCore: Optional[dict] = None  # Module 1: Values, fears, aspirations

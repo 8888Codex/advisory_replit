@@ -1,0 +1,16 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (10) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+5:27:10 PM [express] Starting Python backend on port 5002...
+/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:941
+app.post('/api/council/analyze', requireAuth, async (req, res) => {
+                                 ^
+
+
+ReferenceError: requireAuth is not defined
+    at <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:941:34)
+
+Node.js v22.17.0

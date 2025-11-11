@@ -1,0 +1,51 @@
+INFO:     Started server process [48141]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+[ENRICH_ENDPOINT] Received enrichment request for persona faa07436-f02d-40c7-a990-3c0b5f392c9f with mode quick
+[ENRICH_ENDPOINT] Error starting background enrichment: 5 validation errors for UserPersona
+videoInsights.0
+  Input should be a valid string [type=string_type, input_value={'title': 'IA como Ferram...cção e comunicação'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+videoInsights.1
+  Input should be a valid string [type=string_type, input_value={'title': 'Personalizaç...estratégias de vendas'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+videoInsights.2
+  Input should be a valid string [type=string_type, input_value={'title': 'Pontos de Dor ...invasivas de abordagem'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+videoInsights.3
+  Input should be a valid string [type=string_type, input_value={'title': 'Estratégias M...agens contextualizadas'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+videoInsights.4
+  Input should be a valid string [type=string_type, input_value={'title': 'Erro Crítico:...ico para cada prospect'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+INFO:     127.0.0.1:53303 - "POST /api/persona/enrich/background?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 500 Internal Server Error
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [48141]

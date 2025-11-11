@@ -1,0 +1,57 @@
+INFO:     Started server process [32571]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+[HISTORY] Getting conversation history for user: 48bb3e53-bfca-4298-bab5-1627ca216739, limit: 50
+[HISTORY] Found 1 conversations
+[HISTORY] Returning 1 conversations with details
+INFO:     127.0.0.1:61293 - "GET /api/conversations/history/user?user_id=48bb3e53-bfca-4298-bab5-1627ca216739&limit=50 HTTP/1.1" 200 OK
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+INFO:     127.0.0.1:61337 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+INFO:     127.0.0.1:61347 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61355 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+[DEBUG] Getting experts, category filter: None
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:61366 - "GET /api/experts HTTP/1.1" 200 OK
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+INFO:     127.0.0.1:62151 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+[DEBUG] Getting experts, category filter: None
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:62660 - "GET /api/experts HTTP/1.1" 200 OK
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+INFO:     127.0.0.1:62667 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32571]

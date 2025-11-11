@@ -47,6 +47,10 @@ export default function Create() {
   const [showTestChat, setShowTestChat] = useState(false);
   const [testMessages, setTestMessages] = useState<TestMessage[]>([]);
   const [testInput, setTestInput] = useState("");
+  
+  // Avatar upload state
+  const [customAvatarFile, setCustomAvatarFile] = useState<File | null>(null);
+  const [customAvatarPreview, setCustomAvatarPreview] = useState<string | null>(null);
 
   const autoCloneMutation = useMutation({
     mutationFn: async (data: { targetName: string; context?: string }) => {
@@ -153,32 +157,122 @@ export default function Create() {
 
   const saveExpertMutation = useMutation({
     mutationFn: async (expertData: any) => {
+      console.log('[SAVE EXPERT] Sending data:', {
+        name: expertData.name,
+        hasSystemPrompt: !!expertData.systemPrompt,
+        systemPromptLength: expertData.systemPrompt?.length || 0,
+        hasAvatar: !!expertData.avatar,
+        category: expertData.category
+      });
+      
       return await apiRequestJson<Expert>("/api/experts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(expertData),
       });
     },
-    onSuccess: (expert) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/experts"] });
-      setLocation("/");
+    onSuccess: async (expert) => {
+      console.log('[SAVE EXPERT] Success! Expert saved:', expert.id, expert.name);
+      
+      // Invalidate all expert queries to force refresh
+      await queryClient.invalidateQueries({ queryKey: ["/api/experts"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      
       toast({
-        title: "Especialista Salvo",
+        title: "Especialista Salvo!",
         description: `${expert.name} está pronto para consultas.`,
       });
+      
+      // Small delay to ensure queries are refetched before redirect
+      setTimeout(() => {
+        setLocation("/experts");  // Redirect to experts page to see the new expert
+      }, 500);
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[SAVE EXPERT] Error:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar o especialista.",
+        description: error?.message || "Não foi possível salvar o especialista.",
         variant: "destructive",
       });
     },
   });
 
-  const handleSaveExpert = () => {
-    if (generatedExpert) {
-      saveExpertMutation.mutate(generatedExpert);
+  const handleSaveExpert = async () => {
+    if (!generatedExpert) return;
+    
+    let expertToSave = { ...generatedExpert };
+    
+    // If user uploaded custom avatar, upload it first
+    if (customAvatarFile) {
+      try {
+        const formData = new FormData();
+        formData.append("file", customAvatarFile);
+        
+        // expertName as query parameter
+        const expertNameParam = encodeURIComponent(generatedExpert.name);
+        const uploadResponse = await fetch(`/api/upload/expert-avatar?expertName=${expertNameParam}`, {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const { avatarPath } = await uploadResponse.json();
+          expertToSave.avatar = avatarPath;
+          console.log('[AVATAR] Upload successful! Path:', avatarPath);
+          toast({
+            title: "Avatar carregado!",
+            description: "Avatar personalizado salvo com sucesso.",
+          });
+        } else {
+          const errorData = await uploadResponse.json();
+          console.error('[AVATAR] Upload failed:', errorData);
+          throw new Error(errorData.detail || 'Upload failed');
+        }
+      } catch (error) {
+        console.error("[AVATAR] Error uploading avatar:", error);
+        toast({
+          title: "Aviso",
+          description: "Erro ao fazer upload do avatar, usando avatar padrão.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    saveExpertMutation.mutate(expertToSave);
+  };
+  
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Arquivo inválido",
+          description: "Por favor, selecione uma imagem.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O avatar deve ter no máximo 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setCustomAvatarFile(file);
+      
+      // Generate preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -459,16 +553,54 @@ export default function Create() {
 
                 <div className="space-y-6">
                   <div className="flex items-start gap-6">
-                    <Avatar className="h-24 w-24 ring-1 ring-border/50">
-                      {generatedExpert.avatar && (
-                        <AvatarImage 
-                          src={`/attached_assets/${generatedExpert.avatar}`} 
-                          alt={generatedExpert.name}
-                          className="object-cover"
+                    <div className="flex flex-col items-center gap-3">
+                      <Avatar className="h-24 w-24 ring-1 ring-border/50">
+                        {customAvatarPreview ? (
+                          <AvatarImage 
+                            src={customAvatarPreview} 
+                            alt="Custom avatar"
+                            className="object-cover"
+                          />
+                        ) : generatedExpert.avatar ? (
+                          <AvatarImage 
+                            src={`/attached_assets/${generatedExpert.avatar}`} 
+                            alt={generatedExpert.name}
+                            className="object-cover"
+                          />
+                        ) : null}
+                        <AvatarFallback className="text-xl font-medium">{initials}</AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="text-center">
+                        <input
+                          type="file"
+                          id="avatar-upload"
+                          accept="image/*"
+                          onChange={handleAvatarFileChange}
+                          className="hidden"
                         />
-                      )}
-                      <AvatarFallback className="text-xl font-medium">{initials}</AvatarFallback>
-                    </Avatar>
+                        <label htmlFor="avatar-upload">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            asChild
+                          >
+                            <span className="flex items-center gap-2">
+                              <Image className="h-3.5 w-3.5" />
+                              {customAvatarFile ? 'Trocar Foto' : 'Adicionar Foto'}
+                            </span>
+                          </Button>
+                        </label>
+                        {customAvatarFile && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            ✓ Avatar personalizado
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="flex-1 min-w-0">
                       <h3 className="text-2xl font-semibold mb-2 tracking-tight">{generatedExpert.name}</h3>
                       <p className="text-muted-foreground mb-4 leading-relaxed">{generatedExpert.title}</p>

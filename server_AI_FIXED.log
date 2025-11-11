@@ -1,0 +1,337 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (10) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+6:46:42 PM [express] Starting Python backend on port 5002...
+Seeding default experts...
+Seeded 6 experts successfully.
+6:46:42 PM [express] serving on port 3001
+6:46:43 PM [express] [Python Backend Error] INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+ERROR:    [Errno 48] Address already in use
+6:46:43 PM [express] [Python Backend] Exited with code 1
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+(node:9924) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"codex","industry":"ai","companySize":"1-10","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"codex","industry":"ai","companySize":"1-10","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:47:45.224012"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:50:57.165190"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":2,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":2,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:53:00.087626"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":3,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","goals":["growth"],"mainChallenge":"**Diagnóstico Estratégico da Performance de Aquisição**\n\nA baixa aderência no tráfego pago revela um desalinhamento crítico entre a proposta de valor, targeting e jornada do cliente no mercado de IA. As causas raízes incluem: targeting impreciso para tomadores de decisão em tecnologia (CTOs, CDOs), mensagens que não comunicam ROI tangível da solução de IA, landing pages que falham em educar sobre casos de uso específicos, e funis de conversão desconectados do ciclo de vendas complexo típico do B2B tech.\n\n**Impacto Quantificado no Crescimento**\n\nO CAC (Custo de Aquisição de Cliente) está provavelmente 3-5x acima do benchmark da indústria de IA (US$ 1.200-2.500), com taxa de conversão de tráfego para lead abaixo de 2% (vs. 5-8% do setor). A agenda do vendedor operando com 30-40% da capacidade representa perda de receita de R$ 50-150k mensais, considerando ticket médio de soluções de IA entre R$ 15-50k. O LTV:CAC está comprometido, impactando diretamente a sustentabilidade do crescimento e capacidade de investimento em P&D.\n\n**Contexto Específico do Mercado de IA**\n\nO setor de IA no Brasil apresenta particularidades únicas: ciclo de vendas de 6-18 meses, necessidade de educação intensiva do mercado sobre aplicações práticas, competição com soluções internacionais estabelecidas, e tomadores de decisão altamente técnicos que demandam proof-of-concepts robustos. O mercado ainda está em fase de early adoption, exigindo abordagem consultiva rather than transacional.\n\n**Obstáculos Sistêmicos Conectados**\n\nA baixa qualidade de leads impacta o moral e produtividade da equipe de vendas, criando ciclo vicioso de desmotivação. O desalinhamento entre marketing e vendas resulta em leads não qualificados, aumentando o atrito no handoff. A falta de conteúdo técnico específico para diferentes verticais (fintech, retail, manufatura) limita a capacidade de nutrir leads ao longo do ciclo extenso. O CRM provavelmente não está otimizado para rastrear touchpoints múltiplos necessários no B2B complexo.\n\n**Consequências Escalonadas da Inação**\n\n**Curto prazo (3-6 meses):** Queima acelerada de budget de marketing sem retorno, perda de market share para concorrentes mais ágeis, desmotivação da equipe comercial levando a turnover, e necessidade de redução de metas ou aumento desproporcional de investimento para compensar ineficiências.\n\n**Longo prazo (12-24 meses):** Posicionamento de marca enfraquecido no mercado de IA brasileiro, perda de janela de oportunidade para estabelecer liderança em nichos específicos, necessidade de reestruturação completa do go-to-market com custos elevados, e potencial dificuldade para","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":3,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","goals":["growth"],"mainChallenge":"**Diagnóstico Estratégico da Performance de Aquisição**\n\nA baixa aderência no tráfego pago revela um desalinhamento crítico entre a proposta de valor, targeting e jornada do cliente no mercado de IA. As causas raízes incluem: targeting impreciso para tomadores de decisão em tecnologia (CTOs, CDOs), mensagens que não comunicam ROI tangível da solução de IA, landing pages que falham em educar sobre casos de uso específicos, e funis de conversão desconectados do ciclo de vendas complexo típico do B2B tech.\n\n**Impacto Quantificado no Crescimento**\n\nO CAC (Custo de Aquisição de Cliente) está provavelmente 3-5x acima do benchmark da indústria de IA (US$ 1.200-2.500), com taxa de conversão de tráfego para lead abaixo de 2% (vs. 5-8% do setor). A agenda do vendedor operando com 30-40% da capacidade representa perda de receita de R$ 50-150k mensais, considerando ticket médio de soluções de IA entre R$ 15-50k. O LTV:CAC está comprometido, impactando diretamente a sustentabilidade do crescimento e capacidade de investimento em P&D.\n\n**Contexto Específico do Mercado de IA**\n\nO setor de IA no Brasil apresenta particularidades únicas: ciclo de vendas de 6-18 meses, necessidade de educação intensiva do mercado sobre aplicações práticas, competição com soluções internacionais estabelecidas, e tomadores de decisão altamente técnicos que demandam proof-of-concepts robustos. O mercado ainda está em fase de early adoption, exigindo abordagem consultiva rather than transacional.\n\n**Obstáculos Sistêmicos Conectados**\n\nA baixa qualidade de leads impacta o moral e produtividade da equipe de vendas, criando ciclo vicioso de desmotivação. O desalinhamento entre marketing e vendas resulta em leads não qualificados, aumentando o atrito no handoff. A falta de conteúdo técnico específico para diferentes verticais (fintech, retail, manufatura) limita a capacidade de nutrir leads ao longo do ciclo extenso. O CRM provavelmente não está otimizado para rastrear touchpoints múltiplos necessários no B2B complexo.\n\n**Consequências Escalonadas da Inação**\n\n**Curto prazo (3-6 meses):** Queima acelerada de budget de marketing sem retorno, perda de market share para concorrentes mais ágeis, desmotivação da equipe comercial levando a turnover, e necessidade de redução de metas ou aumento desproporcional de investimento para compensar ineficiências.\n\n**Longo prazo (12-24 meses):** Posicionamento de marca enfraquecido no mercado de IA brasileiro, perda de janela de oportunidade para estabelecer liderança em nichos específicos, necessidade de reestruturação completa do go-to-market com custos elevados, e potencial dificuldade para","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:54:39.401827"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":4,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","goals":["growth"],"mainChallenge":"**Diagnóstico Estratégico da Performance de Aquisição**\n\nA baixa aderência no tráfego pago revela um desalinhamento crítico entre a proposta de valor, targeting e jornada do cliente no mercado de IA. As causas raízes incluem: targeting impreciso para tomadores de decisão em tecnologia (CTOs, CDOs), mensagens que não comunicam ROI tangível da solução de IA, landing pages que falham em educar sobre casos de uso específicos, e funis de conversão desconectados do ciclo de vendas complexo típico do B2B tech.\n\n**Impacto Quantificado no Crescimento**\n\nO CAC (Custo de Aquisição de Cliente) está provavelmente 3-5x acima do benchmark da indústria de IA (US$ 1.200-2.500), com taxa de conversão de tráfego para lead abaixo de 2% (vs. 5-8% do setor). A agenda do vendedor operando com 30-40% da capacidade representa perda de receita de R$ 50-150k mensais, considerando ticket médio de soluções de IA entre R$ 15-50k. O LTV:CAC está comprometido, impactando diretamente a sustentabilidade do crescimento e capacidade de investimento em P&D.\n\n**Contexto Específico do Mercado de IA**\n\nO setor de IA no Brasil apresenta particularidades únicas: ciclo de vendas de 6-18 meses, necessidade de educação intensiva do mercado sobre aplicações práticas, competição com soluções internacionais estabelecidas, e tomadores de decisão altamente técnicos que demandam proof-of-concepts robustos. O mercado ainda está em fase de early adoption, exigindo abordagem consultiva rather than transacional.\n\n**Obstáculos Sistêmicos Conectados**\n\nA baixa qualidade de leads impacta o moral e produtividade da equipe de vendas, criando ciclo vicioso de desmotivação. O desalinhamento entre marketing e vendas resulta em leads não qualificados, aumentando o atrito no handoff. A falta de conteúdo técnico específico para diferentes verticais (fintech, retail, manufatura) limita a capacidade de nutrir leads ao longo do ciclo extenso. O CRM provavelmente não está otimizado para rastrear touchpoints múltiplos necessários no B2B complexo.\n\n**Consequências Escalonadas da Inação**\n\n**Curto prazo (3-6 meses):** Queima acelerada de budget de marketing sem retorno, perda de market share para concorrentes mais ágeis, desmotivação da equipe comercial levando a turnover, e necessidade de redução de metas ou aumento desproporcional de investimento para compensar ineficiências.\n\n**Longo prazo (12-24 meses):** Posicionamento de marca enfraquecido no mercado de IA brasileiro, perda de janela de oportunidade para estabelecer liderança em nichos específicos, necessidade de reestruturação completa do go-to-market com custos elevados, e potencial dificuldade para","enrichmentLevel":"complete"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":4,"companyName":"Codex","industry":"IA","companySize":"1-10","targetAudience":"**Perfil Demográfico:**\nFundadores, CEOs, Diretores de Marketing ou Head de Vendas de empresas de serviços B2B com 1 a 10 funcionários, predominantemente entre 28 e 45 anos. Concentram-se principalmente em São Paulo, Rio de Janeiro, Belo Horizonte e outras capitais, com renda mensal entre R$ 15.000 a R$ 50.000. São majoritariamente homens (65%) e mulheres (35%) com formação superior em Administração, Marketing, Engenharia ou áreas correlatas. Muitos possuem MBA ou especializações em marketing digital.\n\n**Características Psicográficas:**\nVisionários que acreditam no poder da tecnologia para transformar negócios, valorizam a eficiência operacional e buscam constantemente inovação. Têm mentalidade analítica e orientada por dados, mas ainda mantêm certa resistência a mudanças muito disruptivas. Aspiram crescer de forma sustentável e escalar seus negócios sem perder a qualidade do atendimento. Temem ficar para trás da concorrência e perder relevância no mercado. Valorizam autonomia, flexibilidade e resultados mensuráveis.\n\n**Padrões Comportamentais:**\nConsomem conteúdo educativo através de LinkedIn, YouTube, podcasts de negócios e blogs especializados em marketing e vendas. Participam de webinars, eventos de networking e conferências do setor. Tomam decisões de compra baseadas em ROI comprovado, cases de sucesso e recomendações de pares. Preferem testes gratuitos ou demonstrações antes de investir. Pesquisam extensivamente antes de comprar, comparando pelo menos 3 fornecedores. Influenciam-se por líderes de opinião do marketing digital e cases de empresas similares.\n\n**Dores e Motivações Principais:**\nSofrem com a dificuldade de gerar leads qualificados consistentemente e converter prospects em clientes pagantes. Frustram-se com ferramentas que prometem resultados mas não entregam ou são complexas demais para implementar. Sentem pressão para mostrar ROI das ações de marketing e justificar investimentos em tecnologia. Motivam-se pela possibilidade de automatizar processos repetitivos, aumentar a previsibilidade de vendas e ter mais tempo para focar em estratégia. Gatilhos de compra incluem: perda de clientes importantes, crescimento da concorrência, necessidade de escalar rapidamente ou pressão por resultados mais consistentes.\n\n**Linguagem e Comunicação:**\nRespondem melhor a uma comunicação direta, baseada em fatos e números concretos. Apreciam linguagem técnica mas acessível, com foco em resultados práticos e aplicabilidade imediata. Valorizam transparência sobre limitações e requisitos de implementação. Preferem exemplos reais, cases detalhados e demonstrações práticas ao invés de promessas vagas. Conectam-se com mensagens que reconhecem os desafios específicos de empresas em crescimento e oferecem soluções escaláveis e flexíveis.","goals":["growth"],"mainChallenge":"**Diagnóstico Estratégico da Performance de Aquisição**\n\nA baixa aderência no tráfego pago revela um desalinhamento crítico entre a proposta de valor, targeting e jornada do cliente no mercado de IA. As causas raízes incluem: targeting impreciso para tomadores de decisão em tecnologia (CTOs, CDOs), mensagens que não comunicam ROI tangível da solução de IA, landing pages que falham em educar sobre casos de uso específicos, e funis de conversão desconectados do ciclo de vendas complexo típico do B2B tech.\n\n**Impacto Quantificado no Crescimento**\n\nO CAC (Custo de Aquisição de Cliente) está provavelmente 3-5x acima do benchmark da indústria de IA (US$ 1.200-2.500), com taxa de conversão de tráfego para lead abaixo de 2% (vs. 5-8% do setor). A agenda do vendedor operando com 30-40% da capacidade representa perda de receita de R$ 50-150k mensais, considerando ticket médio de soluções de IA entre R$ 15-50k. O LTV:CAC está comprometido, impactando diretamente a sustentabilidade do crescimento e capacidade de investimento em P&D.\n\n**Contexto Específico do Mercado de IA**\n\nO setor de IA no Brasil apresenta particularidades únicas: ciclo de vendas de 6-18 meses, necessidade de educação intensiva do mercado sobre aplicações práticas, competição com soluções internacionais estabelecidas, e tomadores de decisão altamente técnicos que demandam proof-of-concepts robustos. O mercado ainda está em fase de early adoption, exigindo abordagem consultiva rather than transacional.\n\n**Obstáculos Sistêmicos Conectados**\n\nA baixa qualidade de leads impacta o moral e produtividade da equipe de vendas, criando ciclo vicioso de desmotivação. O desalinhamento entre marketing e vendas resulta em leads não qualificados, aumentando o atrito no handoff. A falta de conteúdo técnico específico para diferentes verticais (fintech, retail, manufatura) limita a capacidade de nutrir leads ao longo do ciclo extenso. O CRM provavelmente não está otimizado para rastrear touchpoints múltiplos necessários no B2B complexo.\n\n**Consequências Escalonadas da Inação**\n\n**Curto prazo (3-6 meses):** Queima acelerada de budget de marketing sem retorno, perda de market share para concorrentes mais ágeis, desmotivação da equipe comercial levando a turnover, e necessidade de redução de metas ou aumento desproporcional de investimento para compensar ineficiências.\n\n**Longo prazo (12-24 meses):** Posicionamento de marca enfraquecido no mercado de IA brasileiro, perda de janela de oportunidade para estabelecer liderança em nichos específicos, necessidade de reestruturação completa do go-to-market com custos elevados, e potencial dificuldade para","enrichmentLevel":"complete","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:54:43.049557"}
+6:56:37 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:56:42 PM [vite] hmr update /src/pages/PersonaDashboard.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:30 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:30 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:36 PM [vite] hmr update /src/pages/PersonaDashboard.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:52 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:52 PM [vite] hmr update /src/pages/PersonaDashboard.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+6:57:52 PM [vite] hmr update /src/index.css?v=ybsy18O3GWlIUyB_yS3vw, /src/pages/Home.tsx, /src/pages/PersonaDashboard.tsx
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+7:02:26 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:02:29 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:02:31 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:02:35 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:03:37 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:04 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:07 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:12 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:17 PM [vite] hmr update /src/components/council/ExpertAvatar.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:22 PM [vite] hmr update /src/components/council/ExpertAvatar.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:12:29 PM [vite] hmr update /src/components/council/ActivityFeed.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:13:01 PM [vite] hmr update /src/components/council/ActivityFeed.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:16:53 PM [vite] hmr update /src/components/council/ActivityFeed.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:16:53 PM [vite] hmr update /src/pages/TestCouncil.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:16:53 PM [vite] hmr update /src/components/council/ExpertAvatar.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+[Persona] Set active - req.body: {"personaId":"b5919323-30a7-46c8-b1d6-bf2cf823b733"}
+[Persona] Set active - bodyData: {"personaId":"b5919323-30a7-46c8-b1d6-bf2cf823b733"}
+[Persona] Set active - Content-Length: 52
+[Persona] Set active - response status: 200
+[Persona] Set active - response data: {"success":true,"activePersonaId":"b5919323-30a7-46c8-b1d6-bf2cf823b733"}
+7:28:51 PM [vite] hmr update /src/pages/PersonaDetail.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:28:59 PM [vite] hmr update /src/pages/PersonaDetail.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+7:30:52 PM [vite] hmr update /src/pages/PersonaDetail.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+Failed to prune sessions: Error: getaddrinfo ENOTFOUND ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+    at /Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/connect-pg-simple/index.js:322:21) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech'
+}
+Failed to prune sessions: Error: getaddrinfo ENOTFOUND ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+    at /Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/connect-pg-simple/index.js:322:21) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech'
+}
+Failed to prune sessions: Error: getaddrinfo ENOTFOUND ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+    at /Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/connect-pg-simple/index.js:322:21) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech'
+}
+Failed to prune sessions: Error: getaddrinfo ENOTFOUND ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+    at /Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/Users/gabriellima/Downloads/Andromeda/advisory_replit/node_modules/connect-pg-simple/index.js:322:21) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech'
+}
+10:31:34 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:31:37 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:31:41 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:32:46 PM [vite] hmr update /src/components/Header.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:32:49 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:33:00 PM [vite] hmr update /src/pages/Analytics.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:33:34 PM [vite] hmr update /src/components/Header.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:33:34 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:33:34 PM [vite] hmr update /src/pages/Home.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:33:34 PM [vite] hmr update /src/pages/Analytics.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+10:44:55 PM [vite] hmr update /src/contexts/AuthContext.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:44:55 PM [vite] hmr invalidate /src/contexts/AuthContext.tsx Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:44:55 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw, /src/components/ProtectedRoute.tsx, /src/components/Header.tsx, /src/components/AdminRoute.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Settings.tsx, /src/pages/Landing.tsx
+10:45:04 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:45:04 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:45:12 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:45:26 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:45:32 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:46:04 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:50:20 PM [vite] hmr update /src/contexts/AuthContext.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:50:20 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+10:50:20 PM [vite] hmr invalidate /src/contexts/AuthContext.tsx Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:50:20 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw, /src/components/ProtectedRoute.tsx, /src/components/Header.tsx, /src/components/AdminRoute.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Settings.tsx, /src/pages/Landing.tsx
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+11:10:47 PM [vite] hmr update /src/contexts/AuthContext.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:10:48 PM [vite] hmr invalidate /src/contexts/AuthContext.tsx Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+11:10:48 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw, /src/components/ProtectedRoute.tsx, /src/components/Header.tsx, /src/components/AdminRoute.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Settings.tsx, /src/pages/Landing.tsx
+11:11:17 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:11:34 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:11:58 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:13:39 PM [vite] hmr update /src/pages/Settings.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:13:39 PM [vite] hmr update /src/contexts/AuthContext.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:13:40 PM [vite] hmr invalidate /src/contexts/AuthContext.tsx Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+11:13:40 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw, /src/components/ProtectedRoute.tsx, /src/components/Header.tsx, /src/components/AdminRoute.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Settings.tsx, /src/pages/Landing.tsx
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:444:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:710:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:444:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:710:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:307:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:444:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:710:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:307:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:444:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:710:22) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:343:5) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:343:5) {
+  [cause]: HeadersTimeoutError: Headers Timeout Error
+      at FastTimer.onParserTimeout [as _onTimeout] (node:internal/deps/undici/undici:6249:32)
+      at Timeout.onTick [as _onTimeout] (node:internal/deps/undici/undici:2210:17)
+      at listOnTimeout (node:internal/timers:588:17)
+      at process.processTimers (node:internal/timers:523:7) {
+    code: 'UND_ERR_HEADERS_TIMEOUT'
+  }
+}
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+11:43:11 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:43:14 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:45:49 PM [vite] hmr update /src/components/Header.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:45:53 PM [vite] hmr update /src/components/Header.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:46:36 PM [vite] hmr update /src/App.tsx?v=ybsy18O3GWlIUyB_yS3vw, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:46:36 PM [vite] hmr update /src/pages/SuperAdminDashboard.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+11:46:36 PM [vite] hmr update /src/components/Header.tsx, /src/index.css?v=ybsy18O3GWlIUyB_yS3vw
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)
+[Audit] Get logs error: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:547:18)

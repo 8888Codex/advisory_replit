@@ -1,0 +1,310 @@
+
+======================================================================
+🔍 VALIDANDO VARIÁVEIS DE AMBIENTE...
+======================================================================
+
+✅ Variáveis obrigatórias: OK
+
+ℹ️  Variáveis opcionais ausentes (funcionalidades limitadas):
+  ℹ️  UNSPLASH_ACCESS_KEY: Unsplash API for avatars (optional, will be skipped)
+  ℹ️  REDIS_URL: Redis connection string (optional, will be skipped)
+  ℹ️  SENTRY_DSN: Sentry error tracking DSN (optional, will be skipped)
+
+⚙️  Configurações: Valores padrão aplicados
+
+======================================================================
+✅ VALIDAÇÃO CONCLUÍDA COM SUCESSO!
+======================================================================
+  🌍 Ambiente: development
+  🗄️  Database: ep-steep-wildflower-acg1m9zm-pooler.sa-east-1.aws.neon.tech
+  🤖 Anthropic API: Configurada
+  🔐 Session Secret: ✓
+======================================================================
+
+{"text": "Logger initialized\n", "record": {"elapsed": {"repr": "0:00:00.015646", "seconds": 0.015646}, "exception": null, "extra": {"environment": "development", "level": "INFO", "format": "json", "production": false}, "file": {"name": "logger.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/logger.py"}, "function": "<module>", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 159, "message": "Logger initialized", "module": "logger", "name": "logger", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:31.338150-03:00", "timestamp": 1762809091.33815}}}
+INFO:     Started server process [7746]
+INFO:     Waiting for application startup.
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.273335", "seconds": 0.273335}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 104, "message": "Initializing database connection pool", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:31.595839-03:00", "timestamp": 1762809091.595839}}}
+{"text": "Initializing database connection pool\n", "record": {"elapsed": {"repr": "0:00:00.273534", "seconds": 0.273534}, "exception": null, "extra": {"min_size": 5, "max_size": 20, "max_queries": 5000}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 52, "message": "Initializing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:31.596038-03:00", "timestamp": 1762809091.596038}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.686788", "seconds": 0.686788}, "exception": null, "extra": {"min_size": 5, "max_size": 20}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 75, "message": "Database pool initialized successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.009292-03:00", "timestamp": 1762809092.009292}}}
+{"text": "Database pool initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.687115", "seconds": 0.687115}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 106, "message": "Database pool initialized successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.009619-03:00", "timestamp": 1762809092.009619}}}
+{"text": "Initializing cache manager\n", "record": {"elapsed": {"repr": "0:00:00.687279", "seconds": 0.687279}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 109, "message": "Initializing cache manager", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.009783-03:00", "timestamp": 1762809092.009783}}}
+{"text": "Using in-memory cache (Redis not configured)\n", "record": {"elapsed": {"repr": "0:00:00.687431", "seconds": 0.687431}, "exception": null, "extra": {}, "file": {"name": "cache.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/cache.py"}, "function": "initialize", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 91, "message": "Using in-memory cache (Redis not configured)", "module": "cache", "name": "cache", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.009935-03:00", "timestamp": 1762809092.009935}}}
+{"text": "Cache manager initialized successfully\n", "record": {"elapsed": {"repr": "0:00:00.687565", "seconds": 0.687565}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 111, "message": "Cache manager initialized successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.010069-03:00", "timestamp": 1762809092.010069}}}
+{"text": "Initializing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:00:00.687686", "seconds": 0.687686}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 114, "message": "Initializing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.010190-03:00", "timestamp": 1762809092.01019}}}
+[PostgresStorage] Connection pool initialized
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+{"text": "PostgreSQL storage initialized successfully\n", "record": {"elapsed": {"repr": "0:00:01.008141", "seconds": 1.008141}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "startup_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 116, "message": "PostgreSQL storage initialized successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:11:32.330645-03:00", "timestamp": 1762809092.330645}}}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64531 - "GET /api/health HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:64619 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64617 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+{"text": "Fetching persona for user_id: {user_id}\n", "record": {"elapsed": {"repr": "0:03:11.202517", "seconds": 191.202517}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "get_current_persona", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 3347, "message": "Fetching persona for user_id: {user_id}", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:14:42.525021-03:00", "timestamp": 1762809282.525021}}}
+[DEBUG] Getting experts, category filter: None
+INFO:     127.0.0.1:64617 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64619 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEDUP] SEED experts: 18, DB experts: 1, Unique DB: 1
+INFO:     127.0.0.1:64621 - "GET /api/experts HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:64657 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64656 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+{"text": "Fetching persona for user_id: {user_id}\n", "record": {"elapsed": {"repr": "0:03:17.458874", "seconds": 197.458874}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "get_current_persona", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 3347, "message": "Fetching persona for user_id: {user_id}", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:14:48.781378-03:00", "timestamp": 1762809288.781378}}}
+[DEBUG] Getting experts, category filter: None
+INFO:     127.0.0.1:64656 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEDUP] SEED experts: 18, DB experts: 1, Unique DB: 1
+INFO:     127.0.0.1:64659 - "GET /api/experts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64657 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64665 - "POST /api/audit/log HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 289, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py", line 497, in create_audit_log
+    log_id = await storage.create_audit_log(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/storage.py", line 1368, in create_audit_log
+    await conn.execute("""
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 352, in execute
+    _, status, _ = await self._execute(
+                   ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 2012, in _do_execute
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column "metadata" of relation "audit_logs" does not exist
+INFO:     127.0.0.1:64694 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64696 - "POST /api/audit/log HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/fastapi/routing.py", line 289, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py", line 497, in create_audit_log
+    log_id = await storage.create_audit_log(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/storage.py", line 1368, in create_audit_log
+    await conn.execute("""
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 352, in execute
+    _, status, _ = await self._execute(
+                   ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 2012, in _do_execute
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column "metadata" of relation "audit_logs" does not exist
+INFO:     127.0.0.1:64694 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Getting experts, category filter: None
+INFO:     127.0.0.1:64694 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEDUP] SEED experts: 18, DB experts: 1, Unique DB: 1
+INFO:     127.0.0.1:64703 - "GET /api/experts HTTP/1.1" 200 OK
+{"text": "Fetching persona for user_id: {user_id}\n", "record": {"elapsed": {"repr": "0:03:43.770557", "seconds": 223.770557}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "get_current_persona", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 3347, "message": "Fetching persona for user_id: {user_id}", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:15:15.093061-03:00", "timestamp": 1762809315.093061}}}
+INFO:     127.0.0.1:64694 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64714 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64694 - "GET /api/persona/list?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DELETE PERSONA] persona_id=7b658cd1-7ab4-4587-8937-b5f8f289e5db, user_id=48bb3e53-bfca-4298-bab5-1627ca216739
+[DELETE PERSONA] Found persona: True
+[DELETE PERSONA] Persona userId: 48bb3e53-bfca-4298-bab5-1627ca216739, requesting user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DELETE PERSONA] Deleted result: True
+[DELETE PERSONA] SUCCESS
+INFO:     127.0.0.1:64694 - "DELETE /api/persona/7b658cd1-7ab4-4587-8937-b5f8f289e5db?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:64694 - "GET /api/persona/list?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64714 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DELETE PERSONA] persona_id=f6131821-b74f-448b-bfc7-97e739d174e4, user_id=48bb3e53-bfca-4298-bab5-1627ca216739
+[DELETE PERSONA] Found persona: True
+[DELETE PERSONA] Persona userId: 48bb3e53-bfca-4298-bab5-1627ca216739, requesting user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DELETE PERSONA] Deleted result: True
+[DELETE PERSONA] SUCCESS
+INFO:     127.0.0.1:64694 - "DELETE /api/persona/f6131821-b74f-448b-bfc7-97e739d174e4?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:64714 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64694 - "GET /api/persona/list?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64725 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64756 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49540 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:49555 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49557 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49555 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:49635 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49636 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49636 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:49691 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49691 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49697 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:49719 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49721 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49719 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49725 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:49753 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49755 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49753 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49773 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49833 - "GET /api/health HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:50012 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50013 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50012 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50020 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50039 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:50184 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50185 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50184 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50561 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50575 - "POST /api/ai/enhance-prompt?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 404 Not Found
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:50832 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50833 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50832 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50846 - "GET /api/health HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:50902 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50903 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50902 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50906 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50920 - "POST /api/ai/enhance-prompt?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+{"text": "Closing PostgreSQL storage\n", "record": {"elapsed": {"repr": "0:38:00.239203", "seconds": 2280.239203}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 127, "message": "Closing PostgreSQL storage", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:31.561707-03:00", "timestamp": 1762811371.561707}}}
+[PostgresStorage] Connection pool closed
+{"text": "PostgreSQL storage closed successfully\n", "record": {"elapsed": {"repr": "0:38:00.660950", "seconds": 2280.66095}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 129, "message": "PostgreSQL storage closed successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:31.983454-03:00", "timestamp": 1762811371.983454}}}
+{"text": "Closing cache manager\n", "record": {"elapsed": {"repr": "0:38:00.661403", "seconds": 2280.661403}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 132, "message": "Closing cache manager", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:31.983907-03:00", "timestamp": 1762811371.983907}}}
+{"text": "Cache manager closed successfully\n", "record": {"elapsed": {"repr": "0:38:00.702503", "seconds": 2280.702503}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 134, "message": "Cache manager closed successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:32.025007-03:00", "timestamp": 1762811372.025007}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:38:00.702717", "seconds": 2280.702717}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 137, "message": "Closing database connection pool", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:32.025221-03:00", "timestamp": 1762811372.025221}}}
+{"text": "Closing database connection pool\n", "record": {"elapsed": {"repr": "0:38:00.708882", "seconds": 2280.708882}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 93, "message": "Closing database connection pool", "module": "db_pool", "name": "db_pool", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:32.031386-03:00", "timestamp": 1762811372.031386}}}
+{"text": "Database pool closed successfully\n", "record": {"elapsed": {"repr": "0:38:00.742911", "seconds": 2280.742911}, "exception": null, "extra": {}, "file": {"name": "db_pool.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/db_pool.py"}, "function": "close", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 98, "message": "Database pool closed successfully", "module": "db_pool", "name": "db_pool", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:32.065415-03:00", "timestamp": 1762811372.065415}}}
+{"text": "Database pool closed successfully\n", "record": {"elapsed": {"repr": "0:38:00.749250", "seconds": 2280.74925}, "exception": null, "extra": {}, "file": {"name": "main.py", "path": "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py"}, "function": "shutdown_event", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 139, "message": "Database pool closed successfully", "module": "main", "name": "main", "process": {"id": 7746, "name": "MainProcess"}, "thread": {"id": 8666407104, "name": "MainThread"}, "time": {"repr": "2025-11-10 18:49:32.071754-03:00", "timestamp": 1762811372.071754}}}
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7746]
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 16 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

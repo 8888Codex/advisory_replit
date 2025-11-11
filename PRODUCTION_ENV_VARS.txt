@@ -1,0 +1,117 @@
+# =============================================================================
+# VARIÁVEIS DE AMBIENTE PARA PRODUÇÃO (DOKPLOY)
+# =============================================================================
+#
+# INSTRUÇÕES:
+# 1. Copie estas variáveis para Dokploy → Settings → Environment Variables
+# 2. Substitua os valores de exemplo pelos seus valores reais
+# 3. Marque como "Secret": SESSION_SECRET, ANTHROPIC_API_KEY, DATABASE_URL
+#
+# =============================================================================
+
+# ============ OBRIGATÓRIAS (NÃO FUNCIONA SEM ESTAS) ============
+
+# Database - Usar DATABASE_URL fornecido pelo Dokploy PostgreSQL
+# OU usar database externo (Neon, Supabase, etc)
+DATABASE_URL=postgresql://user:password@host:port/advisory
+
+# Anthropic Claude API Key
+# Obter em: https://console.anthropic.com/
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+
+# Session Secret - GERAR NOVO para produção (ver abaixo)
+# Comando: openssl rand -base64 32
+# NUNCA usar o mesmo de desenvolvimento!
+SESSION_SECRET=COLE_AQUI_O_VALOR_GERADO_POR_OPENSSL
+
+# Environment
+NODE_ENV=production
+
+# ============ RECOMENDADAS (Melhoram Funcionalidade) ============
+
+# Perplexity API - Para pesquisa de mercado e enrichment
+# Obter em: https://www.perplexity.ai/settings/api
+PERPLEXITY_API_KEY=pplx-your-key-here
+
+# YouTube Data API v3 - Para busca de vídeos no enrichment
+# Obter em: https://console.cloud.google.com/apis/credentials
+YOUTUBE_API_KEY=AIza-your-key-here
+
+# Redis URL - Para cache (se adicionar serviço Redis no Dokploy)
+# Deixar vazio se não usar Redis (fallback in-memory automático)
+REDIS_URL=redis://redis:6379
+REDIS_ENABLED=true
+
+# ============ CONFIGURAÇÕES (Usar estes valores ou ajustar) ============
+
+# Database Pool - Produção
+DB_POOL_MIN_SIZE=10
+DB_POOL_MAX_SIZE=50
+DB_POOL_MAX_QUERIES=5000
+
+# Anthropic API
+ANTHROPIC_TIMEOUT=60
+ANTHROPIC_MAX_RETRIES=3
+ANTHROPIC_RETRY_DELAY=1
+
+# Circuit Breaker
+CIRCUIT_BREAKER_THRESHOLD=5
+CIRCUIT_BREAKER_TIMEOUT=300
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+LOG_TO_FILE=true
+
+# Rate Limiting
+RATE_LIMIT_COUNCIL_PER_HOUR=10
+RATE_LIMIT_ENRICHMENT_PER_DAY=3
+RATE_LIMIT_AUTO_CLONE_PER_DAY=5
+RATE_LIMIT_UPLOAD_PER_HOUR=10
+
+# Upload Limits
+MAX_UPLOAD_SIZE_MB=5
+MAX_IMAGE_DIMENSION=2048
+
+# Session
+SESSION_MAX_AGE_HOURS=1
+SESSION_ROLLING=true
+
+# Backup
+BACKUP_ENABLED=true
+BACKUP_RETENTION_DAYS=30
+
+# Health Check
+HEALTH_CHECK_ENABLED=true
+
+# Ports (ajustar se necessário)
+PYTHON_BACKEND_PORT=5002
+NODE_SERVER_PORT=3001
+
+# ============ OPCIONAL (Monitoramento Avançado) ============
+
+# Sentry - Error tracking (obter em sentry.io - plano gratuito disponível)
+SENTRY_DSN=
+
+# CORS - Origins permitidas em produção (separar por vírgula)
+# Exemplo: https://o-conselho.seudominio.com,https://app.seudominio.com
+ALLOWED_ORIGINS=
+
+# =============================================================================
+# IMPORTANTE - SEGURANÇA:
+# =============================================================================
+# 
+# ✅ FAZER:
+# - Gerar SESSION_SECRET único: openssl rand -base64 32
+# - Usar DATABASE_URL do Dokploy PostgreSQL
+# - Marcar secrets como "Secret" no Dokploy
+# - Verificar que NODE_ENV=production
+#
+# ❌ NÃO FAZER:
+# - Usar SESSION_SECRET de desenvolvimento
+# - Commitar este arquivo com valores reais
+# - Expor API keys em logs ou código
+# - Usar senhas fracas
+#
+# =============================================================================
+

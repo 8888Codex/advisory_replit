@@ -1,0 +1,104 @@
+INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+INFO:     Started reloader process [44017] using WatchFiles
+INFO:     Started server process [44024]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+INFO:     127.0.0.1:52737 - "GET /health HTTP/1.1" 404 Not Found
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:52784 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52785 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Getting onboarding status for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Onboarding status found: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 4, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '11-50', 'targetAudience': 'Empresas de serviços que utilizam estratégia de inbound marketing para captação de cliente e tem pelo menos 3 pessoas no time de vendas', 'goals': ['growth'], 'mainChallenge': 'Não estou conseguindo atrair clientes com qualidade e lotar a agenda do meu time de vendas', 'enrichmentLevel': 'quick', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 13, 17, 409603)}
+INFO:     127.0.0.1:52784 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52833 - "GET /docs HTTP/1.1" 200 OK
+[ENRICHMENT STATUS] Fetching for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+INFO:     127.0.0.1:52899 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52898 - "GET /api/persona/enrichment-status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Getting onboarding status for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Onboarding status found: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 4, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '11-50', 'targetAudience': 'Empresas de serviços que utilizam estratégia de inbound marketing para captação de cliente e tem pelo menos 3 pessoas no time de vendas', 'goals': ['growth'], 'mainChallenge': 'Não estou conseguindo atrair clientes com qualidade e lotar a agenda do meu time de vendas', 'enrichmentLevel': 'quick', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 13, 17, 409603)}
+INFO:     127.0.0.1:52898 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Saving onboarding for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Data received: currentStep=1 companyName='Codex' industry='Agencia de IA' companySize='51-200' targetAudience='' goals=None mainChallenge='' enrichmentLevel='quick'
+[DEBUG] Onboarding data dict: {'currentStep': 1, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': '', 'mainChallenge': '', 'enrichmentLevel': 'quick'}
+[DEBUG] Save result: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 1, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': '', 'goals': ['growth'], 'mainChallenge': '', 'enrichmentLevel': 'quick', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 20, 3, 963889)}
+INFO:     127.0.0.1:52915 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Saving onboarding for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Data received: currentStep=2 companyName='Codex' industry='Agencia de IA' companySize='51-200' targetAudience='Empresas de serviços que utilizando estratégias de inbound para captação de cliente' goals=None mainChallenge='' enrichmentLevel='quick'
+[DEBUG] Onboarding data dict: {'currentStep': 2, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'mainChallenge': '', 'enrichmentLevel': 'quick'}
+[DEBUG] Save result: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 2, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'goals': ['growth'], 'mainChallenge': '', 'enrichmentLevel': 'quick', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 20, 29, 190380)}
+INFO:     127.0.0.1:52933 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Saving onboarding for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Data received: currentStep=3 companyName='Codex' industry='Agencia de IA' companySize='51-200' targetAudience='Empresas de serviços que utilizando estratégias de inbound para captação de cliente' goals=['growth'] mainChallenge='Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor' enrichmentLevel='quick'
+[DEBUG] Onboarding data dict: {'currentStep': 3, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'goals': ['growth'], 'mainChallenge': 'Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor', 'enrichmentLevel': 'quick'}
+[DEBUG] Save result: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 3, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'goals': ['growth'], 'mainChallenge': 'Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor', 'enrichmentLevel': 'quick', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 21, 11, 830401)}
+INFO:     127.0.0.1:52956 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[DEBUG] Saving onboarding for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Data received: currentStep=4 companyName='Codex' industry='Agencia de IA' companySize='51-200' targetAudience='Empresas de serviços que utilizando estratégias de inbound para captação de cliente' goals=['growth'] mainChallenge='Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor' enrichmentLevel='strategic'
+[DEBUG] Onboarding data dict: {'currentStep': 4, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'goals': ['growth'], 'mainChallenge': 'Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor', 'enrichmentLevel': 'strategic'}
+[DEBUG] Save result: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 4, 'companyName': 'Codex', 'industry': 'Agencia de IA', 'companySize': '51-200', 'targetAudience': 'Empresas de serviços que utilizando estratégias de inbound para captação de cliente', 'goals': ['growth'], 'mainChallenge': 'Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor', 'enrichmentLevel': 'strategic', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 5, 21, 17, 490579)}
+INFO:     127.0.0.1:52961 - "POST /api/onboarding/save?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+[PERSONA CREATE] Endpoint called with data: companyName='Codex' industry='Agencia de IA' companySize='51-200' targetAudience='Empresas de serviços que utilizando estratégias de inbound para captação de cliente' mainProducts=None channels=[] budgetRange=None primaryGoal='growth' mainChallenge='Estou com problema para atrair pessoas para o meu funil, não consigo atrair lead qualificado e nem lotar a agenda do meu vendedor' timeline=None researchMode='strategic' enrichmentLevel='strategic' additionalContext=None
+[PERSONA CREATE] Using user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+[PERSONA CREATE] Calling storage.create_user_persona...
+[PERSONA CREATE] Persona created successfully: faa07436-f02d-40c7-a990-3c0b5f392c9f
+INFO:     127.0.0.1:52961 - "POST /api/persona/create?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 201 Created
+[ENRICH_ENDPOINT] Received enrichment request for persona faa07436-f02d-40c7-a990-3c0b5f392c9f with mode strategic
+[ENRICH_ENDPOINT] Persona found. Adding background task...
+[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.
+INFO:     127.0.0.1:52961 - "POST /api/persona/enrich/background?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 202 Accepted
+[BACKGROUND] 🔧 Sync wrapper called for persona faa07436-f02d-40c7-a990-3c0b5f392c9f
+[DEBUG] Getting experts, category filter: None
+[BACKGROUND] ⚡ Async enrichment task STARTED for persona faa07436-f02d-40c7-a990-3c0b5f392c9f with level strategic
+[BACKGROUND] Creating database connection...
+INFO:     127.0.0.1:52968 - "POST /api/onboarding/complete?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 400 Bad Request
+[PERSONA CURRENT] Fetching persona for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:52970 - "GET /api/experts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52961 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py", line 3090, in _async_enrichment_task
+    from persona_enrichment_standalone import enrich_persona_complete_standalone
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/persona_enrichment_standalone.py", line 12, in <module>
+    from googleapiclient.discovery import build
+ModuleNotFoundError: No module named 'googleapiclient'
+[BACKGROUND] Updating status to 'processing'...
+[BACKGROUND] Status updated. Starting strategic enrichment...
+[BACKGROUND] Fetching persona data...
+[BACKGROUND] Persona found. Starting COMPLETE enrichment...
+[BACKGROUND] Company: Codex
+[BACKGROUND] Industry: Agencia de IA
+[BACKGROUND] Level: strategic
+[BACKGROUND] Database connection closed
+[BACKGROUND] ❌ Exception caught in background task!
+[BACKGROUND] Error: No module named 'googleapiclient'
+INFO:     127.0.0.1:53009 - "GET /api/persona/list?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "GET /api/persona/faa07436-f02d-40c7-a990-3c0b5f392c9f?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK

@@ -9,6 +9,7 @@ UPDATED: Now integrates 8-Module Deep Persona System (Quick/Strategic/Complete)
 
 import asyncio
 import os
+from datetime import datetime
 from typing import List, Dict, Any, Literal, Optional
 from models import UserPersona, PersonaEnrichmentResult
 from tools.youtube_api import YouTubeAPITool
@@ -429,7 +430,9 @@ async def enrich_persona_with_deep_modules(
         "decisionProfile": modules.get("decisionProfile"),
         "copyExamples": modules.get("copyExamples"),
         "enrichmentLevel": modules.get("enrichmentLevel"),
-        "researchCompleteness": modules.get("researchCompleteness")
+        "enrichmentStatus": "completed",  # Mark as completed
+        "researchCompleteness": modules.get("researchCompleteness"),
+        "lastEnrichedAt": datetime.utcnow()  # Update enrichment timestamp
     }
     
     # Remove None values
@@ -438,6 +441,6 @@ async def enrich_persona_with_deep_modules(
     # Update persona in storage
     updated_persona = await storage.update_user_persona(persona_id, update_data)
     
-    print(f"[DEEP ENRICHMENT] ✅ {level.upper()} enrichment complete! Completeness: {modules.get('researchCompleteness')}%")
+    print(f"[DEEP ENRICHMENT] ✅ {level.upper()} enrichment complete! Status: completed, Completeness: {modules.get('researchCompleteness')}%")
     
     return updated_persona

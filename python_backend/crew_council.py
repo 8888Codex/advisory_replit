@@ -79,7 +79,8 @@ class CouncilOrchestrator:
         problem: str,
         experts: List[Expert],
         profile: Optional[BusinessProfile] = None,
-        user_id: str = "demo_user"
+        user_id: str = "demo_user",
+        persona: Optional[Any] = None  # NEW: UserPersona for deep context
     ) -> CouncilAnalysis:
         """
         Run collaborative council analysis with all experts.
@@ -89,6 +90,7 @@ class CouncilOrchestrator:
             experts: List of Expert models to consult
             profile: Optional BusinessProfile for context
             user_id: User identifier
+            persona: Optional UserPersona for ENRICHED context (8 modules)
         
         Returns:
             CouncilAnalysis with all expert contributions and consensus
@@ -128,7 +130,8 @@ class CouncilOrchestrator:
                     profile=profile,
                     user_id=user_id,
                     user_context=user_context,
-                    colleague_contributions=current_round_contributions if current_round_contributions else None
+                    colleague_contributions=current_round_contributions if current_round_contributions else None,
+                    persona=persona  # NEW: Pass persona to each expert
                 )
                 contributions.append(contribution)
                 
@@ -174,7 +177,8 @@ class CouncilOrchestrator:
         profile: Optional[BusinessProfile],
         user_id: str = "demo_user",
         user_context: Optional[Dict[str, Any]] = None,
-        colleague_contributions: Optional[List[Dict[str, str]]] = None
+        colleague_contributions: Optional[List[Dict[str, str]]] = None,
+        persona: Optional[Any] = None  # NEW: UserPersona for enriched context
     ) -> AgentContribution:
         """
         Get analysis from a single expert using their cognitive clone with tool support.
@@ -183,6 +187,7 @@ class CouncilOrchestrator:
         Args:
             colleague_contributions: List of {"expert_name": str, "contribution": str} 
                                     from colleagues who already spoke in this round (for roundtable)
+            persona: Optional UserPersona with ALL 8 enriched modules for ultra-personalization
         
         Returns:
             AgentContribution with expert's unique perspective
@@ -228,8 +233,15 @@ class CouncilOrchestrator:
             if user_context and user_context.get("analysis_context"):
                 context_parts.append(user_context["analysis_context"])
             
-            # Add business context if available
-            if profile:
+            # Add ENRICHED persona context if available (PRIORITY over business profile)
+            if persona:
+                # Import the function from main.py
+                from main import _build_enriched_persona_context
+                persona_context_text = _build_enriched_persona_context(persona)
+                context_parts.append(persona_context_text)
+                print(f"   → Expert {expert.name} receiving ENRICHED persona context ({len(persona_context_text)} chars)")
+            elif profile:
+                # Fallback to basic business profile if no persona
                 context_parts.append(
                     f"**Business Context:**\n"
                     f"- Company: {profile.companyName} ({profile.companySize} employees)\n"
@@ -287,7 +299,10 @@ Se você remover o nome do colega da sua frase, ela ainda deve fazer sentido e m
 "Olha, concordo com o Simon sobre começar pelo WHY do cliente ao invés de listar features. E baseado na minha experiência com posicionamento, eu adicionaria que esse WHY precisa ser diferenciado - não pode ser genérico tipo 'ajudamos empresas a crescer'..."
 """
 
-            user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR) natural e coloquial.**
+            # DIFFERENT PROMPTS: Initial analysis vs Follow-up conversation
+            if colleague_contributions and len(colleague_contributions) > 0:
+                # FOLLOW-UP CONVERSATION (Council Room) - Conversational style
+                user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR) natural e coloquial.**
 
 {context}
 
@@ -327,6 +342,47 @@ RESPONDA de forma:
 - Citações em inglês ou outros idiomas
 
 Seja você mesmo, mas numa conversa natural."""
+            else:
+                # INITIAL ANALYSIS (Test Council) - Structured format with insights/recommendations
+                user_message = f"""**IMPORTANTE: Responda SEMPRE em português brasileiro (PT-BR).**
+
+{context}
+
+**Problema Estratégico a Analisar:**
+{problem}
+
+**Sua Tarefa - ANÁLISE INICIAL ESTRUTURADA:**
+Você está no Conselho Estratégico analisando este desafio pela primeira vez. Forneça uma análise completa e estruturada.
+
+**FORMATO OBRIGATÓRIO:**
+
+## Análise Principal
+[Sua análise do problema em 2-3 parágrafos, destacando os pontos-chave da sua perspectiva única]
+
+## Key Insights
+- [Insight 1: Observação estratégica importante]
+- [Insight 2: Padrão ou oportunidade identificada]  
+- [Insight 3: Risco ou consideração crítica]
+- [Insight 4-5: Insights adicionais relevantes]
+
+## Actionable Recommendations
+- [Recomendação 1: Ação específica e prática]
+- [Recomendação 2: Estratégia ou tática concreta]
+- [Recomendação 3: Próximos passos acionáveis]
+- [Recomendação 4-5: Recomendações adicionais]
+
+**IMPORTANTE:**
+- Mínimo 3 insights, máximo 7
+- Mínimo 3 recomendações, máximo 7
+- Cada item deve ser específico e acionável
+- Use sua perspectiva única como {expert.name}
+- Evite genericidades, seja específico para este problema
+- Escreva em português brasileiro natural
+
+**Tom:**
+- Profissional mas acessível
+- Direto e prático
+- Baseado na sua experiência como {expert.name}"""
             
             # Call Claude with expert's enhanced system prompt (with timeout)
             try:

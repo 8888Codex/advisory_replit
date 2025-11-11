@@ -1,0 +1,132 @@
+INFO:     Started server process [90431]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+[ENRICH_ENDPOINT] Received enrichment request for persona 26ad1987-e1aa-481a-ba2e-7f65b5eaaa65 with mode strategic
+[ENRICH_ENDPOINT] Persona found. Adding background task...
+[ENRICH_ENDPOINT] Persona ID: 26ad1987-e1aa-481a-ba2e-7f65b5eaaa65, Mode: strategic
+[ENRICH_ENDPOINT] background_tasks object: <fastapi.background.BackgroundTasks object at 0x10848b560>
+[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.
+[ENRICH_ENDPOINT] Task should execute after response is sent...
+INFO:     127.0.0.1:55014 - "POST /api/persona/enrich/background HTTP/1.1" 202 Accepted
+Traceback (most recent call last):
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py", line 3314, in _async_enrichment_task
+    persona_row = await conn.fetchrow("""
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 748, in fetchrow
+    data = await self._execute(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 2004, in _do_execute
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.InvalidCachedStatementError: cached statement plan is invalid due to a database schema or configuration change
+[BACKGROUND] 🔧 Sync wrapper called for persona 26ad1987-e1aa-481a-ba2e-7f65b5eaaa65
+[BACKGROUND] ⚡ Async enrichment task STARTED for persona 26ad1987-e1aa-481a-ba2e-7f65b5eaaa65 with level strategic
+[BACKGROUND] Creating database connection...
+[BACKGROUND] Updating status to 'processing'...
+[BACKGROUND] Status updated. Starting strategic enrichment...
+[BACKGROUND] Fetching persona data...
+[BACKGROUND] Database connection closed
+[BACKGROUND] ❌ Exception caught in background task!
+[BACKGROUND] Error: cached statement plan is invalid due to a database schema or configuration change
+[PERSONA CURRENT] Fetching persona for user_id: default_user
+INFO:     127.0.0.1:55025 - "GET /api/persona/current?user_id=default_user HTTP/1.1" 200 OK
+[DELETE PERSONA] persona_id=26ad1987-e1aa-481a-ba2e-7f65b5eaaa65, user_id=default_user
+[DELETE PERSONA] Found persona: True
+[DELETE PERSONA] Persona userId: default_user, requesting user_id: default_user
+[DELETE PERSONA] Deleted result: True
+[DELETE PERSONA] SUCCESS
+INFO:     127.0.0.1:55032 - "DELETE /api/persona/26ad1987-e1aa-481a-ba2e-7f65b5eaaa65?user_id=default_user HTTP/1.1" 204 No Content
+[PERSONA CREATE] Endpoint called with data: companyName='Marketing Pro Brasil' industry='Consultoria em Marketing Digital' companySize='10-50' targetAudience='Empresários de PMEs que querem escalar vendas online' mainProducts='Consultoria, Tráfego Pago, Growth Hacking' channels=['Instagram', 'Google Ads', 'LinkedIn'] budgetRange='R$ 10.000 - R$ 50.000/mês' primaryGoal='Dobrar faturamento em 12 meses' mainChallenge='Aquisição de clientes qualificados com CAC baixo' timeline='12 meses' researchMode='quick' enrichmentLevel='quick' additionalContext=None
+[PERSONA CREATE] Using user_id: default_user
+[PERSONA CREATE] Calling storage.create_user_persona...
+[PERSONA CREATE] Persona created successfully: f6131821-b74f-448b-bfc7-97e739d174e4
+INFO:     127.0.0.1:55037 - "POST /api/persona/create?user_id=default_user HTTP/1.1" 201 Created
+[ENRICH_ENDPOINT] Received enrichment request for persona f6131821-b74f-448b-bfc7-97e739d174e4 with mode quick
+[ENRICH_ENDPOINT] Persona found. Adding background task...
+[ENRICH_ENDPOINT] Persona ID: f6131821-b74f-448b-bfc7-97e739d174e4, Mode: quick
+[ENRICH_ENDPOINT] background_tasks object: <fastapi.background.BackgroundTasks object at 0x1085afcb0>
+[ENRICH_ENDPOINT] Background task added successfully. Returning 202 response.
+[ENRICH_ENDPOINT] Task should execute after response is sent...
+INFO:     127.0.0.1:55043 - "POST /api/persona/enrich/background HTTP/1.1" 202 Accepted
+Traceback (most recent call last):
+  File "/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend/main.py", line 3314, in _async_enrichment_task
+    persona_row = await conn.fetchrow("""
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 748, in fetchrow
+    data = await self._execute(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 2004, in _do_execute
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gabriellima/Library/Python/3.12/lib/python/site-packages/asyncpg/connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.InvalidCachedStatementError: cached statement plan is invalid due to a database schema or configuration change
+[BACKGROUND] 🔧 Sync wrapper called for persona f6131821-b74f-448b-bfc7-97e739d174e4
+[BACKGROUND] ⚡ Async enrichment task STARTED for persona f6131821-b74f-448b-bfc7-97e739d174e4 with level quick
+[BACKGROUND] Creating database connection...
+[BACKGROUND] Updating status to 'processing'...
+[BACKGROUND] Status updated. Starting quick enrichment...
+[BACKGROUND] Fetching persona data...
+[BACKGROUND] Database connection closed
+[BACKGROUND] ❌ Exception caught in background task!
+[BACKGROUND] Error: cached statement plan is invalid due to a database schema or configuration change
+[PERSONA CURRENT] Fetching persona for user_id: default_user
+INFO:     127.0.0.1:55049 - "GET /api/persona/current?user_id=default_user HTTP/1.1" 200 OK
+[PERSONA CURRENT] Fetching persona for user_id: default_user
+INFO:     127.0.0.1:55062 - "GET /api/persona/current?user_id=default_user HTTP/1.1" 200 OK
+[PERSONA CURRENT] Fetching persona for user_id: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Getting onboarding status for user: 48bb3e53-bfca-4298-bab5-1627ca216739
+[DEBUG] Onboarding status found: {'id': '6cb89662-7d11-42ac-a718-1e168d0f3a3a', 'userId': '48bb3e53-bfca-4298-bab5-1627ca216739', 'currentStep': 4, 'companyName': 'Cognita ', 'industry': 'Educacional', 'companySize': '1-10', 'targetAudience': 'Empresários de Sao Paulo, que estao em busca de conhecimentov sobre inteligência artificial. ', 'goals': ['growth'], 'mainChallenge': 'Dificuldade em atrair clientes para o nossa mentoria e workshop', 'enrichmentLevel': 'strategic', 'completedAt': datetime.datetime(2025, 11, 10, 2, 56, 46, 16133), 'createdAt': datetime.datetime(2025, 11, 10, 2, 55, 27, 876980), 'updatedAt': datetime.datetime(2025, 11, 10, 16, 39, 50, 560723)}
+INFO:     127.0.0.1:55109 - "GET /api/onboarding/status?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55108 - "GET /api/persona/current?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55108 - "GET /api/auth/me?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55109 - "GET /api/persona/list?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55121 - "GET /api/persona/35a44885-fcec-48ed-8150-403ca7ee46d9?user_id=48bb3e53-bfca-4298-bab5-1627ca216739 HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [90431]

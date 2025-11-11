@@ -17,6 +17,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import { AIEnhanceButton } from "@/components/AIEnhanceButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -492,7 +493,19 @@ export default function Onboarding() {
                       name="targetAudience"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-medium">Descreva Seu Público-Alvo *</FormLabel>
+                          <div className="flex items-center justify-between mb-2">
+                            <FormLabel className="text-base font-medium">Descreva Seu Público-Alvo *</FormLabel>
+                            <AIEnhanceButton
+                              currentText={field.value}
+                              fieldType="target_audience"
+                              context={{
+                                industry: form.watch("industry"),
+                                companySize: form.watch("companySize")
+                              }}
+                              onEnhanced={(enhanced) => field.onChange(enhanced)}
+                              disabled={form.formState.isSubmitting}
+                            />
+                          </div>
                           <FormDescription>
                             Seja específico: idade, localização, interesses, comportamentos, valores...
                           </FormDescription>
@@ -551,7 +564,19 @@ export default function Onboarding() {
                       name="mainChallenge"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-medium">Maior Desafio Atual *</FormLabel>
+                          <div className="flex items-center justify-between mb-2">
+                            <FormLabel className="text-base font-medium">Maior Desafio Atual *</FormLabel>
+                            <AIEnhanceButton
+                              currentText={field.value}
+                              fieldType="challenge"
+                              context={{
+                                industry: form.watch("industry"),
+                                primaryGoal: form.watch("primaryGoal")
+                              }}
+                              onEnhanced={(enhanced) => field.onChange(enhanced)}
+                              disabled={form.formState.isSubmitting}
+                            />
+                          </div>
                           <FormDescription>
                             Descreva o principal obstáculo que você enfrenta
                           </FormDescription>

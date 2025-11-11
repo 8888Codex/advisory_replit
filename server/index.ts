@@ -25,8 +25,18 @@ app.set('trust proxy', 1);
 // Session configuration with PostgreSQL store
 const PgSession = connectPgSimple(session);
 
-// Validate SESSION_SECRET in production
+// Validate SESSION_SECRET
 const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  console.error('ERROR: SESSION_SECRET environment variable is required');
+  process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'production' && sessionSecret.length < 32) {
+  console.error('ERROR: SESSION_SECRET must be at least 32 characters in production');
+  process.exit(1);
+}
+
 if (process.env.NODE_ENV === 'production' && !sessionSecret) {
   throw new Error('SESSION_SECRET environment variable is required in production');
 }
@@ -37,11 +47,12 @@ app.use(session({
     tableName: 'session',
     createTableIfMissing: true
   }),
-  secret: sessionSecret || 'o-conselho-dev-secret-key',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
+  rolling: true, // Renew session on each request
   cookie: {
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: 60 * 60 * 1000, // 1 hour (configurable via SESSION_MAX_AGE_HOURS)
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax'
@@ -64,9 +75,9 @@ declare module 'express-session' {
 
 // Start Python backend automatically
 function startPythonBackend() {
-  log("Starting Python backend on port 5001...");
+  log("Starting Python backend on port 5002...");
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '5001'];
+  const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '5002'];
   if (isDevelopment) {
     uvicornArgs.push('--reload');
   }
@@ -124,17 +135,87 @@ const registerRateLimiter = new RateLimiterPostgres({
   blockDuration: 60 * 60 // Block for 1 hour after limit
 });
 
+// Council analysis rate limiter (expensive AI operations)
+const councilRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_council',
+  points: 10, // 10 analyses
+  duration: 60 * 60, // Per 1 hour
+  blockDuration: 60 * 60 // Block for 1 hour after limit
+});
+
+// Persona enrichment rate limiter (very expensive operations)
+const enrichmentRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_enrichment',
+  points: 3, // 3 enrichments
+  duration: 24 * 60 * 60, // Per 24 hours (daily limit)
+  blockDuration: 24 * 60 * 60 // Block for 24 hours after limit
+});
+
+// Auto-clone expert rate limiter
+const autoCloneRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_auto_clone',
+  points: 5, // 5 clones
+  duration: 24 * 60 * 60, // Per 24 hours
+  blockDuration: 24 * 60 * 60 // Block for 24 hours after limit
+});
+
+// Upload rate limiter
+const uploadRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_upload',
+  points: 10, // 10 uploads
+  duration: 60 * 60, // Per 1 hour
+  blockDuration: 60 * 60 // Block for 1 hour after limit
+});
+
+// AI Enhance rate limiter
+const aiEnhanceRateLimiter = new RateLimiterPostgres({
+  storeClient: rateLimitPool,
+  tableName: 'rate_limit_ai_enhance',
+  points: 20, // 20 melhorias
+  duration: 60 * 60, // Per 1 hour
+  blockDuration: 60 * 60 // Block for 1 hour after limit
+});
+
+// Authentication middleware
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ detail: 'Authentication required' });
+  }
+  next();
+};
+
+const requireSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ detail: 'Authentication required' });
+  }
+  if (req.session?.userRole !== 'superadmin') {
+    return res.status(403).json({ detail: 'Acesso negado: apenas superadmins' });
+  }
+  next();
+};
+
 // Rate limiting middleware factory
 const createRateLimiter = (limiter: any, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const key = req.ip || 'unknown';
+    // Use user ID if authenticated, otherwise IP
+    const key = req.session?.userId || req.ip || 'unknown';
     try {
       await limiter.consume(key);
       next();
     } catch (rateLimiterRes: any) {
       const remainingTime = Math.ceil(rateLimiterRes.msBeforeNext / 1000 / 60); // minutes
+      const timeUnit = rateLimiterRes.msBeforeNext > 60 * 60 * 1000 ? 'horas' : 'minutos';
+      const timeValue = timeUnit === 'horas' 
+        ? Math.ceil(rateLimiterRes.msBeforeNext / 1000 / 60 / 60)
+        : remainingTime;
+      
+      
       res.status(429).json({
-        detail: `Muitas tentativas. Aguarde ${remainingTime} minuto${remainingTime > 1 ? 's' : ''}.`,
+        detail: `Limite de ${action} atingido. Aguarde ${timeValue} ${timeUnit}.`,
         retryAfter: remainingTime
       });
     }
@@ -143,6 +224,11 @@ const createRateLimiter = (limiter: any, action: string) => {
 
 const loginRateLimit = createRateLimiter(loginRateLimiter, 'login');
 const registerRateLimit = createRateLimiter(registerRateLimiter, 'register');
+const councilRateLimit = createRateLimiter(councilRateLimiter, 'análises do conselho');
+const enrichmentRateLimit = createRateLimiter(enrichmentRateLimiter, 'enriquecimentos de persona');
+const autoCloneRateLimit = createRateLimiter(autoCloneRateLimiter, 'criação de especialistas');
+const uploadRateLimit = createRateLimiter(uploadRateLimiter, 'uploads de arquivo');
+const aiEnhanceRateLimit = createRateLimiter(aiEnhanceRateLimiter, 'melhorias de IA');
 
 // Parse JSON and URL-encoded bodies BEFORE auth routes
 app.use(express.json());
@@ -160,7 +246,7 @@ async function logAuthEvent(
   metadata?: Record<string, any>
 ) {
   try {
-    await fetch('http://localhost:5001/api/audit/log', {
+    await fetch('http://localhost:5002/api/audit/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -185,7 +271,7 @@ async function logAuthEvent(
 
 app.post('/api/auth/register', registerRateLimit, async (req, res) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/register', {
+    const response = await fetch('http://localhost:5002/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -228,7 +314,7 @@ app.post('/api/auth/register', registerRateLimit, async (req, res) => {
 
 app.post('/api/auth/login', loginRateLimit, async (req, res) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/login', {
+    const response = await fetch('http://localhost:5002/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -288,7 +374,7 @@ app.post('/api/auth/logout', async (req, res) => {
 // Password reset endpoints - public (no session required)
 app.post('/api/auth/request-reset', async (req, res) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/request-reset', {
+    const response = await fetch('http://localhost:5002/api/auth/request-reset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -315,7 +401,7 @@ app.post('/api/auth/request-reset', async (req, res) => {
 
 app.post('/api/auth/verify-reset-token', async (req, res) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/verify-reset-token', {
+    const response = await fetch('http://localhost:5002/api/auth/verify-reset-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -336,7 +422,7 @@ app.post('/api/auth/verify-reset-token', async (req, res) => {
 
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/reset-password', {
+    const response = await fetch('http://localhost:5002/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -365,7 +451,7 @@ app.get('/api/auth/me', async (req, res) => {
 
   try {
     // Fetch fresh user data from Python/database
-    const response = await fetch(`http://localhost:5001/api/auth/me?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/auth/me?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -398,7 +484,7 @@ app.post('/api/invites/generate', async (req, res) => {
 
   try {
     // Call Python with authenticated user ID only
-    const response = await fetch(`http://localhost:5001/api/invites/generate?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/invites/generate?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -423,7 +509,7 @@ app.get('/api/invites/my-codes', async (req, res) => {
 
   try {
     // Call Python with authenticated user ID only
-    const response = await fetch(`http://localhost:5001/api/invites/my-codes?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/invites/my-codes?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -463,7 +549,7 @@ app.get('/api/audit/logs', async (req, res) => {
     if (action) params.append('action', action as string);
     if (success !== undefined) params.append('success', success as string);
     
-    const response = await fetch(`http://localhost:5001/api/audit/logs?${params.toString()}`, {
+    const response = await fetch(`http://localhost:5002/api/audit/logs?${params.toString()}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -497,7 +583,7 @@ app.post('/api/onboarding/save', async (req, res) => {
     console.log('[Onboarding] Save request - body:', JSON.stringify(req.body));
     
     // Call Python with authenticated user ID and onboarding data
-    const response = await fetch(`http://localhost:5001/api/onboarding/save?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/onboarding/save?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -527,7 +613,7 @@ app.get('/api/onboarding/status', async (req, res) => {
 
   try {
     // Call Python with authenticated user ID only
-    const response = await fetch(`http://localhost:5001/api/onboarding/status?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/onboarding/status?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -552,7 +638,7 @@ app.post('/api/onboarding/complete', async (req, res) => {
 
   try {
     // Call Python with authenticated user ID only
-    const response = await fetch(`http://localhost:5001/api/onboarding/complete?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/onboarding/complete?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -582,7 +668,7 @@ app.post('/api/persona/create', async (req, res) => {
 
   try {
     // Forward persona data to Python backend with authenticated user ID
-    const response = await fetch(`http://localhost:5001/api/persona/create?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/create?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -601,14 +687,11 @@ app.post('/api/persona/create', async (req, res) => {
   }
 });
 
-app.post('/api/persona/enrich/background', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ detail: 'Não autenticado' });
-  }
+app.post('/api/persona/enrich/background', requireAuth, enrichmentRateLimit, async (req, res) => {
 
   try {
     // Trigger background enrichment
-    const response = await fetch(`http://localhost:5001/api/persona/enrich/background?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/enrich/background?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -634,7 +717,7 @@ app.get('/api/persona/enrichment-status', async (req, res) => {
 
   try {
     // Check enrichment status
-    const response = await fetch(`http://localhost:5001/api/persona/enrichment-status?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/enrichment-status?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -659,7 +742,7 @@ app.get('/api/persona/current', async (req, res) => {
 
   try {
     // Get current persona
-    const response = await fetch(`http://localhost:5001/api/persona/current?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/current?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -684,7 +767,7 @@ app.get('/api/persona/list', async (req, res) => {
 
   try {
     // Get all personas for this user
-    const response = await fetch(`http://localhost:5001/api/persona/list?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/list?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -714,7 +797,7 @@ app.post('/api/persona/set-active', async (req, res) => {
     console.log('[Persona] Set active - Content-Length:', Buffer.byteLength(bodyData));
     
     // Set active persona
-    const response = await fetch(`http://localhost:5001/api/persona/set-active?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/set-active?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -745,7 +828,7 @@ app.delete('/api/persona/:id', async (req, res) => {
 
   try {
     // Delete persona
-    const response = await fetch(`http://localhost:5001/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -775,7 +858,7 @@ app.get('/api/persona/:id', async (req, res) => {
 
   try {
     // Get specific persona
-    const response = await fetch(`http://localhost:5001/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/persona/${req.params.id}?user_id=${req.session.userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -806,7 +889,7 @@ app.get('/api/conversations/history/user', async (req, res) => {
 
   try {
     const { limit = '50' } = req.query;
-    const response = await fetch(`http://localhost:5001/api/conversations/history/user?user_id=${req.session.userId}&limit=${limit}`, {
+    const response = await fetch(`http://localhost:5002/api/conversations/history/user?user_id=${req.session.userId}&limit=${limit}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -831,7 +914,7 @@ app.get('/api/conversations', async (req, res) => {
 
   try {
     const { expertId } = req.query;
-    let url = `http://localhost:5001/api/conversations?user_id=${req.session.userId}`;
+    let url = `http://localhost:5002/api/conversations?user_id=${req.session.userId}`;
     if (expertId) {
       url += `&expertId=${expertId}`;
     }
@@ -860,7 +943,7 @@ app.post('/api/conversations', async (req, res) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5001/api/conversations?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/conversations?user_id=${req.session.userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
@@ -893,7 +976,7 @@ app.delete('/api/conversations/:conversationId', async (req, res) => {
     const { conversationId } = req.params;
     console.log(`[EXPRESS DELETE] Calling Python backend for ${conversationId}`);
     
-    const response = await fetch(`http://localhost:5001/api/conversations/${conversationId}?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/conversations/${conversationId}?user_id=${req.session.userId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -919,7 +1002,7 @@ app.delete('/api/conversations/user/clear-all', async (req, res) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5001/api/conversations/user/clear-all?user_id=${req.session.userId}`, {
+    const response = await fetch(`http://localhost:5002/api/conversations/user/clear-all?user_id=${req.session.userId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -937,42 +1020,202 @@ app.delete('/api/conversations/user/clear-all', async (req, res) => {
   }
 });
 
-// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, persona, and conversations handled above)
+// Council Analysis endpoints (inject userId from session)
+app.post('/api/council/analyze', requireAuth, councilRateLimit, async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:5002/api/council/analyze?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error('Error calling council analyze:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/council/analyze-stream', requireAuth, councilRateLimit, async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:5002/api/council/analyze-stream?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Pipe the streaming response
+    if (response.body) {
+      const reader = response.body.getReader();
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        } catch (error) {
+          console.error('Stream error:', error);
+          res.end();
+        }
+      };
+      await pump();
+    }
+  } catch (error: any) {
+    console.error('Error calling council analyze-stream:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Auto-clone expert endpoint (with rate limiting)
+app.post('/api/experts/auto-clone', requireAuth, autoCloneRateLimit, async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:5002/api/experts/auto-clone?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error: any) {
+    console.error('Error calling auto-clone:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Upload endpoints (with rate limiting)
+app.post('/api/upload/avatar', requireAuth, uploadRateLimit, async (req, res, next) => {
+  // Proxy to Python backend
+  next();
+});
+
+app.post('/api/upload/expert-avatar', requireAuth, uploadRateLimit, async (req, res, next) => {
+  // Proxy to Python backend
+  next();
+});
+
+// User Avatar Upload (with rate limiting and user_id injection)
+app.post('/api/upload/user-avatar', requireAuth, uploadRateLimit, async (req, res, next) => {
+  req.url = `${req.url}?user_id=${req.session.userId}`;
+  next();
+});
+
+// AI Enhance endpoint (with rate limiting)
+app.post('/api/ai/enhance-prompt', requireAuth, aiEnhanceRateLimit, async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:5002/api/ai/enhance-prompt?user_id=${req.session.userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return res.status(response.status).json(error);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error('Error calling AI enhance:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Change Password endpoint
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:5002/api/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword,
+        user_id: req.session.userId
+      })
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+    res.json(data);
+  } catch (error: any) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// SuperAdmin endpoints (require superadmin role)
+app.get('/api/superadmin/*', requireSuperAdmin, async (req, res, next) => {
+  req.url = `${req.url}?user_id=${req.session.userId}`;
+  next();
+});
+
+app.post('/api/superadmin/*', requireSuperAdmin, async (req, res, next) => {
+  req.url = `${req.url}?user_id=${req.session.userId}`;
+  next();
+});
+
+app.delete('/api/superadmin/*', requireSuperAdmin, async (req, res, next) => {
+  req.url = `${req.url}?user_id=${req.session.userId}`;
+  next();
+});
+
+// Proxy all OTHER /api requests to Python backend (EXCEPT auth, invites, onboarding, persona, conversations, council, uploads, and experts/auto-clone handled above)
 // pathRewrite adds /api prefix back (Express removes it when using app.use('/api'))
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:5001',
+  target: 'http://localhost:5002',
   pathRewrite: {'^/': '/api/'},
   changeOrigin: true,
   // Allow proxy to handle already-parsed body from express.json()
   // @ts-ignore - parseReqBody option exists in runtime
   parseReqBody: true,
-  // Exclude auth, invite, onboarding, and persona endpoints (handled by Express middleware above)
+  // Exclude auth, invite, onboarding, persona, conversations, council, and ai endpoints (handled by Express middleware above)
   // Note: pathname here is WITHOUT /api prefix (Express strips it before proxy)
   // @ts-ignore - filter option exists in runtime but not in type definitions
   filter: (pathname: string, req: any) => {
-    // Block /auth/*, /invites/*, /onboarding/*, /persona/*, and /conversations from being proxied
+    // Block /auth/*, /invites/*, /onboarding/*, /persona/*, /conversations/*, /council/*, /ai/*, and /superadmin/* from being proxied
     return !pathname.startsWith('/auth') && 
            !pathname.startsWith('/invites') && 
-           !pathname.startsWith('/onboarding') && 
+           !pathname.startsWith('/onboarding') &&
            !pathname.startsWith('/persona') &&
-           !pathname.startsWith('/conversations');
+           !pathname.startsWith('/conversations') &&
+           !pathname.startsWith('/council') &&
+           !pathname.startsWith('/ai') &&
+           !pathname.startsWith('/superadmin');
   },
   // SSE-specific configuration for streaming endpoints
   on: {
     proxyReq: (proxyReq, req, res) => {
-      // Re-send body if it was already parsed by express.json() (only for JSON content-type)
+      const isSSE = req.url?.includes('/stream') || req.url?.includes('/analyze-stream');
+      
+      // Re-send body if it was already parsed by express.json() (only for JSON content-type, NOT for SSE)
       const contentType = req.headers['content-type'] || '';
       if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') && 
           req.body && 
-          contentType.includes('application/json')) {
+          contentType.includes('application/json') &&
+          !isSSE) {  // Don't write body for SSE - causes ERR_HTTP_HEADERS_SENT
         const bodyData = JSON.stringify(req.body);
         proxyReq.setHeader('Content-Type', 'application/json');
         proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
         proxyReq.write(bodyData);
       }
       
-      // Set headers for SSE endpoints
-      if (req.url?.includes('/stream') || req.url?.includes('/analyze-stream')) {
+      // Set headers for SSE endpoints only
+      if (isSSE) {
         proxyReq.setHeader('Accept', 'text/event-stream');
         proxyReq.setHeader('Connection', 'keep-alive');
         proxyReq.setHeader('Cache-Control', 'no-cache');
@@ -1037,6 +1280,7 @@ app.use((req, res, next) => {
   // Serve avatar images and other attached assets
   // This must be before setupVite to avoid Vite intercepting the routes
   app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+  app.use('/assets/user_avatars', express.static(path.resolve(process.cwd(), 'attached_assets/user_avatars')));
   
   const server = await registerRoutes(app);
   

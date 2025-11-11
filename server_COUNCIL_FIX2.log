@@ -1,0 +1,294 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (10) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+5:27:33 PM [express] Starting Python backend on port 5002...
+Seeding default experts...
+Seeded 6 experts successfully.
+5:27:33 PM [express] serving on port 3001
+5:27:33 PM [express] [Python Backend Error] INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+ERROR:    [Errno 48] Address already in use
+5:27:33 PM [express] [Python Backend] Exited with code 1
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+(node:5461) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Conversations] History error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:817:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[SSE Proxy Error] AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:5002
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5002
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:5002
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5002
+    }
+  ]
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:376:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Persona] List error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:695:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Persona] List error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:695:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:376:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:645:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:376:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:171:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:275:5) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:171:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:275:5) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Persona] Enrichment status error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:645:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Me error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:376:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:171:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:275:5) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:171:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:275:5) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Auth] Login error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:239:22) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Audit] Failed to log event: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logAuthEvent (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:171:5)
+    at async <anonymous> (/Users/gabriellima/Downloads/Andromeda/advisory_replit/server/index.ts:275:5) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[EXPRESS DELETE] Route hit: 40d8ddc9-728c-422a-979f-b82526cba62c
+[EXPRESS DELETE] Session userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[EXPRESS DELETE] Calling Python backend for 40d8ddc9-728c-422a-979f-b82526cba62c
+[EXPRESS DELETE] Python response: 200 { success: true, message: 'Conversation deleted' }
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:15:34.263388"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":2,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"Empresas que usam metodologia de inbound marketing para captaçao de lead e tem pelo menos 3 pessoas no time de vendas. ","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":2,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"Empresas que usam metodologia de inbound marketing para captaçao de lead e tem pelo menos 3 pessoas no time de vendas. ","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:16:46.527479"}
+6:26:51 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+6:27:09 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+6:27:20 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"codex","industry":"ia","companySize":"11-50","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"codex","industry":"ia","companySize":"11-50","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:28:09.428376"}
+6:30:34 PM [vite] hmr update /src/components/AIEnhanceButton.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+6:30:34 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+6:30:35 PM [vite] hmr update /src/components/AIEnhanceButton.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+6:30:35 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=8B6T2OVBlxbiqdyUgs5ps
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"Codex","industry":"IA","companySize":"11-50","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:31:03.484252"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"Codex ","industry":"IA","companySize":"51-200","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"Codex ","industry":"IA","companySize":"51-200","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:31:24.615710"}
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"codex ","industry":"AI","companySize":"1-10","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"codex ","industry":"AI","companySize":"1-10","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:32:12.786081"}

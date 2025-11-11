@@ -1,0 +1,33 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.3] injecting env (10) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+6:34:02 PM [express] Starting Python backend on port 5002...
+Seeding default experts...
+Seeded 6 experts successfully.
+Re-optimizing dependencies because lockfile has changed
+6:34:02 PM [express] serving on port 3001
+6:34:03 PM [express] [Python Backend Error] INFO:     Will watch for changes in these directories: ['/Users/gabriellima/Downloads/Andromeda/advisory_replit/python_backend']
+ERROR:    [Errno 48] Address already in use
+6:34:03 PM [express] [Python Backend] Exited with code 1
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+(node:9209) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"Codex ","industry":"ai ","companySize":"11-50","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"Codex ","industry":"ai ","companySize":"11-50","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:34:56.825647"}
+6:37:15 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=6IiqufI2T9eOuAshMhdpt
+6:37:19 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=6IiqufI2T9eOuAshMhdpt
+6:37:20 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=6IiqufI2T9eOuAshMhdpt
+6:37:47 PM [vite] hmr update /src/pages/Onboarding.tsx, /src/index.css?v=6IiqufI2T9eOuAshMhdpt
+[Onboarding] Save request - userId: 48bb3e53-bfca-4298-bab5-1627ca216739
+[Onboarding] Save request - body: {"currentStep":1,"companyName":"codex ","industry":"IA","companySize":"11-50","targetAudience":"","mainChallenge":"","enrichmentLevel":"quick"}
+[Onboarding] Python response status: 200
+[Onboarding] Python response data: {"id":"6cb89662-7d11-42ac-a718-1e168d0f3a3a","userId":"48bb3e53-bfca-4298-bab5-1627ca216739","currentStep":1,"companyName":"codex ","industry":"IA","companySize":"11-50","targetAudience":"","goals":["growth"],"mainChallenge":"","enrichmentLevel":"quick","completedAt":"2025-11-10T02:56:46.016133","createdAt":"2025-11-10T02:55:27.876980","updatedAt":"2025-11-10T21:42:57.829550"}

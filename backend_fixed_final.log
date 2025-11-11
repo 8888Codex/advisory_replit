@@ -1,0 +1,70 @@
+INFO:     Started server process [35793]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+[CloneRegistry] Discovering seed clones...
+[CloneRegistry] Registered SEED clone: Al Ries (5 stories)
+[CloneRegistry] Registered SEED clone: Ann Handley (5 stories)
+[CloneRegistry] Registered SEED clone: Claude Hopkins (5 stories)
+[CloneRegistry] Registered SEED clone: Dan Kennedy (5 stories)
+[CloneRegistry] Registered SEED clone: Daniel Kahneman (5 stories)
+[CloneRegistry] Registered SEED clone: David Aaker (5 stories)
+[CloneRegistry] Registered SEED clone: David Ogilvy (5 stories)
+[CloneRegistry] Registered SEED clone: Donald Miller (5 stories)
+[CloneRegistry] Registered SEED clone: Drayton Bird (5 stories)
+[CloneRegistry] Registered SEED clone: Eugene Schwartz (5 stories)
+[CloneRegistry] Registered SEED clone: Gary Vaynerchuk (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Abraham (5 stories)
+[CloneRegistry] Registered SEED clone: Jay Levinson (5 stories)
+[CloneRegistry] Registered SEED clone: Neil Patel (5 stories)
+[CloneRegistry] Registered SEED clone: Philip Kotler (5 stories)
+[CloneRegistry] Registered SEED clone: Robert Cialdini (5 stories)
+[CloneRegistry] Registered SEED clone: Seth Godin (5 stories)
+[CloneRegistry] Registered SEED clone: Simon Sinek (5 stories)
+[CloneRegistry] Discovering custom auto-generated clones...
+[CORS] Allowed origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+[Startup] Initializing PostgreSQL storage...
+[PostgresStorage] Connection pool initialized
+[Startup] PostgreSQL storage initialized successfully
+[Startup] Seed experts loaded from CloneRegistry. PostgreSQL ready for custom experts.
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+[RECOMMEND] Matched 'Jay Abraham' -> ID: seed-jay-abraham
+[RECOMMEND] Matched 'Donald Miller' -> ID: seed-donald-miller
+[RECOMMEND] Matched 'Neil Patel' -> ID: seed-neil-patel
+[RECOMMEND] Matched 'Gary Vaynerchuk' -> ID: seed-gary-vaynerchuk
+[RECOMMEND] Matched 'Robert Cialdini' -> ID: seed-robert-cialdini
+INFO:     127.0.0.1:62813 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+[DEBUG] Getting experts, category filter: None
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:62847 - "GET /api/experts HTTP/1.1" 200 OK
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+[RECOMMEND] Matched 'Jay Abraham' -> ID: seed-jay-abraham
+[RECOMMEND] Matched 'Dan Kennedy' -> ID: seed-dan-kennedy
+[RECOMMEND] Matched 'Eugene Schwartz' -> ID: seed-eugene-schwartz
+[RECOMMEND] Matched 'Philip Kotler' -> ID: seed-philip-kotler
+[RECOMMEND] Matched 'Donald Miller' -> ID: seed-donald-miller
+INFO:     127.0.0.1:62849 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+[DEBUG] Getting experts, category filter: None
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[DEBUG] Total experts loaded: 32
+INFO:     127.0.0.1:62855 - "GET /api/experts HTTP/1.1" 200 OK
+[DEDUP] SEED experts: 18, DB experts: 22, Unique DB: 14
+[DEDUP] Removed 8 duplicate(s) from DB (already in SEED)
+[LLM Router] Using Claude Haiku for recommend_experts (cost-optimized ~92% cheaper)
+[RECOMMEND] Matched 'Jay Abraham' -> ID: seed-jay-abraham
+[RECOMMEND] Matched 'Dan Kennedy' -> ID: seed-dan-kennedy
+[RECOMMEND] Matched 'Eugene Schwartz' -> ID: seed-eugene-schwartz
+[RECOMMEND] Matched 'Philip Kotler' -> ID: seed-philip-kotler
+[RECOMMEND] Matched 'Al Ries' -> ID: seed-al-ries
+INFO:     127.0.0.1:62857 - "POST /api/recommend-experts HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35793]

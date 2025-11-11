@@ -11,8 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings, Ticket } from "lucide-react";
+import { User, LogOut, Settings, Ticket, MessageSquare, Crown } from "lucide-react";
 import logoImage from "@assets/o conselho_1762287383861.png";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const [location, setLocation] = useLocation();
@@ -24,7 +25,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 backdrop-blur-xl bg-background/80 shadow-sm">
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <MobileNav />
@@ -38,33 +39,57 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-6">
           {user && (
             <Link href="/home">
-              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-dashboard">
+              <span className={cn(
+                "text-sm font-medium transition-all cursor-pointer relative",
+                "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+                location === "/home" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+              )} data-testid="link-dashboard">
                 Home
               </span>
             </Link>
           )}
           <Link href="/categories">
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-categories">
+            <span className={cn(
+              "text-sm font-medium transition-all cursor-pointer relative",
+              "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+              location === "/categories" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+            )} data-testid="link-categories">
               Categorias
             </span>
           </Link>
+          <Link href="/conversations">
+            <span className={cn(
+              "text-sm font-medium transition-all cursor-pointer relative",
+              "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+              location === "/conversations" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+            )} data-testid="link-conversations">
+              Conversas
+            </span>
+          </Link>
           <Link href="/test-council">
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-council">
+            <span className={cn(
+              "text-sm font-medium transition-all cursor-pointer relative",
+              "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+              location === "/test-council" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+            )} data-testid="link-council">
               Conselho Estratégico
             </span>
           </Link>
           <Link href="/personas">
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-personas">
+            <span className={cn(
+              "text-sm font-medium transition-all cursor-pointer relative",
+              "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+              location === "/personas" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+            )} data-testid="link-personas">
               Persona Builder
             </span>
           </Link>
-          <Link href="/analytics">
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-analytics">
-              Analytics
-            </span>
-          </Link>
           <Link href="/create">
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-create">
+            <span className={cn(
+              "text-sm font-medium transition-all cursor-pointer relative",
+              "after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full",
+              location === "/create" ? "text-primary after:w-full" : "text-muted-foreground hover:text-foreground"
+            )} data-testid="link-create">
               Criar Especialista
             </span>
           </Link>
@@ -91,6 +116,12 @@ export function Header() {
                   <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </DropdownMenuItem>
+                {user.role === 'superadmin' && (
+                  <DropdownMenuItem onClick={() => setLocation('/superadmin')} data-testid="menu-superadmin">
+                    <Crown className="mr-2 h-4 w-4 text-yellow-500" />
+                    SuperAdmin Panel
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => setLocation('/settings')} data-testid="menu-invites">
                   <Ticket className="mr-2 h-4 w-4" />
                   Códigos de Convite ({user.availableInvites})

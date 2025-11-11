@@ -4,7 +4,7 @@ Matches user business profile with marketing experts based on expertise, goals, 
 """
 
 from typing import List, Dict, Optional
-from python_backend.models import Expert, BusinessProfile
+from models import Expert, BusinessProfile
 
 class ExpertRecommendationEngine:
     """
