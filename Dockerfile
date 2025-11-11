@@ -105,6 +105,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 ENV NODE_ENV=production
 ENV PYTHONUNBUFFERED=1
 
-# Start application
-CMD ["npm", "start"]
+# Copy startup script
+COPY start.sh ./
+RUN chmod +x start.sh
+
+# Start application (both Node and Python)
+CMD ["./start.sh"]
 
