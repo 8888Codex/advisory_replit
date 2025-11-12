@@ -58,10 +58,10 @@ tmp/
 temp/
 *.tmp
 
-# Backups
+# Backups (exclude backup files but allow deployment SQL)
 backups/
-*.sql
 *.sql.gz
+# NOTE: Removed *.sql to allow add_soft_delete.sql for deployment
 
 # Git
 .git/
