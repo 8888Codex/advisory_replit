@@ -1313,7 +1313,9 @@ app.use((req, res, next) => {
   // Default to 5000 for development if not specified.
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
+  // In Docker/production, must listen on 0.0.0.0 to be accessible from outside container
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+  server.listen(port, host, () => {
+    log(`serving on port ${port} (host: ${host})`);
   });
 })();
