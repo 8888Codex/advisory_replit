@@ -25,6 +25,9 @@ COPY tailwind.config.ts ./
 COPY postcss.config.js ./
 COPY components.json ./
 
+# Copy attached_assets (needed for logo and other assets during build)
+COPY attached_assets/ ./attached_assets/
+
 # Build frontend AND server (esbuild compiles server to dist/)
 RUN npm run build
 
@@ -72,12 +75,13 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Install Python 3.11 and system dependencies
+# Install Python 3.11 and system dependencies (including curl for health checks)
 RUN apt-get update && apt-get install -y \
     python3.11 \
     python3-pip \
     postgresql-client \
     curl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
@@ -98,15 +102,19 @@ COPY shared/ ./shared/
 # Copy Python backend
 COPY python_backend/ ./python_backend/
 
+# Copy attached_assets (needed for static file serving and user uploads)
+COPY attached_assets/ ./attached_assets/
+
 # Copy additional files
 COPY pyproject.toml ./
 COPY backup_db.sh ./
 COPY add_soft_delete.sql ./
 COPY ENV_VARIABLES.md ./
 
-# Create necessary directories with proper permissions
+# Create necessary directories with proper permissions (in case they don't exist)
 RUN mkdir -p attached_assets/avatars \
     attached_assets/custom_experts \
+    attached_assets/user_avatars \
     logs \
     backups && \
     chmod -R 755 attached_assets logs backups

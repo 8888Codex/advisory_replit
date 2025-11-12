@@ -55,10 +55,35 @@ echo "⏳ Aguardando Python backend inicializar..."
 # Aguardar Python iniciar (até 60 segundos com feedback)
 PYTHON_READY=false
 for i in {1..60}; do
-    if curl -s http://localhost:5002/api/health > /dev/null 2>&1; then
-        echo "✅ Python backend pronto! (PID: $PYTHON_PID)"
-        PYTHON_READY=true
-        break
+    # Tentar curl primeiro, se não disponível usar python ou wget
+    if command -v curl >/dev/null 2>&1; then
+        if curl -s http://localhost:5002/api/health > /dev/null 2>&1; then
+            echo "✅ Python backend pronto! (PID: $PYTHON_PID)"
+            PYTHON_READY=true
+            break
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:5002/api/health')" >/dev/null 2>&1; then
+            echo "✅ Python backend pronto! (PID: $PYTHON_PID)"
+            PYTHON_READY=true
+            break
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        if wget -q -O /dev/null http://localhost:5002/api/health 2>/dev/null; then
+            echo "✅ Python backend pronto! (PID: $PYTHON_PID)"
+            PYTHON_READY=true
+            break
+        fi
+    else
+        # Se nenhum comando disponível, apenas verificar se processo está rodando
+        if kill -0 $PYTHON_PID 2>/dev/null; then
+            # Aguardar um pouco mais e assumir que está pronto
+            if [ $i -gt 10 ]; then
+                echo "✅ Python backend iniciado (PID: $PYTHON_PID) - assumindo pronto após 10s"
+                PYTHON_READY=true
+                break
+            fi
+        fi
     fi
     
     # Verificar se processo Python ainda está rodando
@@ -90,8 +115,11 @@ echo "=================================================="
 # Garantir que se Node parar, Python também para
 trap "echo '⚠️  Encerrando serviços...'; kill $PYTHON_PID 2>/dev/null || true; exit" INT TERM EXIT
 
+# Definir PORT=3001 para o servidor Node
+export PORT=3001
+
 # Iniciar Node server
-NODE_ENV=production node dist/index.js
+NODE_ENV=production PORT=3001 node dist/index.js
 
 # Se chegamos aqui, Node parou - matar Python também
 kill $PYTHON_PID 2>/dev/null || true

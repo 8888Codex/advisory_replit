@@ -8,6 +8,30 @@ import { z } from "zod";
 const pythonExpertRoutes = new Set(['auto-clone', 'auto-clone-stream', 'auto-clone-status', 'test-chat']);
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Check if Python backend is reachable
+      const pythonHealthy = await fetch('http://localhost:5002/api/health')
+        .then(r => r.ok)
+        .catch(() => false);
+      
+      res.json({
+        status: "ok",
+        node: "healthy",
+        python: pythonHealthy ? "healthy" : "unreachable",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: "error",
+        node: "healthy",
+        python: "error",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Get all experts
   app.get("/api/experts", async (req, res) => {
     try {

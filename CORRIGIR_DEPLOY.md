@@ -1,9 +1,8 @@
 # 🔧 Correção do Deploy - Erro 401
 
-## ❌ PROBLEMA IDENTIFICADO
+## ❌ PROBLEMAS IDENTIFICADOS
 
-O **Python backend não está rodando** no container Docker!
-
+### Problema 1: Python backend não estava rodando
 **Sintomas:**
 - Erro 401 em `/api/auth/login` e `/api/auth/me`
 - Console mostra "Failed to load resource: 401 Unauthorized"
@@ -11,14 +10,38 @@ O **Python backend não está rodando** no container Docker!
 **Causa:**
 O Dockerfile original só iniciava o servidor Node, que tentava se conectar ao Python backend inexistente.
 
+### Problema 2: Conflito de inicialização do Python
+**Causa:**
+O `server/index.ts` estava tentando iniciar o Python backend automaticamente mesmo em produção, causando conflito com o `start.sh`.
+
+### Problema 3: Porta incorreta do servidor Node
+**Causa:**
+O servidor Node estava usando `PORT || '5000'` mas o deploy espera porta 3001. O `start.sh` não estava definindo `PORT=3001`.
+
+### Problema 4: curl pode não estar disponível
+**Causa:**
+O `start.sh` usava `curl` para health check, mas pode não estar instalado no container.
+
 ---
 
 ## ✅ SOLUÇÃO APLICADA
 
 ### Arquivos Corrigidos:
 
-1. ✅ **`start.sh`** - Script que inicia AMBOS servidores (Node + Python)
-2. ✅ **`Dockerfile`** - Atualizado para usar o `start.sh`
+1. ✅ **`start.sh`** 
+   - Define `PORT=3001` explicitamente
+   - Health check com fallback (curl → python → wget → timeout)
+   - Inicia Python backend antes do Node
+
+2. ✅ **`server/index.ts`**
+   - **NÃO inicia Python em produção** (apenas em desenvolvimento)
+   - Em produção, assume que `start.sh` já iniciou o Python
+
+3. ✅ **`server/routes.ts`**
+   - Adicionado endpoint `/api/health` que verifica Node e Python
+
+4. ✅ **`Dockerfile`**
+   - Garante instalação de `curl` e `wget` para health checks
 
 ---
 
@@ -32,10 +55,10 @@ O Dockerfile original só iniciava o servidor Node, que tentava se conectar ao P
 cd /Users/gabriellima/Downloads/Andromeda/advisory_replit
 
 # Adicionar arquivos corrigidos
-git add Dockerfile start.sh CORRIGIR_DEPLOY.md
+git add Dockerfile start.sh server/index.ts server/routes.ts CORRIGIR_DEPLOY.md
 
 # Commitar
-git commit -m "fix: Adicionar start.sh para iniciar Python e Node corretamente"
+git commit -m "fix: Corrigir deploy - evitar conflito Python, definir PORT=3001, adicionar health check Node"
 
 # Push (você precisa fazer manualmente com suas credenciais)
 git push origin main
@@ -73,13 +96,18 @@ No Dokploy, veja os logs e procure por:
 ```
 🚀 Iniciando O Conselho Marketing Advisory Platform
 ==================================================
-✅ Variáveis de ambiente validadas
+✅ Todas as variáveis obrigatórias configuradas
 ✅ Diretórios criados
+✅ Dependências Python OK
 🐍 Iniciando Python backend (porta 5002)...
 ⏳ Aguardando Python backend inicializar...
-✅ Python backend pronto!
+✅ Python backend pronto! (PID: XXXX)
 🟢 Iniciando Node server (porta 3001)...
+==================================================
+serving on port 3001
 ```
+
+**IMPORTANTE:** Você NÃO deve ver a mensagem "Starting Python backend on port 5002..." do servidor Node em produção. Se aparecer, significa que o Node está tentando iniciar o Python (erro corrigido).
 
 ### 2. Testar Health Checks
 
@@ -94,7 +122,13 @@ curl http://SUA-URL:5002/api/health
 # Frontend Node
 curl http://SUA-URL:3001/api/health
 
-# Deve retornar algo como: {"status": "ok"}
+# Deve retornar:
+# {
+#   "status": "ok",
+#   "node": "healthy",
+#   "python": "healthy",
+#   "timestamp": "2024-..."
+# }
 ```
 
 ### 3. Testar Login
