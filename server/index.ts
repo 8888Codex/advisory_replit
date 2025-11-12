@@ -77,9 +77,9 @@ declare module 'express-session' {
 // In production, start.sh handles Python backend startup
 function startPythonBackend() {
   // Only start Python backend in development mode
-  // In production, start.sh handles it
+  // In production, start.sh or start_replit.sh handles it
   if (process.env.NODE_ENV === 'production') {
-    log("Production mode: Python backend should be started by start.sh");
+    log("Production mode: Python backend should be started by start.sh or start_replit.sh");
     return null;
   }
   

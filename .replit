@@ -1,6 +1,6 @@
 modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
-run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+run = "bash start_replit.sh"
+hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist", ".dockerignore", "Dockerfile", "docker-compose.yml", "dokploy.json"]
 
 [nix]
 channel = "stable-24_05"
@@ -9,7 +9,7 @@ packages = ["cargo", "freetype", "lcms2", "libiconv", "libimagequant", "libjpeg"
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["bash", "start_replit.sh"]
 
 [[ports]]
 localPort = 5000
@@ -77,6 +77,8 @@ externalPort = 8099
 
 [env]
 PORT = "5000"
+NODE_ENV = "production"
+PYTHON_BACKEND_PORT = "5002"
 
 [workflows]
 runButton = "Project"
@@ -96,7 +98,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "bash start_replit.sh"
 waitForPort = 5000
 
 [agent]
