@@ -122,8 +122,8 @@ RUN mkdir -p attached_assets/avatars \
 # Expose ports (Node: 3001, Python: 5002)
 EXPOSE 3001 5002
 
-# Health check on Node server
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Health check on Node server (aumentado start-period para dar tempo de Python e Node iniciarem)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
     CMD curl -f http://localhost:3001/api/health || exit 1
 
 # Set environment
