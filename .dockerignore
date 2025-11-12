@@ -84,8 +84,9 @@ tests/
 .replit
 replit.nix
 
-# Lock files (we copy them separately)
-package-lock.json
+# Lock files
+# NOTE: package-lock.json is NEEDED for npm ci!
+# Only block uv.lock
 uv.lock
 
 # Analytics seed data
