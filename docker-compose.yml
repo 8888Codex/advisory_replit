@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   # ============================================
@@ -80,45 +81,144 @@ services:
         - NODE_ENV=production
     container_name: advisory-app
     environment:
-      # Database
+      # ============================================
+      # Database Configuration
+      # ============================================
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-advisory}
       
-      # API Keys (obrigatórias - configure no .env)
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
-      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      # ============================================
+      # API Keys - OBRIGATÓRIAS
+      # ============================================
+      # Anthropic Claude API - OBRIGATÓRIA
+      # Obter em: https://console.anthropic.com/
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-api03-SUA-CHAVE-AQUI}
       
-      # Session & Security
-      SESSION_SECRET: ${SESSION_SECRET}
-      NODE_ENV: production
+      # Session Secret - OBRIGATÓRIA (mínimo 32 caracteres)
+      # Gerar com: openssl rand -base64 32
+      SESSION_SECRET: ${SESSION_SECRET:-sua-session-secret-aqui-minimo-32-caracteres-aleatorios}
       
-      # Redis (se habilitado via profile)
+      # ============================================
+      # API Keys - Opcionais (funcionalidades específicas)
+      # ============================================
+      # Perplexity API - Para pesquisa de mercado e enrichment
+      # Obter em: https://www.perplexity.ai/settings/api
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-pplx-SUA-CHAVE-AQUI}
+      
+      # YouTube Data API v3 - Para busca de vídeos
+      # Obter em: https://console.cloud.google.com/apis/credentials
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-AIzaSy-SUA-CHAVE-AQUI}
+      
+      # Unsplash API - Para avatares de especialistas
+      # Obter em: https://unsplash.com/oauth/applications
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-sua-unsplash-access-key-aqui}
+      
+      # Google Generative AI (Gemini) - Para funcionalidades de IA
+      # Obter em: https://makersuite.google.com/app/apikey
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-sua-google-gemini-key-aqui}
+      
+      # Resend API - Para envio de emails (reset de senha, etc)
+      # Obter em: https://resend.com/api-keys
+      RESEND_API_KEY: ${RESEND_API_KEY:-re_SUA-CHAVE-AQUI}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@exemplo.com}
+      
+      # ============================================
+      # Environment & Security
+      # ============================================
+      NODE_ENV: ${NODE_ENV:-production}
+      PYTHONUNBUFFERED: 1
+      
+      # CORS Configuration
+      # Para produção, especifique domínios permitidos separados por vírgula
+      # Exemplo: https://app.example.com,https://www.example.com
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      
+      # CSRF Protection
+      CSRF_ENABLED: ${CSRF_ENABLED:-true}
+      
+      # ============================================
+      # Redis Cache (Opcional)
+      # ============================================
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       REDIS_ENABLED: ${REDIS_ENABLED:-false}
       
-      # Logging
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      LOG_FORMAT: ${LOG_FORMAT:-json}
-      PYTHONUNBUFFERED: 1
-      
+      # ============================================
       # Database Pool Configuration
+      # ============================================
       DB_POOL_MIN_SIZE: ${DB_POOL_MIN_SIZE:-10}
       DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-50}
+      DB_POOL_MAX_QUERIES: ${DB_POOL_MAX_QUERIES:-5000}
       
+      # ============================================
+      # Anthropic API Configuration
+      # ============================================
+      ANTHROPIC_TIMEOUT: ${ANTHROPIC_TIMEOUT:-60}
+      ANTHROPIC_MAX_RETRIES: ${ANTHROPIC_MAX_RETRIES:-3}
+      ANTHROPIC_RETRY_DELAY: ${ANTHROPIC_RETRY_DELAY:-1}
+      
+      # ============================================
+      # Circuit Breaker Configuration
+      # ============================================
+      CIRCUIT_BREAKER_THRESHOLD: ${CIRCUIT_BREAKER_THRESHOLD:-5}
+      CIRCUIT_BREAKER_TIMEOUT: ${CIRCUIT_BREAKER_TIMEOUT:-300}
+      
+      # ============================================
+      # Logging Configuration
+      # ============================================
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_TO_FILE: ${LOG_TO_FILE:-true}
+      
+      # ============================================
+      # Rate Limiting Configuration
+      # ============================================
+      RATE_LIMIT_COUNCIL_PER_HOUR: ${RATE_LIMIT_COUNCIL_PER_HOUR:-10}
+      RATE_LIMIT_ENRICHMENT_PER_DAY: ${RATE_LIMIT_ENRICHMENT_PER_DAY:-3}
+      RATE_LIMIT_AUTO_CLONE_PER_DAY: ${RATE_LIMIT_AUTO_CLONE_PER_DAY:-5}
+      RATE_LIMIT_UPLOAD_PER_HOUR: ${RATE_LIMIT_UPLOAD_PER_HOUR:-10}
+      
+      # ============================================
+      # File Upload Configuration
+      # ============================================
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-5}
+      MAX_IMAGE_DIMENSION: ${MAX_IMAGE_DIMENSION:-2048}
+      UPLOAD_DIR: /app/attached_assets
+      
+      # ============================================
+      # Session Configuration
+      # ============================================
+      SESSION_MAX_AGE_HOURS: ${SESSION_MAX_AGE_HOURS:-1}
+      SESSION_ROLLING: ${SESSION_ROLLING:-true}
+      
+      # ============================================
       # Ports (internas do container)
+      # ============================================
       PORT: 3001
       PYTHON_BACKEND_PORT: 5002
       NODE_SERVER_PORT: 3001
+      AUTO_START_PYTHON: ${AUTO_START_PYTHON:-true}
       
-      # CORS (ajuste conforme necessário)
-      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      # ============================================
+      # Monitoring & Backup (Opcional)
+      # ============================================
+      # Sentry Error Tracking
+      SENTRY_DSN: ${SENTRY_DSN:-}
       
-      # File Upload Limits
-      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
-      UPLOAD_DIR: /app/attached_assets
+      # Backup Configuration
+      BACKUP_ENABLED: ${BACKUP_ENABLED:-true}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      
+      # Health Check
+      HEALTH_CHECK_ENABLED: ${HEALTH_CHECK_ENABLED:-true}
+      
+      # ============================================
+      # Replit Specific (para deploy no Replit)
+      # ============================================
+      REPL_SLUG: ${REPL_SLUG:-}
+      REPL_OWNER: ${REPL_OWNER:-}
+      REPLIT_DOMAINS: ${REPLIT_DOMAINS:-http://localhost:5000}
       
     ports:
       - "${NODE_PORT:-3001}:3001"
