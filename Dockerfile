@@ -78,15 +78,43 @@ WORKDIR /app
 # Install Python 3.11 and system dependencies (including curl for health checks)
 RUN apt-get update && apt-get install -y \
     python3.11 \
+    python3.11-dev \
     python3-pip \
     postgresql-client \
     curl \
     wget \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=python-builder /usr/local/bin /usr/local/bin
+# Ensure python3.11 is the default python3
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+# Install ALL Python dependencies directly in runtime stage
+# This ensures compatibility and that uvicorn is properly available
+# Copy pyproject.toml first to use it for installation
+COPY pyproject.toml ./
+RUN python3.11 -m pip install --no-cache-dir --upgrade pip && \
+    python3.11 -m pip install --no-cache-dir \
+    anthropic>=0.71.0 \
+    asyncpg>=0.30.0 \
+    bcrypt>=5.0.0 \
+    crewai>=1.1.0 \
+    crewai-tools>=1.1.0 \
+    fastapi>=0.119.1 \
+    google-generativeai>=0.8.5 \
+    httpx>=0.28.1 \
+    loguru>=0.7.0 \
+    pillow>=12.0.0 \
+    pydantic>=2.12.3 \
+    python-dotenv>=1.1.1 \
+    redis>=5.0.0 \
+    requests>=2.32.5 \
+    resend>=2.19.0 \
+    tenacity>=8.0.0 \
+    uvicorn>=0.38.0 \
+    youtube-transcript-api>=1.2.3 && \
+    python3.11 -c "import uvicorn; print('✅ Uvicorn instalado e verificado com sucesso')" && \
+    python3.11 -c "import fastapi; print('✅ FastAPI instalado e verificado com sucesso')"
 
 # Copy Node.js production dependencies
 COPY package*.json ./
@@ -105,8 +133,7 @@ COPY python_backend/ ./python_backend/
 # Copy attached_assets (needed for static file serving and user uploads)
 COPY attached_assets/ ./attached_assets/
 
-# Copy additional files
-COPY pyproject.toml ./
+# Copy additional files (pyproject.toml already copied above)
 COPY backup_db.sh ./
 COPY add_soft_delete.sql ./
 COPY ENV_VARIABLES.md ./
