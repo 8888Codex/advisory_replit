@@ -91,10 +91,11 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 # Install ALL Python dependencies directly in runtime stage
 # This ensures compatibility and that uvicorn is properly available
-# Using --break-system-packages flag because we're in a Docker container (PEP 668)
-# Copy pyproject.toml first to use it for installation
+# Remove EXTERNALLY-MANAGED file to allow pip installs (PEP 668 workaround for Docker)
+# This is safe in containers as they are isolated environments
 COPY pyproject.toml ./
-RUN python3.11 -m pip install --no-cache-dir --upgrade pip && \
+RUN rm -f /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3/dist-packages/EXTERNALLY-MANAGED 2>/dev/null || true && \
+    python3.11 -m pip install --no-cache-dir --upgrade pip --break-system-packages && \
     python3.11 -m pip install --no-cache-dir --break-system-packages \
     anthropic>=0.71.0 \
     asyncpg>=0.30.0 \
