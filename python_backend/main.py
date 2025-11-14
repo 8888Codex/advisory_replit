@@ -68,18 +68,29 @@ app = FastAPI(title="O Conselho - Marketing Legends API")
 def get_allowed_origins():
     """Get allowed CORS origins based on environment"""
     env = os.getenv("NODE_ENV", "development")
+    
+    # Priority 1: Use ALLOWED_ORIGINS if explicitly set (for Dokploy/custom domains)
+    allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+    if allowed_origins_env:
+        origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+        if origins:
+            return origins
+    
+    # Priority 2: Replit-specific (if REPL_SLUG and REPL_OWNER are set)
     if env == "production":
-        # In production, REQUIRE Replit environment variables for security
         replit_domain = os.getenv("REPL_SLUG", "")
         replit_owner = os.getenv("REPL_OWNER", "")
-        if not replit_domain or not replit_owner:
-            raise ValueError(
-                "REPL_SLUG and REPL_OWNER environment variables are required in production for CORS security"
-            )
-        return [
-            f"https://{replit_domain}-{replit_owner}.replit.app",
-            f"https://{replit_domain}.{replit_owner}.repl.co",
-        ]
+        if replit_domain and replit_owner:
+            return [
+                f"https://{replit_domain}-{replit_owner}.replit.app",
+                f"https://{replit_domain}.{replit_owner}.repl.co",
+            ]
+    
+    # Priority 3: Default - allow localhost (Node server proxies from localhost:3001)
+    # This works for Docker/Dokploy where Node and Python run in same container
+    if env == "production":
+        # In production with Docker, Node server runs on localhost:3001 and proxies to Python
+        return ["http://localhost:3001", "http://127.0.0.1:3001", "http://localhost:5000", "http://127.0.0.1:5000"]
     else:
         # Development: allow localhost on ports 3000 and 5000
         return ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5000", "http://127.0.0.1:5000"]
