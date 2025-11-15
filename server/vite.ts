@@ -8,10 +8,13 @@ import { nanoid } from "nanoid";
 // This prevents vite from being bundled in production builds
 export async function setupVite(app: Express, server: Server) {
   // Dynamic imports only when this function is called (development mode)
+  // Import vite first, then viteConfig (which depends on vite)
   const { createServer: createViteServer, createLogger } = await import("vite");
+  const viteLogger = createLogger();
+  
+  // Import viteConfig dynamically (it imports vite, but vite is already loaded)
   const viteConfigModule = await import("../vite.config");
   const viteConfig = viteConfigModule.default;
-  const viteLogger = createLogger();
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
