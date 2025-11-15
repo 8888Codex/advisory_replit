@@ -12,8 +12,11 @@ import { RateLimiterPostgres } from 'rate-limiter-flexible';
 import pg from 'pg';
 import { registerRoutes } from "./routes";
 import { registerAdminRoutes } from "./routes/admin";
-import { setupVite, serveStatic, log } from "./vite";
 import { seedExperts } from "./seed";
+
+// Import log and serveStatic from static.ts (no vite dependency)
+// setupVite will be imported dynamically only in development
+import { serveStatic, log } from "./static";
 
 const { Pool } = pg;
 
@@ -1303,6 +1306,8 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    // Dynamic import of setupVite only in development (avoids bundling vite in production)
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
     serveStatic(app);
