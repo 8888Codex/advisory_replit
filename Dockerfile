@@ -24,6 +24,7 @@ COPY vite.config.ts ./
 COPY tailwind.config.ts ./
 COPY postcss.config.js ./
 COPY components.json ./
+COPY esbuild.config.mjs ./
 
 # Copy attached_assets (needed for logo and other assets during build)
 COPY attached_assets/ ./attached_assets/
