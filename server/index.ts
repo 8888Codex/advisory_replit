@@ -1307,8 +1307,14 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     // Dynamic import of setupVite only in development (avoids bundling vite in production)
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+    // Using a function that returns the import to prevent esbuild from statically resolving
+    // This ensures vite.ts is not included in the production bundle
+    const loadVite = async () => {
+      const vitePath = "./vite";
+      return import(vitePath);
+    };
+    const viteModule = await loadVite();
+    await viteModule.setupVite(app, server);
   } else {
     serveStatic(app);
   }
