@@ -12,6 +12,16 @@ WORKDIR /app
 COPY package*.json ./
 COPY client/package*.json ./client/
 
+# Copy build configuration files (needed for build scripts)
+COPY tsconfig.json ./
+COPY vite.config.ts ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+COPY esbuild.config.mjs ./
+COPY build-server.sh ./
+RUN chmod +x build-server.sh
+
 # Install ALL dependencies (including devDependencies for build)
 RUN npm ci
 
@@ -19,12 +29,6 @@ RUN npm ci
 COPY client/ ./client/
 COPY shared/ ./shared/
 COPY server/ ./server/
-COPY tsconfig.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
-COPY components.json ./
-COPY esbuild.config.mjs ./
 
 # Copy attached_assets (needed for logo and other assets during build)
 COPY attached_assets/ ./attached_assets/
