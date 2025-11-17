@@ -1305,25 +1305,22 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  const isDevelopment = process.env.NODE_ENV !== 'production' && app.get("env") !== "production";
-  
-  if (isDevelopment) {
-    // Dynamic import of setupVite only in development
-    // Using string template to prevent esbuild from statically resolving this import
-    // This ensures vite.ts is not included in the production bundle
+  // In production, always serve static files
+  // Use direct NODE_ENV check so esbuild can tree-shake the else block
+  if (process.env.NODE_ENV === 'production' || app.get("env") === "production") {
+    serveStatic(app);
+  } else {
+    // Development: setup Vite dev server
+    // This code will be tree-shaken out in production builds
+    // because esbuild replaces process.env.NODE_ENV with 'production' string
     try {
-      // Use a runtime-constructed path that esbuild cannot resolve statically
-      const viteModulePath = `./${'vite'}`;
-      const viteModule = await import(/* @vite-ignore */ viteModulePath);
+      const viteModule = await import("./vite");
       await viteModule.setupVite(app, server);
     } catch (error) {
-      // If vite.ts is not available (e.g., in production bundle), fall back to static serving
+      // If vite.ts is not available, fall back to static serving
       console.warn('Vite not available, falling back to static file serving:', error);
       serveStatic(app);
     }
-  } else {
-    // Production: serve static files only
-    serveStatic(app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
