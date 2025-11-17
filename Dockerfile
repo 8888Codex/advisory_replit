@@ -126,7 +126,9 @@ RUN npm ci --only=production
 COPY --from=frontend-builder /app/dist ./dist
 
 # Copy server source (needed for imports in dist/index.js)
+# Exclude vite.ts in production as it's not needed and not bundled
 COPY server/ ./server/
+RUN rm -f ./server/vite.ts 2>/dev/null || true
 COPY shared/ ./shared/
 
 # Copy Python backend

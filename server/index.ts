@@ -1305,17 +1305,24 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    // Dynamic import of setupVite only in development (avoids bundling vite in production)
-    // Using a function that returns the import to prevent esbuild from statically resolving
+  const isDevelopment = process.env.NODE_ENV !== 'production' && app.get("env") !== "production";
+  
+  if (isDevelopment) {
+    // Dynamic import of setupVite only in development
+    // Using string template to prevent esbuild from statically resolving this import
     // This ensures vite.ts is not included in the production bundle
-    const loadVite = async () => {
-      const vitePath = "./vite";
-      return import(vitePath);
-    };
-    const viteModule = await loadVite();
-    await viteModule.setupVite(app, server);
+    try {
+      // Use a runtime-constructed path that esbuild cannot resolve statically
+      const viteModulePath = `./${'vite'}`;
+      const viteModule = await import(/* @vite-ignore */ viteModulePath);
+      await viteModule.setupVite(app, server);
+    } catch (error) {
+      // If vite.ts is not available (e.g., in production bundle), fall back to static serving
+      console.warn('Vite not available, falling back to static file serving:', error);
+      serveStatic(app);
+    }
   } else {
+    // Production: serve static files only
     serveStatic(app);
   }
 
