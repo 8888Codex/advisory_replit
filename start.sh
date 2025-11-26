@@ -29,6 +29,12 @@ echo "📁 Criando diretórios..."
 mkdir -p attached_assets/avatars attached_assets/custom_experts logs backups
 echo "✅ Diretórios criados"
 
+# Inicializar banco de dados (criar tabelas se não existirem)
+if [ -f "/app/init-db.sh" ]; then
+    echo "🗄️  Executando inicialização do banco de dados..."
+    bash /app/init-db.sh || echo "⚠️  Inicialização do banco falhou, continuando mesmo assim..."
+fi
+
 # Verificar se dist/index.js existe (build do Node)
 if [ ! -f "dist/index.js" ]; then
     echo "❌ ERROR: dist/index.js não encontrado! O build falhou?"

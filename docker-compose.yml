@@ -229,6 +229,8 @@ services:
       redis:
         condition: service_healthy
         required: false
+    # O init-db.sh será executado automaticamente pelo start.sh
+    # após o PostgreSQL estar pronto (garantido pelo depends_on)
     volumes:
       # Assets e uploads de usuários
       - ./attached_assets:/app/attached_assets

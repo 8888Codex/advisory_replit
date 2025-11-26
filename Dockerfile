@@ -166,9 +166,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
 ENV NODE_ENV=production
 ENV PYTHONUNBUFFERED=1
 
-# Copy and prepare startup script
+# Copy and prepare startup scripts
 COPY start.sh ./
-RUN chmod +x start.sh
+COPY init-db.sh ./
+RUN chmod +x start.sh init-db.sh
 
 # Start application (both Node and Python)
 CMD ["./start.sh"]
