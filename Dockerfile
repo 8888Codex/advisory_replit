@@ -37,44 +37,7 @@ COPY attached_assets/ ./attached_assets/
 RUN npm run build
 
 # ============================================
-# Stage 2: Python Backend Dependencies
-# ============================================
-FROM python:3.11-slim AS python-builder
-
-WORKDIR /app
-
-# Install system dependencies needed for Python packages
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy Python project files
-COPY pyproject.toml ./
-
-# Install Python dependencies using pip directly from pyproject.toml
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-    anthropic>=0.71.0 \
-    asyncpg>=0.30.0 \
-    bcrypt>=5.0.0 \
-    crewai>=1.1.0 \
-    crewai-tools>=1.1.0 \
-    fastapi>=0.119.1 \
-    google-generativeai>=0.8.5 \
-    httpx>=0.28.1 \
-    loguru>=0.7.0 \
-    pillow>=12.0.0 \
-    pydantic>=2.12.3 \
-    python-dotenv>=1.1.1 \
-    redis>=5.0.0 \
-    requests>=2.32.5 \
-    resend>=2.19.0 \
-    tenacity>=8.0.0 \
-    uvicorn>=0.38.0 \
-    youtube-transcript-api>=1.2.3
-
-# ============================================
-# Stage 3: Runtime
+# Stage 2: Runtime
 # ============================================
 FROM node:22-slim
 
@@ -127,6 +90,10 @@ RUN rm -f /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3/dist-packages/
 COPY package*.json ./
 RUN npm ci --only=production
 
+# Install drizzle-kit globally for database migrations (needed by init-db.sh)
+# This is a dev tool but required at runtime for initializing database schema
+RUN npm install -g drizzle-kit@^0.31.4
+
 # Copy built frontend and server from builder
 COPY --from=frontend-builder /app/dist ./dist
 
@@ -135,6 +102,10 @@ COPY --from=frontend-builder /app/dist ./dist
 COPY server/ ./server/
 RUN rm -f ./server/vite.ts 2>/dev/null || true
 COPY shared/ ./shared/
+
+# Copy drizzle config and TypeScript config (needed for drizzle-kit push)
+COPY drizzle.config.ts ./
+COPY tsconfig.json ./
 
 # Copy Python backend
 COPY python_backend/ ./python_backend/

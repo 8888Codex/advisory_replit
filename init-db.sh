@@ -128,13 +128,36 @@ wait_for_postgres || true
 
 # Executar Drizzle Kit Push para criar/atualizar tabelas
 echo "📊 Criando/atualizando tabelas com Drizzle..."
-echo "   Executando: npm run db:push"
+echo "   Executando: drizzle-kit push"
 
 # Garantir que estamos no diretório correto
 cd /app || cd "$(dirname "$0")/.." || pwd
 
+# Verificar se drizzle-kit está disponível
+if ! command -v drizzle-kit >/dev/null 2>&1; then
+    echo "⚠️  drizzle-kit não encontrado no PATH"
+    echo "   Tentando usar npx..."
+    # Tentar com npx como fallback
+    if command -v npx >/dev/null 2>&1; then
+        DRIZZLE_CMD="npx drizzle-kit"
+    else
+        echo "❌ Erro: drizzle-kit não disponível e npx também não encontrado"
+        echo "   Pulando criação de tabelas..."
+        exit 0
+    fi
+else
+    DRIZZLE_CMD="drizzle-kit"
+fi
+
+# Verificar se drizzle.config.ts existe
+if [ ! -f "drizzle.config.ts" ]; then
+    echo "⚠️  drizzle.config.ts não encontrado"
+    echo "   Pulando criação de tabelas..."
+    exit 0
+fi
+
 # Executar drizzle-kit push
-if npm run db:push 2>&1; then
+if $DRIZZLE_CMD push 2>&1; then
     echo "✅ Tabelas criadas/atualizadas com sucesso!"
 else
     EXIT_CODE=$?
