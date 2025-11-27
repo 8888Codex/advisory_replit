@@ -169,7 +169,8 @@ ENV PYTHONUNBUFFERED=1
 # Copy and prepare startup scripts
 COPY start.sh ./
 COPY init-db.sh ./
-RUN chmod +x start.sh init-db.sh
+COPY create-database.sh ./
+RUN chmod +x start.sh init-db.sh create-database.sh
 
 # Start application (both Node and Python)
 CMD ["./start.sh"]
