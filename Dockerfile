@@ -90,8 +90,13 @@ RUN rm -f /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3/dist-packages/
 COPY package*.json ./
 RUN npm ci --only=production
 
+# Install drizzle-kit LOCALLY (required for drizzle.config.ts to import it)
+# drizzle.config.ts uses: import { defineConfig } from "drizzle-kit"
+# This must be in node_modules for Node.js module resolution to work
+RUN npm install drizzle-kit@^0.31.4
+
 # Install drizzle-kit globally for database migrations (needed by init-db.sh)
-# This is a dev tool but required at runtime for initializing database schema
+# This ensures the command is available in PATH for direct execution
 RUN npm install -g drizzle-kit@^0.31.4
 
 # Copy built frontend and server from builder
